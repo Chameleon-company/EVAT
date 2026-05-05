@@ -68,22 +68,14 @@ function Profile() {
   };
 
   const handleChangeImage = () => {
+    // opens file picker for now
+    // change to display profile pic options that are provided by the app
+    // add the file pick button to that pop up
+
     // open file picker
-    //document.getElementById("fileInput").click();
+    document.getElementById("fileInput").click();
   };
 
-  <input
-    id="fileInput"
-    type="file"
-    accept="image/*"
-    style={{ display: "none" }}
-    onChange={(e) => {
-      const file = e.target.files[0];
-      if (file) {
-        setProfileImage(URL.createObjectURL(file));
-      }
-    }}
-  />
 
   // Reset tab to "dashboard" if user navigates back with reset flag
   useEffect(() => {
@@ -508,8 +500,23 @@ function Profile() {
             <button className="edit-icon" onClick={handleChangeImage}>
               <Pencil />
             </button>
+
+            {/* Input pop up for adding a file */}
+            {/* I dont want to use this yet. It will need back end work */}
+            <input
+              id="fileInput"
+              type="file"
+              accept="image/*"
+              style={{ display: "none" }}
+              onChange={(e) => {
+                const file = e.target.files[0];
+                // if (file) {
+                //   setProfileImage(URL.createObjectURL(file));
+                // }
+              }}
+            />
           </div>
-          {/* <img src={profileImage} alt="Profile" className="profile-image" /> */}
+
           {/* Name */}
           <div className='h6 capitalize'>
             {editingAbout ? (
@@ -624,15 +631,12 @@ function Profile() {
               <X size='16'/> CANCEL
             </button>
           )}
-
           <div className='spacer' />
-
 
 
           <div className='h6 capitalize'>
             {`${user.car === "true" ? "" : "My Vehicle:"}`}
           </div>
-
           {/* Car Make */}
           <div className='font-regular text-small'>
             {editingCar ? (
