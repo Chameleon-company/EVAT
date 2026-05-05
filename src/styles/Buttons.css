@@ -201,7 +201,9 @@ and transparent) include the colour differences.
 /* Tiny */
 .btn-tiny {
   padding: var(--button-padding-tiny);
+  gap:5px;
   font-size:  var(--button-font-tiny);
+  align-items: center;
 }
 
 /* Small */

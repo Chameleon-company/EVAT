@@ -57,6 +57,34 @@ function Profile() {
   const [recentSuccess, setRecentSuccess] = useState(false);
   const [success, setSuccess] = useState('');
 
+  // format a given date
+  const formatDate = (date) => {
+    if (!date) return "N/A";
+    return new Date(date).toLocaleDateString('en-AU', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const handleChangeImage = () => {
+    // open file picker
+    //document.getElementById("fileInput").click();
+  };
+
+  <input
+    id="fileInput"
+    type="file"
+    accept="image/*"
+    style={{ display: "none" }}
+    onChange={(e) => {
+      const file = e.target.files[0];
+      if (file) {
+        setProfileImage(URL.createObjectURL(file));
+      }
+    }}
+  />
+
   // Reset tab to "dashboard" if user navigates back with reset flag
   useEffect(() => {
     if (location.pathname === "/profile") {
@@ -139,6 +167,7 @@ function Profile() {
           email: authData.data.email || "",
           mobile: authData.data.mobile || "",
           role: authData.data.role || "",
+          createdAt: authData.data.createdAt,
           car,
           favourites: profileData.data.favourite_stations || [],
           token: token,
@@ -157,7 +186,7 @@ function Profile() {
 
   // Fetch vehicles when editing car OR when opening Environmental Impact tab
   useEffect(() => {
-    if ((activeTab === "car" && editingCar) || activeTab === "env-impact") {
+    if (editingCar || activeTab === "env-impact") {
       fetchAllVehicles();
     }
   }, [activeTab, editingCar, user?.token]);
@@ -467,17 +496,260 @@ function Profile() {
       <NavBar />
       {/* background */}
       <div className="background-image" />
-      {/* title */}
-      <h1 className='h1 text-center auto-width'>My Dashboard</h1>
-      <div className="container horizontal auto-width">
-        {/* left container - profile image*/}
-        <div className="inner-left force-height">
-          <div className="profile-image">
-            <div className='h6 uppercase'>
-              {`${user.firstName === "true" ? "?" : user.firstName} \n `}
-              {` ${user.lastName === "true" ? "?" : user.lastName}`}
-            </div>
-            <img src={profileImage} alt="Profile" />
+      <div className='spacer' />
+      <div className="container horizontal">
+        {/* left container */}
+        <div className="inner-left ">
+
+          {/* Profile image */}
+          <div className="profile-image-wrapper">
+            <img src={profileImage} alt="Profile" className="profile-image" />
+            {/* Edit profile image icon */} 
+            <button className="edit-icon" onClick={handleChangeImage}>
+              <Pencil />
+            </button>
+          </div>
+          {/* <img src={profileImage} alt="Profile" className="profile-image" /> */}
+          {/* Name */}
+          <div className='h6 capitalize'>
+            {editingAbout ? (
+              <div className='icon-inside-input two-hundred-width'>
+                <User className="input-icon" />
+                <input
+                  className="input"
+                  type="text"
+                  value={user.firstName || ""}
+                  onChange={(e) => {
+                    setUser({ ...user, firstName: e.target.value });
+                    setErrors({ ...errors, firstName: "" });
+                  }}
+                />
+              </div>
+            ) : (
+              `${user.firstName === "true" ? "" : user.firstName}`
+            )}
+            {/* First Name Error Message  */}
+            {errors.firstName && editingAbout && <ErrorMessage error={errors.firstName}/>}
+
+            {editingAbout ? (
+              <div className='icon-inside-input two-hundred-width'>
+                <User className="input-icon" />
+                <input
+                  className="input"
+                  type="text"
+                  placeholder="Enter your last name"
+                  value={user.lastName || ""}
+                  onChange={(e) => {
+                    setUser({ ...user, lastName: e.target.value });
+                    setErrors({ ...errors, lastName: "" });
+                  }}
+                />
+              </div>
+            ) : (
+              ` ${user.lastName === "true" ? "" : user.lastName}`
+            )}
+            {/* Last Name Error Message  */}
+            {errors.lastName && editingAbout && <ErrorMessage error={errors.lastName}/>}
+          </div>
+
+          {/* Email */}
+          <div className='lowercase font-regular text-small'>
+            <Mail size='14'/> {`${user.email === "true" ? "N/A" : user.email}`}
+          </div>
+
+          {/* Phone */}
+          <div className='font-regular text-small'>
+            {editingAbout ? (
+              <div className='icon-inside-input two-hundred-width'>
+                <Phone className="input-icon" />
+                <input
+                  className="input"
+                  type="text"
+                  value={user.mobile || ""}
+                  placeholder="Enter your phone"
+                  onChange={(e) => {
+                    setUser({ ...user, mobile: e.target.value });
+                    setErrors({ ...errors, mobile: "" });
+                  }}
+                />
+              </div>
+            ) : (
+              <>
+                <Phone size='14'/> {` ${user.mobile === "true" ? "N/A" : user.mobile}`}
+              </>
+            )}
+            {/* Mobile Error Message  */}
+            {errors.mobile && editingAbout && <ErrorMessage error={errors.mobile}/>}
+          </div>
+
+          {/* Edit details button */}
+          { (!editingAbout) && (
+            <button 
+              className="btn btn-transparent btn-tiny one-hundred-25-width spread" 
+              onClick={() => {
+                if (originalUser != null){
+                  setUser(originalUser);  // reset the details in case other edits are in progress
+                  setErrors({});
+                }
+                setEditingCar(false);     // stop car edit
+                setEditingPayment(false); // stop payment edit
+                setOriginalUser(user);    // save the current values before editing
+                setEditingAbout(true);    // enter edit details mode
+              }}
+            >
+              <Pencil size='14'/>Edit Profile
+            </button>
+          )}
+
+          {/* Save details button */}
+          { (editingAbout) && (
+            <button 
+              className="btn btn-primary btn-tiny one-hundred-25-width spread uppercase" 
+              onClick={() => handleSaveAbout()}
+            >
+              <Check size='16'/> Save
+            </button>
+          )}
+
+          {/* Cancel edit detials button */}
+          { (editingAbout) && (
+            <button 
+              className="btn btn-danger btn-tiny one-hundred-25-width spread uppercase" 
+              onClick={() => {
+                setEditingAbout(false);
+                setUser(originalUser);
+                setErrors({});
+              }}
+            >
+              <X size='16'/> CANCEL
+            </button>
+          )}
+
+          <div className='spacer' />
+
+
+
+          <div className='h6 capitalize'>
+            {`${user.car === "true" ? "" : "My Vehicle:"}`}
+          </div>
+
+          {/* Car Make */}
+          <div className='font-regular text-small'>
+            {editingCar ? (
+              <select
+                className="input two-hundred-width"
+                value={user.car?.make || "Select"}
+                onChange={(e) => {
+                  setUser({ ...user, car: { ...user.car, make: e.target.value, model: "", year: "" } });
+                }}
+              >
+                {makes.map((make, idx) => (
+                  <option key={idx} value={make}>
+                    {make}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              `${user.car?.make === "true" ? "" : user.car?.make}`
+            )}
+            {/* Car Make Error Message  */}
+            {errors.carMake && editingCar && <ErrorMessage error={errors.carMake}/>}
+          </div>
+
+          {/* Car model */}
+          <div className='font-regular text-small'>
+            {editingCar ? (
+              <select
+                className="input two-hundred-width"
+                value={user.car?.model || "Select"}
+                onChange={(e) => {
+                  setUser({...user, car: { ...user.car, model: e.target.value, year: "" }});
+                  setErrors({ ...errors, carMake: "" });
+                }}
+              >
+                {models.map((model, idx) => (
+                  <option key={idx} value={model}>
+                    {model}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              `${user.car?.model === "true" ? "N/A" : user.car?.model}`
+            )}
+            {/* Car Model Error Message  */}
+            {errors.carModel && editingCar && <ErrorMessage error={errors.carModel}/>}
+          </div>
+
+          {/* Car year */}
+          <div className='font-regular text-small'>
+            {editingCar ? (
+              <select
+                className="input two-hundred-width"
+                value={String(user.car?.year) || "Select"}
+                onChange={(e) =>
+                  setUser({ ...user, car: { ...user.car, year: e.target.value } })
+                }
+                
+              >
+                {years.map((year, idx) => (
+                  <option key={idx} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              `${user.car?.year === "true" ? "N/A" : user.car?.year}`
+            )}
+            {/* Car Year Error Message  */}
+            {errors.carYear && editingCar && <ErrorMessage error={errors.carYear}/>}
+          </div>
+
+          {/* Edit car button */}
+          { (!editingCar) && (
+            <button 
+              className="btn btn-transparent btn-tiny one-hundred-25-width spread" 
+              onClick={() => {
+                if (originalUser != null){
+                  setUser(originalUser);  // reset the details in case other edits are in progress
+                  setErrors({});
+                }
+                setEditingAbout(false);   // stop details edit
+                setEditingPayment(false); // stop payment edit
+                setOriginalUser(user);    // save the current values before editing
+                setEditingCar(true);      // enter edit car mode
+              }}
+            >
+              <Pencil size='14'/>Edit Vehcile
+            </button>
+          )}
+
+          {/* Save car button */}
+          { (editingCar) && (
+            <button 
+              className="btn btn-primary btn-tiny one-hundred-25-width spread uppercase" 
+              onClick={() => handleSaveCar()}
+            >
+              <Check size='16'/> Save
+            </button>
+          )}
+
+          {/* Cancel edit car button */}
+          { (editingCar) && (
+            <button 
+              className="btn btn-danger btn-tiny one-hundred-25-width spread uppercase" 
+              onClick={() => {
+                setEditingCar(false);
+                setUser(originalUser);
+                setErrors({});
+              }}
+            >
+              <X size='16'/> CANCEL
+            </button>
+          )}
+
+          <div className='spacer' />
+          <div className='font-regular text-tiny'>
+            Joined: {formatDate(user.createdAt)}
           </div>
         </div>
         
@@ -485,168 +757,10 @@ function Profile() {
         <div className="inner-center">
           {activeTab === "dashboard" && (
             <>
-              <button className="btn btn-primary two-hundred-width spread" onClick={() => setActiveTab("about")}> <CircleUserRound /> About Me</button>
-              <button className="btn btn-primary two-hundred-width spread" onClick={() => setActiveTab("car")}> <Car /> My Car</button>
               <button className="btn btn-primary two-hundred-width spread" onClick={() => setActiveTab("payment")}> <CreditCard /> Payment</button>
               <button className="btn btn-primary two-hundred-width spread" onClick={() => setActiveTab("history")}> <BookText /> Booking History</button>
               <button className="btn btn-primary two-hundred-width spread" onClick={() => setActiveTab("env-impact")}> Environmental Impact</button>
             </>
-          )}
-
-          {/* About Me */}
-          {activeTab === "about" && (
-            <div>
-              <h3>About Me</h3>
-              <div className="input-and-label-same-line ">
-                <label className='form-label required'>First Name: </label>
-                {editingAbout ? (
-                  <div className='icon-inside-input two-hundred-width'>
-                    <User className="input-icon" />
-                    <input
-                      className="input"
-                      type="text"
-                      value={user.firstName || ""}
-                      onChange={(e) => {
-                        setUser({ ...user, firstName: e.target.value });
-                        setErrors({ ...errors, firstName: "" });
-                      }}
-                    />
-                  </div>
-                ) : (
-                  user.firstName
-                )}
-              </div>
-              {/* First Name Error Message  */}
-              {errors.firstName && editingAbout && <ErrorMessage error={errors.firstName}/>}
-
-              <div className="input-and-label-same-line">
-                <label className='form-label required'>Last Name: </label>
-                {editingAbout ? (
-                  <div className='icon-inside-input two-hundred-width'>
-                    <User className="input-icon" />
-                    <input
-                      className="input"
-                      type="text"
-                      value={user.lastName || ""}
-                      placeholder="Enter your last name"
-                      onChange={(e) => {
-                        setUser({ ...user, lastName: e.target.value });
-                        setErrors({ ...errors, lastName: "" });
-                      }}
-                    />
-                  </div>
-                ) : (
-                  user.lastName
-                )}
-              </div>
-              {/* Last Name Error Message  */}
-              {errors.lastName && editingAbout && <ErrorMessage error={errors.lastName}/>}
-
-              <div className="input-and-label-same-line">
-                <label className='form-label'>Email:</label>
-                <span className='form-label text-right'>{user.email || "N/A"}</span>
-              </div>
-
-              <div className="input-and-label-same-line">
-                <label className='form-label required'>Phone: </label>
-                {editingAbout ? (
-                  <div className='icon-inside-input two-hundred-width'>
-                    <Phone className="input-icon" />
-                    <input
-                      className="input"
-                      type="text"
-                      value={user.mobile || ""}
-                      placeholder="Enter your phone"
-                      onChange={(e) => {
-                        setUser({ ...user, mobile: e.target.value });
-                        setErrors({ ...errors, mobile: "" });
-                      }}
-                    />
-                  </div>
-                ) : (
-                  user.mobile || "N/A"
-                )}
-              </div>
-              {/* Mobile Error Message  */}
-              {errors.mobile && editingAbout && <ErrorMessage error={errors.mobile}/>}
-            </div>
-          )}
-
-          {/* My Car */}
-          {activeTab === "car" && (
-            <div>
-              <h3>My Car</h3>
-              <div className="input-and-label-same-line">
-                <label className='form-label required'>Car Make: </label>
-                {editingCar ? (
-                  <select
-                    className="input two-hundred-width"
-                    value={user.car?.make || "Select"}
-                    onChange={(e) => {
-                      setUser({ ...user, car: { ...user.car, make: e.target.value, model: "", year: "" } });
-                    }}
-                  >
-                    {makes.map((make, idx) => (
-                      <option key={idx} value={make}>
-                        {make}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  user.car?.make || "N/A"
-                )}
-              </div>
-              {/* Car Make Error Message  */}
-              {errors.carMake && editingCar && <ErrorMessage error={errors.carMake}/>}
-
-              <div className="input-and-label-same-line">
-                <label className='form-label required'>Car Model: </label>
-                {editingCar ? (
-                  <select
-                    className="input two-hundred-width"
-                    value={user.car?.model || "Select"}
-                    onChange={(e) => {
-                      setUser({...user, car: { ...user.car, model: e.target.value, year: "" }});
-                      setErrors({ ...errors, carMake: "" });
-                    }}
-                  >
-                    {models.map((model, idx) => (
-                      <option key={idx} value={model}>
-                        {model}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  user.car?.model || "N/A"
-                )}
-              </div>
-              {/* Car Model Error Message  */}
-              {errors.carModel && editingCar && <ErrorMessage error={errors.carModel}/>}
-
-              <div className="input-and-label-same-line">
-                <label className='form-label required'>Model Year: </label>
-                {editingCar ? (
-                  <select
-                    className="input two-hundred-width"
-                    value={String(user.car?.year) || "Select"}
-                    onChange={(e) =>
-                      setUser({ ...user, car: { ...user.car, year: e.target.value } })
-                    }
-                    
-                  >
-                    {years.map((year, idx) => (
-                      <option key={idx} value={year}>
-                        {year}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  user.car?.year || "N/A"
-                )}
-              </div>
-              {/* Car Year Error Message  */}
-              {errors.carYear && editingCar && <ErrorMessage error={errors.carYear}/>}
-            </div>
           )}
 
           {/* Payment */}
@@ -788,68 +902,25 @@ function Profile() {
 
         {/* RIGHT SECTION */}
         <div className="inner-right">
-          {/* {activeTab === "dashboard" && (
-            <button 
-              className="btn btn-secondary two-hundred-width spread uppercase" 
-              onClick={handleSignOut}
-            >
-              SIGN OUT
-            </button>
-          )} */}
-
-          {/* About Me */}
-          {activeTab === "about" && (
-            <>
-              {/* Save/Edit button */}
-              <button
-                className="btn btn-primary two-hundred-width spread uppercase"
-                onClick={() => {
-                  if (editingAbout) {
-                    handleSaveAbout();
-                  } else {
-                    setOriginalUser(user); // Save the current values before editing
-                    setEditingAbout(true);
-                  }
-                }}
-              >
-                {editingAbout ? <Check /> : <Pencil /> }
-                {editingAbout ? "SAVE" : "EDIT"}
-              </button>
-            </>
-          )}
-
-          {/* My Car */}
-          {activeTab === "car" && (
-            <>
-              {/* Save/Edit button */}
-              <button
-                className="btn btn-primary two-hundred-width spread uppercase"
-                onClick={() => {
-                  if (editingCar) {
-                    handleSaveCar();
-                  } else {
-                    setOriginalUser(user); // Save the current values before editing
-                    setEditingCar(true);
-                  }
-                }}
-              >
-                {editingCar ? <Check /> : <Pencil /> }
-                {editingCar ? "SAVE" : "EDIT"}
-              </button>
-            </>
-          )}
 
           {/* Payment */}
           {activeTab === "payment" && (
             <>
               {/* Save/Edit button */}
               <button
-                className="btn btn-primary two-hundred-width spread uppercase"
+                className="btn btn-primary one-hundred-50-width spread uppercase"
                 onClick={() => {
                   if (editingPayment) {
                     handleSavePayment();
                   } else {
-                    setEditingPayment(true);
+                    if (originalUser != null){
+                      setUser(originalUser);  // reset the details in case other edits are in progress
+                      setErrors({});
+                    }
+                    setEditingCar(false);     // stop car edit
+                    setEditingAbout(false);   // stop details edit
+                    setOriginalUser(user);    // save the current values before editing
+                    setEditingPayment(true);  // enter edit details mode
                   }
                 }}
               >
@@ -860,19 +931,13 @@ function Profile() {
           )}
 
           {/* Handle Cancel button */}
-          { ((activeTab === "payment" && editingPayment) ||   // payment and editing
-            (activeTab === "car" && editingCar) ||            // car and editing
-            (activeTab === "about" && editingAbout)           // about and editing
+          { ((activeTab === "payment" && editingPayment)      // payment and editing
             ) && (
             // Cancel button
             <button 
-              className="btn btn-transparent two-hundred-width spread uppercase" 
+              className="btn btn-transparent one-hundred-50-width spread uppercase" 
               onClick={() => {
-                if (activeTab === "about") {
-                  setEditingAbout(false);
-                } else if (activeTab === "car") {
-                  setEditingCar(false);
-                } else if (activeTab === "payment") {
+                if (activeTab === "payment") {
                   setEditingPayment(false);
                 } 
                 setUser(originalUser);
@@ -886,13 +951,11 @@ function Profile() {
           {/* Handle Back button */}
           { (activeTab === "history" ||                       // history
             activeTab === "env-impact" ||                     // environmental impact
-            (activeTab === "payment" && !editingPayment) ||   // payment but not editing
-            (activeTab === "car" && !editingCar) ||           // car but not editing
-            (activeTab === "about" && !editingAbout)          // about but not editing
+            (activeTab === "payment" && !editingPayment)      // payment but not editing
             ) && (
             // Back button
             <button 
-              className="btn btn-tertiary two-hundred-width spread uppercase" 
+              className="btn btn-tertiary one-hundred-50-width spread uppercase" 
               onClick={() => setActiveTab("dashboard")}
             >
               <ArrowLeft /> BACK

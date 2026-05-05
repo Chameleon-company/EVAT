@@ -120,6 +120,7 @@ small, .text-small {
 
 /* Case */
 .uppercase       { text-transform: uppercase; letter-spacing: 0.06em; }
+.lowercase       { text-transform: lowercase;}
 .capitalize      { text-transform: capitalize; }
 
 /* Other */

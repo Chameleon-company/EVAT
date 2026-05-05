@@ -178,15 +178,56 @@ body {
   height: auto;
 }
 
+/* edit icon styling for details */
+.details-edit-icon {
+  background: none;
+  color: var(--gray-light);
+  box-shadow: none;
+  cursor: pointer;
+}
+
 /* dashboard profile image */
+.profile-image-wrapper {
+  position: relative;
+  width: 150px;
+}
+
 .profile-image {
-  width: 100px;
-  height: fit-content;
+  width: 150px;
+  height: auto;
   object-fit: cover;
-  position: absolute;
   display: block;
-  margin: 0 auto;
+  border-radius: 50%;
+  border: 4px solid var(--primary-color-base); 
   z-index: 0;
+  transition: 150ms ease;
+  margin-bottom: 10px;
+}
+
+.profile-image-wrapper:hover .profile-image {
+  border-bottom-right-radius: 0;
+}
+
+/* edit image icon styling */
+.edit-icon {
+  position: absolute;
+  bottom: 20px;
+  right: 2px;
+  transform: translate(25%, 25%);
+  background: var(--primary-color-base);
+  color:  var(--white);
+  border: none;
+  border-radius: 50%;
+  border-bottom-right-radius: 0;
+  padding: 6px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+
+/* Show icon on hover */
+.profile-image-wrapper:hover .edit-icon {
+  opacity: 1;
 }
 
 /* game reward image */
@@ -277,6 +318,14 @@ body {
 
 .one-hundred-width {
   width: 100px;
+}
+
+.one-hundred-50-width {
+  width: 150px;
+}
+
+.one-hundred-25-width {
+  width: 125px;
 }
 
 .half-width {
