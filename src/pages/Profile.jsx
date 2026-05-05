@@ -8,7 +8,6 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Mail, House, KeyRound, CalendarDays, User, CreditCard, Phone, CircleUserRound, Car, BookText, LogOut, Pencil, Check, X, ArrowLeft } from 'lucide-react';
 import NavBar from '../components/NavBar';
-import profileImage from '../assets/profileImage.png';
 import ChatBubble from "../components/ChatBubble";
 import BookingHistoryTable from "../components/BookingHistoryTable";
 import EnvironmentalImpact from "../components/EnvironmentalImpact";
@@ -162,6 +161,7 @@ function Profile() {
           createdAt: authData.data.createdAt,
           car,
           favourites: profileData.data.favourite_stations || [],
+          avatarURL: profileData.data.avatarURL,
           token: token,
         };
 
@@ -495,7 +495,7 @@ function Profile() {
 
           {/* Profile image */}
           <div className="profile-image-wrapper">
-            <img src={profileImage} alt="Profile" className="profile-image" />
+            <img src={`${user.avatarURL}`} alt={user.avatarURL} className="profile-image" />
             {/* Edit profile image icon */} 
             <button className="edit-icon" onClick={handleChangeImage}>
               <Pencil />

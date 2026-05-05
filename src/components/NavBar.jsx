@@ -2,7 +2,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import logo from '../assets/logo.png';
-import profileImage from '../assets/profileImage.png';
 import { Menu, LogOut} from "lucide-react";
 
 function NavBar() {
@@ -12,6 +11,8 @@ function NavBar() {
     const [devMenu, setDevMenuOpen] = useState(false);
     const isDev = import.meta.env.DEV; // check if in dev mode
 
+    const user = JSON.parse(localStorage.getItem("currentUser"));
+    
     // Handle Sign out
     const handleSignOut = () => {
         localStorage.removeItem("currentUser");
@@ -118,8 +119,9 @@ function NavBar() {
 
             {/* Right Navbar */}
             <div className="right-navbar">
-                <img src={profileImage} 
-                    alt="Profile" 
+                <img 
+                    src={`${user.avatarURL}`} 
+                    alt={user.avatarURL}
                     className="icon-navbar middle" 
                     onClick={() => navigate('/profile')}
                 />
