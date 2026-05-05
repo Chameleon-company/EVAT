@@ -71,25 +71,34 @@ The right side holds the navigation buttons and the profile icon is on the far r
     flex-shrink: 0;
 }
 
+/* Menu buttons in the navbar */
 .navbar-menu-option {
     display:inline;
     vertical-align: middle;
     cursor: pointer;
 }
 
-.dropdown > .navbar-menu-option:focus, 
+.dropdown-container > .navbar-menu-option:focus, 
 .navbar-menu-option:hover {
   color: var(--navbar-button-hover-text);
 }
 
-.dropdown {
-    position: relative;
+.dropdown-wrapper {
+    display: flex;
+    justify-content: center;
 }
 
-.dropdown-menu {
+.dropdown-container {
+    position: relative;
+    display: inline-block;
+}
+
+/* The dropdown container holding the items */
+.dropdown-list {
+    display: none;
     position: absolute;
     top: calc(var(--navbar-height) - 2px);
-    left: 10px;
+    left: relative;
     padding: var(--dropdown-menu-item-padding);
     box-shadow: var(--dropdown-menu-shadow);
     opacity: 0;
@@ -107,8 +116,8 @@ The right side holds the navigation buttons and the profile icon is on the far r
     border-top-left-radius: 0;
 }
 
-.dropdown-menu.show,
-.dropdown > .navbar-menu-option:focus + .dropdown-menu {
+.dropdown-list.show,
+.dropdown-container > .navbar-menu-option:focus + .dropdown-list {
     opacity: 1;
     transform: translateY(0);
     visibility: visible;
@@ -116,7 +125,8 @@ The right side holds the navigation buttons and the profile icon is on the far r
     z-index: 5000;
 }
 
-.dropdown-menu-item {
+/* Items in the dropdown */
+.dropdown-item {
     padding: var(--dropdown-menu-item-padding);
     height: fit-content;
     border: none;
@@ -127,7 +137,8 @@ The right side holds the navigation buttons and the profile icon is on the far r
     color: var(--text-color-white);
 }
 
-.dropdown-menu-item:hover {
+/* Item hover in the dropdown */
+.dropdown-item:hover {
     background-color: var(--primary-color-base);
     color: var(--text-color-black);
 }
