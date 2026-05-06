@@ -4,15 +4,17 @@
 // Full backend integration can be implemented
 // in the future when actual payments need to be made.
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext  } from 'react';
+import { UserContext } from "../context/user";
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Mail, House, KeyRound, CalendarDays, User, CreditCard, Phone, CircleUserRound, Car, BookText, LogOut, Pencil, Check, X, ArrowLeft } from 'lucide-react';
 import NavBar from '../components/NavBar';
 import ChatBubble from "../components/ChatBubble";
 import BookingHistoryTable from "../components/BookingHistoryTable";
 import EnvironmentalImpact from "../components/EnvironmentalImpact";
-import ErrorMessage from '../components/ErrorMessage'
-import SuccessMessage from '../components/SuccessMessage'
+import ErrorMessage from '../components/ErrorMessage';
+import SuccessMessage from '../components/SuccessMessage';
+import ProfileAvatarTool from '../components/ProfileAvatarTool';
 
 import '../styles/Root.css';
 import '../styles/Buttons.css';
@@ -30,11 +32,14 @@ const RECENT_SUCCESS_MESSAGE_LINGER = 5000; // 5 seconds * 1000
 function Profile() {
   const navigate = useNavigate();
   const location = useLocation();
+  // Get user from Context
+  const { user: contextUser, setUser: setContextUser, updateUser: updateContextUser } = useContext(UserContext);
 
+  // Local editable copy for forms
+  const [localUser, setLocalUser] = useState(null);
+  const [originalUser, setOriginalUser] = useState(null);
   // Local state management
   const [errors, setErrors] = useState({});
-  const [user, setUser] = useState(null);
-  const [originalUser, setOriginalUser] = useState(null);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [editingCar, setEditingCar] = useState(false);
   const [editingPayment, setEditingPayment] = useState(false);
@@ -52,9 +57,18 @@ function Profile() {
   const [paymentErrors, setPaymentErrors] = useState({});
   const [paymentSuccessMessage, setPaymentSuccessMessage] = useState("");
   const [isPaymentSuccess, setIsPaymentSuccess] = useState(false);
-
+  // success and failure messages
   const [recentSuccess, setRecentSuccess] = useState(false);
   const [success, setSuccess] = useState('');
+  // profile image tool
+  const [showAvatarTool, setShowAvatarTool] = useState(false);
+
+  // Sync context user and local user
+  useEffect(() => {
+    if (contextUser) {
+      setLocalUser(contextUser);
+    }
+  }, [contextUser]);
 
   // format a given date
   const formatDate = (date) => {
@@ -67,29 +81,22 @@ function Profile() {
   };
 
   const handleChangeImage = () => {
-    // opens file picker for now
-    // change to display profile pic options that are provided by the app
-    // add the file pick button to that pop up
-
-    // open file picker
-    document.getElementById("fileInput").click();
+    // display profile pic options that are provided by the app
+    setShowAvatarTool(true);
   };
-
 
   // Reset tab to "dashboard" if user navigates back with reset flag
   useEffect(() => {
-    if (location.pathname === "/profile") {
-      if (location.state?.resetDashboard) {
-        setActiveTab("dashboard");
-        navigate(location.pathname, { replace: true });
-      }
+    if (location.pathname === "/profile" && location.state?.resetDashboard) {
+      setActiveTab("dashboard");
+      navigate(location.pathname, { replace: true });
     }
   }, [location, navigate]);
 
-  const storedUser = JSON.parse(localStorage.getItem("currentUser"));
-  const token = storedUser?.token;
+  // get token from context if available, otherwise get from local storage
+  const token = contextUser?.token || JSON.parse(localStorage.getItem("currentUser"))?.token;
 
-  // auto-clear the warning after 5 seconds so it doesn't linger forever
+  // auto-clear the warning after 5 seconds
   useEffect(() => {
     if (isPaymentSuccess) {
       const timer = setTimeout(() => {
@@ -165,8 +172,8 @@ function Profile() {
           token: token,
         };
 
-        setUser(nextUser);
-        localStorage.setItem("currentUser", JSON.stringify(nextUser));
+        setLocalUser(nextUser);
+        setContextUser(nextUser);
       } catch (err) {
         console.error("Profile fetch error:", err);
         navigate("/signin");
@@ -181,16 +188,16 @@ function Profile() {
     if (editingCar || activeTab === "env-impact") {
       fetchAllVehicles();
     }
-  }, [activeTab, editingCar, user?.token]);
+  }, [activeTab, editingCar, localUser?.token]);
 
   // Reusable function to load all vehicles
   const fetchAllVehicles = async () => {
-    if (!user?.token || loadingVehicles) return;
+    if (!localUser?.token || loadingVehicles) return;
 
     setLoadingVehicles(true);
     try {
       const res = await fetch(`${API_URL}/vehicle`, {
-        headers: { Authorization: `Bearer ${user.token}` },
+        headers: { Authorization: `Bearer ${localUser.token}` },
       });
 
       if (!res.ok) throw new Error("Failed to fetch vehicles");
@@ -213,15 +220,15 @@ function Profile() {
 
   // Fetch all vehicles when editing starts (to populate dropdown list)
   useEffect(() => {
-    if (user?.car?.make) {
+    if (localUser?.car?.make) {
       const filteredModels = allVehicles
-        .filter((v) => v.make === user.car.make)
+        .filter((v) => v.make === localUser.car.make)
         .map((v) => v.model);
       setModels(["Select", ...new Set(filteredModels)]);
 
-      if (user?.car?.model) {
+      if (localUser?.car?.model) {
         const filteredYears = allVehicles
-          .filter((v) => v.make === user.car.make && v.model === user.car.model)
+          .filter((v) => v.make === localUser.car.make && v.model === localUser.car.model)
           .map((v) => v.year)
           .filter(Boolean);
         setYears(["Select", ...new Set(filteredYears.map(String))]);
@@ -232,7 +239,7 @@ function Profile() {
       setModels(["Select"]);
       setYears(["Select"]);
     }
-  }, [user?.car?.make, user?.car?.model, allVehicles]);
+  }, [localUser?.car?.make, localUser?.car?.model, allVehicles]);
 
   // Reset editing states when switching tabs
   useEffect(() => {
@@ -255,23 +262,23 @@ function Profile() {
   const validateAboutForm = () => {
     const newErrors = {};
 
-    if (!user.firstName.trim()) {
+    if (!localUser.firstName.trim()) {
       newErrors.firstName = "First name is required";
     }
 
-    if (!user.lastName.trim()) {
+    if (!localUser.lastName.trim()) {
       newErrors.lastName = "Last name is required";
     }
 
-    if (!user.email.trim()) {
+    if (!localUser.email.trim()) {
       newErrors.email = "Email is required";
-    } else if (!/^\S+@\S+\.\S+$/.test(user.email)) {
+    } else if (!/^\S+@\S+\.\S+$/.test(localUser.email)) {
       newErrors.email = "Enter a valid email";
     }
 
-    if (!user.mobile.trim()) {
+    if (!localUser.mobile.trim()) {
       newErrors.mobile = "Phone number is required";
-    } else if (!isValidMobile(user.mobile)) {
+    } else if (!isValidMobile(localUser.mobile)) {
       newErrors.mobile = "Phone must start with 04 and be 10 digits";
     }
 
@@ -282,19 +289,19 @@ function Profile() {
   const validatePaymentForm = () => {
     const errors = {};
 
-    const cardNum = (user.cardNumber || "").replace(/\s+/g, "");
+    const cardNum = (localUser.cardNumber || "").replace(/\s+/g, "");
     if (!cardNum) {
       errors.cardNumber = "Card number is required";
     } else if (!/^\d{16}$/.test(cardNum)) {
       errors.cardNumber = "Card number must be 16 digits";
     }
 
-    if (!user.expiryDate) {
+    if (!localUser.expiryDate) {
       errors.expiryDate = "Expiry date is required";
-    } else if (!/^(0[1-9]|1[0-2])\/([0-9]{2})$/.test(user.expiryDate)) {
+    } else if (!/^(0[1-9]|1[0-2])\/([0-9]{2})$/.test(localUser.expiryDate)) {
       errors.expiryDate = "Expiry must be in MM/YY format";
     } else {
-      const [mm, yy] = user.expiryDate.split("/").map(Number);
+      const [mm, yy] = localUser.expiryDate.split("/").map(Number);
       const now = new Date();
       const currentYear = now.getFullYear() % 100;
       const currentMonth = now.getMonth() + 1;
@@ -304,13 +311,13 @@ function Profile() {
       }
     }
 
-    if (!user.cvv) {
+    if (!localUser.cvv) {
       errors.cvv = "CVV is required";
-    } else if (!/^\d{3}$/.test(user.cvv)) {
+    } else if (!/^\d{3}$/.test(localUser.cvv)) {
       errors.cvv = "CVV must be 3 digits";
     }
 
-    if (!user.billingAddress) {
+    if (!localUser.billingAddress) {
       errors.billingAddress = "Billing address is required";
     }
 
@@ -323,18 +330,18 @@ function Profile() {
 
     try {
       const payload = {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        mobile: user.mobile,
+        id: localUser.id,
+        email: localUser.email,
+        firstName: localUser.firstName,
+        lastName: localUser.lastName,
+        mobile: localUser.mobile,
       };
 
       const response = await fetch(`${API_URL}/auth/profile`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${user.token}`,
+          Authorization: `Bearer ${localUser.token}`,
         },
         body: JSON.stringify(payload),
       });
@@ -375,18 +382,18 @@ function Profile() {
 
   const handleSaveCar = async () => {
     try {
-      const token = user?.token;
+      const token = localUser?.token;
 
       let newErrors = {};
 
-      if (user.car.make == "Select") {
+      if (localUser.car.make == "Select") {
         newErrors.carMake = "Please select a make";
       }
 
-      if (user.car.model == "Select" || user.car.model === "") {
+      if (localUser.car.model == "Select" || localUser.car.model === "") {
         newErrors.carModel = "Please select a model";
       }
-      if (user.car.year == "Select" || user.car.year === "") {
+      if (localUser.car.year == "Select" || localUser.car.year === "") {
         newErrors.carYear = "Please select a year";
       }
       setErrors(newErrors);
@@ -394,9 +401,9 @@ function Profile() {
       // The car selected must exist in allVehicles (fro /api/vehicle)
       const selectedVehicle = allVehicles.find(
         (v) =>
-          v.make === user.car?.make &&
-          v.model === user.car?.model &&
-          String(v.model_release_year || v.year) === String(user.car?.year)
+          v.make === localUser.car?.make &&
+          v.model === localUser.car?.model &&
+          String(v.model_release_year || v.year) === String(localUser.car?.year)
       );
 
       if (!selectedVehicle) {
@@ -434,7 +441,7 @@ function Profile() {
           selectedVehicle.year ?? selectedVehicle.model_release_year ?? null,
       };
 
-      setUser((prev) => {
+      setLocalUser((prev) => {
         const next = { ...prev, car: normalizedCar };
         localStorage.setItem("currentUser", JSON.stringify(next));
         return next;
@@ -461,9 +468,9 @@ function Profile() {
   const handleSavePayment = () => {
     if (!validatePaymentForm()) return;
 
-    const cardNum = (user.cardNumber || "").replace(/\s+/g, "");
+    const cardNum = (localUser.cardNumber || "").replace(/\s+/g, "");
 
-    setUser(prev => {
+    setLocalUser(prev => {
       const next = { ...prev, cardNumber: cardNum };
       localStorage.setItem("currentUser", JSON.stringify(next));
       return next;
@@ -481,7 +488,14 @@ function Profile() {
     }, 3000);
   };
 
-  if (!user) return null;
+  // update avatar
+    const handleAvatarChange = (newUrl) => {
+        updateContextUser({ avatarURL: newUrl });
+        setLocalUser(prev => ({ ...prev, avatarURL: newUrl }));
+        setShowAvatarTool(false);
+    };
+
+  if (!localUser) return null;
 
   return (
     <div>
@@ -495,14 +509,17 @@ function Profile() {
 
           {/* Profile image */}
           <div className="profile-image-wrapper">
-            <img src={`${user.avatarURL}`} alt={user.avatarURL} className="profile-image" />
+            <img 
+              src={localUser.avatarURL || "defaultProfilePictures/default-white.png"} 
+              alt="User Avatar"
+              className="profile-image" 
+            />
             {/* Edit profile image icon */} 
             <button className="edit-icon" onClick={handleChangeImage}>
               <Pencil />
             </button>
 
-            {/* Input pop up for adding a file */}
-            {/* I dont want to use this yet. It will need back end work */}
+            {/* INSERT COMPONENT FOR CHOOSING PROFILE IMAGES */}
             <input
               id="fileInput"
               type="file"
@@ -525,15 +542,15 @@ function Profile() {
                 <input
                   className="input"
                   type="text"
-                  value={user.firstName || ""}
+                  value={localUser.firstName || ""}
                   onChange={(e) => {
-                    setUser({ ...user, firstName: e.target.value });
+                    setLocalUser({ ...localUser, firstName: e.target.value });
                     setErrors({ ...errors, firstName: "" });
                   }}
                 />
               </div>
             ) : (
-              `${user.firstName === "true" ? "" : user.firstName}`
+              `${localUser.firstName === "true" ? "" : localUser.firstName}`
             )}
             {/* First Name Error Message  */}
             {errors.firstName && editingAbout && <ErrorMessage error={errors.firstName}/>}
@@ -545,15 +562,15 @@ function Profile() {
                   className="input"
                   type="text"
                   placeholder="Enter your last name"
-                  value={user.lastName || ""}
+                  value={localUser.lastName || ""}
                   onChange={(e) => {
-                    setUser({ ...user, lastName: e.target.value });
+                    setLocalUser({ ...localUser, lastName: e.target.value });
                     setErrors({ ...errors, lastName: "" });
                   }}
                 />
               </div>
             ) : (
-              ` ${user.lastName === "true" ? "" : user.lastName}`
+              ` ${localUser.lastName === "true" ? "" : localUser.lastName}`
             )}
             {/* Last Name Error Message  */}
             {errors.lastName && editingAbout && <ErrorMessage error={errors.lastName}/>}
@@ -561,7 +578,7 @@ function Profile() {
 
           {/* Email */}
           <div className='lowercase font-regular text-small'>
-            <Mail size='14'/> {`${user.email === "true" ? "N/A" : user.email}`}
+            <Mail size='14'/> {`${localUser.email === "true" ? "N/A" : localUser.email}`}
           </div>
 
           {/* Phone */}
@@ -572,17 +589,17 @@ function Profile() {
                 <input
                   className="input"
                   type="text"
-                  value={user.mobile || ""}
+                  value={localUser.mobile || ""}
                   placeholder="Enter your phone"
                   onChange={(e) => {
-                    setUser({ ...user, mobile: e.target.value });
+                    setLocalUser({ ...localUser, mobile: e.target.value });
                     setErrors({ ...errors, mobile: "" });
                   }}
                 />
               </div>
             ) : (
               <>
-                <Phone size='14'/> {` ${user.mobile === "true" ? "N/A" : user.mobile}`}
+                <Phone size='14'/> {` ${localUser.mobile === "true" ? "N/A" : localUser.mobile}`}
               </>
             )}
             {/* Mobile Error Message  */}
@@ -595,12 +612,12 @@ function Profile() {
               className="btn btn-transparent btn-tiny one-hundred-25-width spread" 
               onClick={() => {
                 if (originalUser != null){
-                  setUser(originalUser);  // reset the details in case other edits are in progress
+                  setLocalUser(originalUser);  // reset the details in case other edits are in progress
                   setErrors({});
                 }
                 setEditingCar(false);     // stop car edit
                 setEditingPayment(false); // stop payment edit
-                setOriginalUser(user);    // save the current values before editing
+                setOriginalUser(localUser);    // save the current values before editing
                 setEditingAbout(true);    // enter edit details mode
               }}
             >
@@ -624,7 +641,7 @@ function Profile() {
               className="btn btn-danger btn-tiny one-hundred-25-width spread uppercase" 
               onClick={() => {
                 setEditingAbout(false);
-                setUser(originalUser);
+                setLocalUser(originalUser);
                 setErrors({});
               }}
             >
@@ -635,16 +652,16 @@ function Profile() {
 
 
           <div className='h6 capitalize'>
-            {`${user.car === "true" ? "" : "My Vehicle:"}`}
+            {`${localUser.car === "true" ? "" : "My Vehicle:"}`}
           </div>
           {/* Car Make */}
           <div className='font-regular text-small'>
             {editingCar ? (
               <select
                 className="input two-hundred-width"
-                value={user.car?.make || "Select"}
+                value={localUser.car?.make || "Select"}
                 onChange={(e) => {
-                  setUser({ ...user, car: { ...user.car, make: e.target.value, model: "", year: "" } });
+                  setLocalUser({ ...localUser, car: { ...localUser.car, make: e.target.value, model: "", year: "" } });
                 }}
               >
                 {makes.map((make, idx) => (
@@ -654,7 +671,7 @@ function Profile() {
                 ))}
               </select>
             ) : (
-              `${user.car?.make === "true" ? "" : user.car?.make}`
+              `${localUser.car?.make === "true" ? "" : localUser.car?.make}`
             )}
             {/* Car Make Error Message  */}
             {errors.carMake && editingCar && <ErrorMessage error={errors.carMake}/>}
@@ -665,9 +682,9 @@ function Profile() {
             {editingCar ? (
               <select
                 className="input two-hundred-width"
-                value={user.car?.model || "Select"}
+                value={localUser.car?.model || "Select"}
                 onChange={(e) => {
-                  setUser({...user, car: { ...user.car, model: e.target.value, year: "" }});
+                  setLocalUser({...localUser, car: { ...localUser.car, model: e.target.value, year: "" }});
                   setErrors({ ...errors, carMake: "" });
                 }}
               >
@@ -678,7 +695,7 @@ function Profile() {
                 ))}
               </select>
             ) : (
-              `${user.car?.model === "true" ? "N/A" : user.car?.model}`
+              `${localUser.car?.model === "true" ? "N/A" : localUser.car?.model}`
             )}
             {/* Car Model Error Message  */}
             {errors.carModel && editingCar && <ErrorMessage error={errors.carModel}/>}
@@ -689,9 +706,9 @@ function Profile() {
             {editingCar ? (
               <select
                 className="input two-hundred-width"
-                value={String(user.car?.year) || "Select"}
+                value={String(localUser.car?.year) || "Select"}
                 onChange={(e) =>
-                  setUser({ ...user, car: { ...user.car, year: e.target.value } })
+                  setLocalUser({ ...localUser, car: { ...localUser.car, year: e.target.value } })
                 }
                 
               >
@@ -702,7 +719,7 @@ function Profile() {
                 ))}
               </select>
             ) : (
-              `${user.car?.year === "true" ? "N/A" : user.car?.year}`
+              `${localUser.car?.year === "true" ? "N/A" : localUser.car?.year}`
             )}
             {/* Car Year Error Message  */}
             {errors.carYear && editingCar && <ErrorMessage error={errors.carYear}/>}
@@ -714,12 +731,12 @@ function Profile() {
               className="btn btn-transparent btn-tiny one-hundred-25-width spread" 
               onClick={() => {
                 if (originalUser != null){
-                  setUser(originalUser);  // reset the details in case other edits are in progress
+                  setLocalUser(originalUser);  // reset the details in case other edits are in progress
                   setErrors({});
                 }
                 setEditingAbout(false);   // stop details edit
                 setEditingPayment(false); // stop payment edit
-                setOriginalUser(user);    // save the current values before editing
+                setOriginalUser(localUser);    // save the current values before editing
                 setEditingCar(true);      // enter edit car mode
               }}
             >
@@ -743,7 +760,7 @@ function Profile() {
               className="btn btn-danger btn-tiny one-hundred-25-width spread uppercase" 
               onClick={() => {
                 setEditingCar(false);
-                setUser(originalUser);
+                setLocalUser(originalUser);
                 setErrors({});
               }}
             >
@@ -753,7 +770,7 @@ function Profile() {
 
           <div className='spacer' />
           <div className='font-regular text-tiny'>
-            Joined: {formatDate(user.createdAt)}
+            Joined: {formatDate(localUser.createdAt)}
           </div>
         </div>
         
@@ -780,21 +797,21 @@ function Profile() {
                     <input
                       className="input two-hundred-width"
                       type="text"
-                      value={user.cardNumber || ""}
+                      value={localUser.cardNumber || ""}
                       placeholder="1234 5678 9012 3456"
                       onChange={(e) => {
                         // Only digits, max 16
                         let val = e.target.value.replace(/\D/g, '').slice(0, 16);
                         // Add spaces every 4 digits for display
                         val = val.replace(/(\d{4})(?=\d)/g, '$1 ');
-                        setUser({ ...user, cardNumber: val });
+                        setLocalUser({ ...localUser, cardNumber: val });
                         setPaymentErrors({ ...paymentErrors, cardNumber: "" });
                       }}
                     />
                   </div>
                 ) : (
-                  user.cardNumber
-                    ? "**** **** **** " + user.cardNumber.replace(/\s/g, '').slice(-4)
+                  localUser.cardNumber
+                    ? "**** **** **** " + localUser.cardNumber.replace(/\s/g, '').slice(-4)
                     : "**** **** **** 1234"
                 )}
               </div>
@@ -810,18 +827,18 @@ function Profile() {
                     <input
                       className="input two-hundred-width"
                       type="text"
-                      value={user.expiryDate || ""}
+                      value={localUser.expiryDate || ""}
                       placeholder="MM/YY"
                       onChange={(e) => {
                         let val = e.target.value.replace(/\D/g, '').slice(0, 4); // digits only, max 4
                         if (val.length > 2) val = val.slice(0, 2) + '/' + val.slice(2); // insert '/'
-                        setUser({ ...user, expiryDate: val });
+                        setLocalUser({ ...localUser, expiryDate: val });
                         setPaymentErrors({ ...paymentErrors, expiryDate: "" });
                       }}
                     />
                   </div>
                 ) : (
-                  user.expiryDate || "MM/YY"
+                  localUser.expiryDate || "MM/YY"
                 )}
               </div>
               {/* Card Expiry Error Message  */}
@@ -836,11 +853,11 @@ function Profile() {
                     <input
                       className="input two-hundred-width"
                       type="text"
-                      value={user.cvv || ""}
+                      value={localUser.cvv || ""}
                       placeholder="123"
                       onChange={(e) => {
                         const val = e.target.value.replace(/\D/g, '').slice(0, 3);
-                        setUser({ ...user, cvv: val });
+                        setLocalUser({ ...localUser, cvv: val });
                         setPaymentErrors({ ...paymentErrors, cvv: "" });
                       }}
                     />
@@ -861,16 +878,16 @@ function Profile() {
                     <input
                       className="input two-hundred-width"
                       type="text"
-                      value={user.billingAddress || ""}
-                        placeholder="Enter your billing address"
+                      value={localUser.billingAddress || ""}
+                      placeholder="Enter your billing address"
                       onChange={(e) => {
-                        setUser({ ...user, billingAddress: e.target.value });
+                        setLocalUser({ ...localUser, billingAddress: e.target.value });
                         setPaymentErrors({ ...paymentErrors, billingAddress: "" });
                       }}
                     />
                   </div>
                 ) : (
-                  user.billingAddress || "N/A"
+                  localUser.billingAddress || "N/A"
                 )}
               </div>
               {/* Billing Address Error Message  */}
@@ -895,7 +912,7 @@ function Profile() {
               <h3>Environmental Impact</h3>
               <div>
                 <EnvironmentalImpact 
-                  user={user}
+                  user={localUser}
                   allElectricVehicles={allVehicles}
                   makes={makes}
                 />
@@ -918,12 +935,12 @@ function Profile() {
                     handleSavePayment();
                   } else {
                     if (originalUser != null){
-                      setUser(originalUser);  // reset the details in case other edits are in progress
+                      setLocalUser(originalUser);  // reset the details in case other edits are in progress
                       setErrors({});
                     }
                     setEditingCar(false);     // stop car edit
                     setEditingAbout(false);   // stop details edit
-                    setOriginalUser(user);    // save the current values before editing
+                    setOriginalUser(localUser);    // save the current values before editing
                     setEditingPayment(true);  // enter edit details mode
                   }
                 }}
@@ -944,7 +961,7 @@ function Profile() {
                 if (activeTab === "payment") {
                   setEditingPayment(false);
                 } 
-                setUser(originalUser);
+                setLocalUser(originalUser);
                 setErrors({});
               }}
             >
@@ -968,7 +985,14 @@ function Profile() {
 
         </div> 
       </div>
+      <ProfileAvatarTool
+        currentAvatar={localUser?.avatarURL}
+        isOpen={showAvatarTool}
+        onClose={() => setShowAvatarTool(false)}
+        onAvatarChange={handleAvatarChange}
+      />
       <ChatBubble />
+      
     </div >
   );
 }

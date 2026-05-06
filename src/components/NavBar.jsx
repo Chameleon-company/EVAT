@@ -1,5 +1,6 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
+import { UserContext } from "../context/user";
 import { useNavigate, useLocation } from 'react-router-dom';
 import logo from '../assets/logo.png';
 import { Menu, LogOut} from "lucide-react";
@@ -11,7 +12,7 @@ function NavBar() {
     const [devMenu, setDevMenuOpen] = useState(false);
     const isDev = import.meta.env.DEV; // check if in dev mode
 
-    const user = JSON.parse(localStorage.getItem("currentUser"));
+    const { user, updateUser } = useContext(UserContext);
     
     // Handle Sign out
     const handleSignOut = () => {
@@ -120,10 +121,11 @@ function NavBar() {
             {/* Right Navbar */}
             <div className="right-navbar">
                 <img 
-                    src={`${user.avatarURL}`} 
-                    alt={user.avatarURL}
+                    src={user.avatarURL || "defaultProfilePictures/default-white.png"} 
+                    alt="User Avatar"
                     className="icon-navbar middle" 
                     onClick={() => navigate('/profile')}
+                    key={user.avatarURL}
                 />
                 <button 
                     alt="Sign Out"
