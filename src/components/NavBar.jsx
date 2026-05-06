@@ -88,11 +88,32 @@ function NavBar() {
                                     {/* Developer Menu Options */}
                                     {devMenu && (
                                         <div className={`dropdown-list ${devMenu ? 'show' : ''}`}>
+                                            <button className='dropdown-item' onClick={() => navigate('/use-cases')}>
+                                                Use Case Dashboard
+                                            </button>
                                             <button className='dropdown-item' onClick={() => navigate('/apitester')}>
                                                 API Tester
                                             </button>
                                             <button className='dropdown-item' onClick={() => navigate('/voice-query')}>
                                                 Voice Query
+                                            </button>
+                                            <button className='dropdown-item' onClick={() => navigate('/cost-comparison')}>
+                                                Cost Comparison
+                                            </button>
+                                            <button className='dropdown-item' onClick={() => navigate('/environmental-impact')}>
+                                                Environmental Impact
+                                            </button>
+                                            <button className='dropdown-item' onClick={() => navigate('/demand-forecasting')}>
+                                                Demand Forecasting
+                                            </button>
+                                            <button className='dropdown-item' onClick={() => navigate('/congestion-prediction')}>
+                                                Congestion Prediction
+                                            </button>
+                                            <button className='dropdown-item' onClick={() => navigate('/weather-routing')}>
+                                                Weather Routing
+                                            </button>
+                                            <button className='dropdown-item' onClick={() => navigate('/chatbot')}>
+                                                Chatbot
                                             </button>
                                         </div>
                                     )}
