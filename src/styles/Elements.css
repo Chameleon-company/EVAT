@@ -455,12 +455,21 @@ body {
 }
 
 .avatar-tool-actions {
-  background-color: var(--filter-footer-background-color);
+  background-color: var(--avatar-header-background-color);
   border-top: var(--avatar-line-separater);
-  padding: var(--filter-options-padding);
-  gap: var(--filter-options-gap);
+  padding: var(--avatar-padding);
+  gap: var(--avatar-options-gap);
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
 }
 
+.custom-url-input-group {
+  display: flex;
+  gap: var(--avatar-options-gap);
+  margin-top: var(--filter-margin);
+}
+
+.custom-url-input-group .input {
+  flex: 1;
+}

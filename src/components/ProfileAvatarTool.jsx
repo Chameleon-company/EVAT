@@ -5,9 +5,7 @@ import { UserContext } from "../context/user";
 import ErrorMessage from '../components/ErrorMessage';
 import SuccessMessage from '../components/SuccessMessage';
 
-// found a github repo that has 100s of car brand logos
-// https://github.com/filippofilip95/car-logos-dataset/tree/master
-// they can be embedded directly using the URLs
+// a small list of provided profile images
 const DEFAULT_AVATARS = [
   "defaultProfilePictures/default-white.png",
   "defaultProfilePictures/default-green.png",
@@ -23,6 +21,7 @@ const DEFAULT_AVATARS = [
 ];
 
 const RECENT_MESSAGE_LINGER = 5000; // 5 seconds * 1000
+const isDev = import.meta.env.DEV;   // Show dev tools only in development
 
 const ProfileAvatarTool = ({ 
   currentAvatar, 
@@ -34,10 +33,15 @@ const ProfileAvatarTool = ({
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [customUrl, setCustomUrl] = useState("");
   // Get user from Context
   const { user: contextUser } = useContext(UserContext);
-
   const fileInputRef = useRef(null);   // reference for uploaded image
+  // states for extension warning logic
+  const [isAcceptDisabled, setIsAcceptDisabled] = useState(false);
+  const [urlError, setURLError] = useState("");
+  const [extensionWarningShown, setExtensionWarningShown] = useState(false);
+  const disableTimerRef = useRef(null);
 
   // auto-clear the error after 5 seconds
   useEffect(() => {
@@ -59,6 +63,16 @@ const ProfileAvatarTool = ({
     }
   }, [success]);
 
+  // Reset when tool opens
+  useEffect(() => {
+    if (isOpen){
+      setError("");                       // reset any error messages
+      setSuccess("");                     // reset any success messages
+      setSelectedAvatar(currentAvatar);   // reset the selected option
+      setCustomUrl("");                   // reset custome URL input
+    }
+  }, [isOpen, currentAvatar]);
+  
   if (!isOpen) return null;
 
   // reset the file input, otherwise the file will be remembered and it will fail silently
@@ -77,6 +91,81 @@ const ProfileAvatarTool = ({
       return null;
     }
     return token;
+  };
+
+  // validating URL given for the custom URL
+  const isValidUrl = (url) => {
+    // handle empty string
+    if (!url || !url.trim()) return { valid: false, message: "Please enter a URL" };
+
+    const trimmed = url.trim();
+    // start with http:// or https://
+    if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) {
+      return { 
+        valid: false, 
+        message: "URL must start with http:// or https://" 
+      };
+    }
+
+    // use URL javascript class to parse the given string as a URL
+    // and error is thrown if the string is not valid
+    try {
+      new URL(trimmed);
+    } catch {
+      return { valid: false, message: "Please enter a valid URL" };
+    }
+    return { valid: true, url: trimmed };
+  };
+
+  const hasImageExtension = (url) => {
+    // check if it doesn't look like an image
+    const imageExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg', '.bmp'];
+    return imageExtensions.some(ext => url.toLowerCase().endsWith(ext)
+  )};
+
+  // accepting the custom url from a developer
+  const handleAcceptCustomUrl = () => {
+    const validation = isValidUrl(customUrl);
+    if (!validation.valid) {
+      setURLError(validation.message);
+      return;
+    }
+    const finalUrl = customUrl.trim();
+
+    // check extension
+    if (!hasImageExtension(finalUrl)) {
+      // show the extension warning if it has not been shown for the URL given
+      if (!extensionWarningShown) {
+        setURLError("Custom avatar URL does not end with a common image extension");
+        setExtensionWarningShown(true);
+        // disable the accept button while warning is shown
+        setIsAcceptDisabled(true);
+        // Re-enable button after 5 seconds
+        if (disableTimerRef.current) clearTimeout(disableTimerRef.current);
+        disableTimerRef.current = setTimeout(() => {
+          setIsAcceptDisabled(false);
+          setURLError("");
+        }, RECENT_MESSAGE_LINGER);
+
+        return; // stop here on first attempt
+      }
+      // allow bypass on second press
+    }
+
+    // if we reach here: either URL has extension OR user confirmed bypass
+    onAvatarChange(finalUrl);
+    setSuccess("Custom avatar URL applied!");
+    onClose();
+  };
+
+  // reset warning when user types something new
+  const handleCustomUrlChange = (e) => {
+    setCustomUrl(e.target.value);
+    setExtensionWarningShown(false);   // Reset warning on any change
+    setIsAcceptDisabled(false);
+    if (disableTimerRef.current) {
+      clearTimeout(disableTimerRef.current);
+    }
   };
 
   const handleFileUpload = async (e) => {
@@ -136,7 +225,12 @@ const ProfileAvatarTool = ({
     resetFileInput();                   // reset any file inputs
     setError("");                       // reset any error messages
     setSuccess("");                     // reset any success messages
+    setURLError("");                     // reset any warning messages
     setSelectedAvatar(currentAvatar);   // reset the selected option
+    setCustomUrl("");                   // reset custome URL input
+    setIsAcceptDisabled(false);         // reset accept button disable
+    setExtensionWarningShown(false);    // reset extension warning
+    if (disableTimerRef.current) clearTimeout(disableTimerRef.current); // reset timer
     onClose();
   };
 
@@ -197,7 +291,45 @@ const ProfileAvatarTool = ({
           ))}
         </div>
 
+
         <div className="upload-section">
+          {/* ==================== DEVELOPER SECTION ==================== */}
+          {isDev && (
+            <>
+              <div className="custom-url-input-group">
+                <input
+                  type="text"
+                  className="input"
+                  placeholder="https://example.com/my-avatar.png"
+                  value={customUrl}
+                  onChange={handleCustomUrlChange}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !isAcceptDisabled) handleAcceptCustomUrl();
+                  }}
+                />
+                <button 
+                  className="btn btn-primary btn-small"
+                  onClick={handleAcceptCustomUrl}
+                  disabled={isAcceptDisabled || !customUrl.trim()}
+                >
+                  {isAcceptDisabled ? "Wait 5s..." : "Accept"}
+                </button>
+              </div>
+              {/* Failed Upload Error Message  */}
+              {urlError && <ErrorMessage error={urlError}/>}
+              <p className="text-tiny center">
+                Visit this <a 
+                  href='https://github.com/filippofilip95/car-logos-dataset/tree/master' 
+                  className='clickable-text'
+                > Car Logo Dataset </a> 
+                and use the thumbnail version. Example:  <br/> 
+                https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/thumb/volkswagen.png
+              </p>
+              <div className='spacer-small' />
+            </>
+          )}
+          {/* ======================================================== */}
+
           <label className="btn btn-primary btn-force-flex btn-small upload-btn">
             <Upload size={20} />
             Upload Custom Photo
