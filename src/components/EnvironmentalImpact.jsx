@@ -37,7 +37,8 @@ export default function EnvironmentalImpact({
   // Fetch ICE vehicles ONLY when this component mounts
   useEffect(() => {
     const fetchIceVehicles = async () => {
-      if (!user?.token || loadingIce) return;
+      if (!user?.token ) return;
+      //|| loadingIce
 
       setLoadingIce(true);
       setIceError(null);
@@ -178,6 +179,15 @@ export default function EnvironmentalImpact({
     <div className="horizontal center">
       <table className="env-impact-table">
         <thead>
+          <tr>
+  <td className="three-hundred-width wrap-center" style={{ textAlign: "center", fontWeight: "bold", fontSize: "18px", color: "#00b482", paddingBottom: "10px" }}>
+     Electric Vehicle (EV)
+  </td>
+  <td className="two-hundred-width"></td>
+  <td className="three-hundred-width wrap-center" style={{ textAlign: "center", fontWeight: "bold", fontSize: "18px", color: "#6b9ed2", paddingBottom: "10px" }}>
+     Petrol / Diesel (ICE)
+  </td>
+</tr>
           <tr>
             <td className="three-hundred-width wrap-center">
               {/* EV Make Dropdown */}

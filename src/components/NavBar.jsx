@@ -38,6 +38,10 @@ function NavBar() {
                         onClick={() => navigate('/cost')}
                     >Vehicle Analysis</button>
                     <button 
+                        className={`btn btn-navbar ${isActive('/use-cases') ? 'active' : ''}`} 
+                        onClick={() => navigate('/use-cases')}
+                    >Use Case Dashboard</button>
+                    <button 
                         className={`btn btn-navbar ${isActive('/feedback') ? 'active' : ''}`} 
                         onClick={() => navigate('/feedback')}
                     >Feedback</button>
