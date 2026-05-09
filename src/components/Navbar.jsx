@@ -1,101 +1,163 @@
-import React, {useContext} from "react";
-import { UserContext } from "../context/user.context";
-import { StyleSheet, Text, View, TouchableOpacity, Dimensions, Image, Alert } from "react-native";
-import { useNavigation } from '@react-navigation/native';
 
-function NavBar(props) {
-    const navigation = useNavigation();
-    const {user, setUser} = useContext(UserContext);
+import React, { useState, useEffect, useRef, useContext } from 'react';
+import { UserContext } from "../context/user";
+import { useNavigate, useLocation } from 'react-router-dom';
+import logo from '../assets/logo.png';
+import { Menu, LogOut} from "lucide-react";
 
-    const signOut = ()=>{
-        // Clear user data and navigate to sign-in page
-        Alert.alert('Sign Out 🚪↩', 'Are you sure you want to sign out?', [
-            {text: 'Cancel', style: 'cancel'},  {text: 'Sign Out', onPress: () => {
-                setUser(null);
-                navigation.navigate('SigninPage');
-            }}])
+function NavBar() {
+    const navigate = useNavigate();
+    const location = useLocation();
+    const [mainMenu, setMainMenuOpen] = useState(false);
+    const [devMenu, setDevMenuOpen] = useState(false);
+    const isDev = import.meta.env.DEV; // check if in dev mode
+
+    const { user, updateUser } = useContext(UserContext);
+    
+    // Handle Sign out
+    const handleSignOut = () => {
+        localStorage.removeItem("currentUser");
+        navigate("/signin");
+    };
+
+    // Highlight active button
+    const isActive = (path) => location.pathname === path;
+
+    const toggleMainMenu = () => {
+        setMainMenuOpen(!mainMenu);
+        setDevMenuOpen(false);
     }
 
-    const { searchFunction, settingsFunction } = props;
+    const toggleDevMenu = () => {
+        setDevMenuOpen(!devMenu);
+        setMainMenuOpen(false);
+    }
 
     return (
-        <View style={styles.navbar}>
-            
-            <TouchableOpacity style={styles.navbutton} onPress={searchFunction}>
-                <Image style={styles.navbarIcon} source={require("../data/search.webp")}></Image>
-                <Text style={styles.navbuttonText}>Search</Text>
-            </TouchableOpacity>
-            <View style={styles.verticleLine}></View>
-            <TouchableOpacity style={styles.navbutton} onPress={settingsFunction}>
-            <Image style={styles.navbarIcon} source={require("../data/config.webp")}></Image>
-                <Text style={styles.navbuttonText}>Settings</Text>
-            </TouchableOpacity>
-            <View style={styles.verticleLine}></View>
-            <TouchableOpacity style={styles.navbutton}  onPress={signOut}>
-            <Image style={styles.navbarIcon} source={require("../data/signout.webp")}></Image>
-                <Text style={styles.navbuttonText}>Sign Out</Text>
-            </TouchableOpacity>
-        </View>
+        <nav className="navbar">
+            <div className="left-navbar">
+                <div className='dropdown-wrapper'>
+                    <div className='dropdown-container'>
+                        {/* Main Menu Button */}
+                        <button 
+                            className='btn btn-navbar navbar-menu-option' 
+                            onClick={toggleMainMenu}
+                        >
+                            {<Menu />}
+                        </button>
+                        {/* Main Menu Options */}
+                        {mainMenu && (
+                            <div className={`dropdown-list ${mainMenu ? 'show' : ''}`}>
+                                <button className='dropdown-item' onClick={() => navigate('/profile')}>
+                                    Profile
+                                </button>
+                                <button className='dropdown-item' onClick={() => navigate('/map')}>
+                                    Map
+                                </button>
+                                <button className='dropdown-item' onClick={() => navigate('/cost')}>
+                                    Cost Comparison
+                                </button>
+                                <button className='dropdown-item' onClick={() => navigate('/favourites')}>
+                                    Favourite Chargers
+                                </button>
+                                <button className='dropdown-item' onClick={() => navigate('/game')}>
+                                    Rewards
+                                </button>
+                                <hr></hr>
+                                <button className='dropdown-item' onClick={() => navigate('/feedback')}>
+                                    Feedback
+                                </button>
+                                <button className='dropdown-item' onClick={() => navigate('/support')}>
+                                    Support
+                                </button>
+                            </div>
+                        )}
+
+                        {/* ==================== DEVELOPER MENU ==================== */}
+                        {isDev && (
+                            <>
+                                <div className='dropdown-container'>
+                                    {/* Developer Menu Button */}
+                                    <button 
+                                        className='btn btn-navbar navbar-menu-option' 
+                                        onClick={toggleDevMenu}
+                                    >
+                                        Developer Pages
+                                    </button>
+
+                                    {/* Developer Menu Options */}
+                                    {devMenu && (
+                                        <div className={`dropdown-list ${devMenu ? 'show' : ''}`}>
+                                            <button className='dropdown-item' onClick={() => navigate('/use-cases')}>
+                                                Use Case Dashboard
+                                            </button>
+                                            <button className='dropdown-item' onClick={() => navigate('/apitester')}>
+                                                API Tester
+                                            </button>
+                                            <button className='dropdown-item' onClick={() => navigate('/voice-query')}>
+                                                Voice Query
+                                            </button>
+                                            <button className='dropdown-item' onClick={() => navigate('/cost-comparison')}>
+                                                Cost Comparison
+                                            </button>
+                                            <button className='dropdown-item' onClick={() => navigate('/environmental-impact')}>
+                                                Environmental Impact
+                                            </button>
+                                            <button className='dropdown-item' onClick={() => navigate('/demand-forecasting')}>
+                                                Demand Forecasting
+                                            </button>
+                                            <button className='dropdown-item' onClick={() => navigate('/congestion-prediction')}>
+                                                Congestion Prediction
+                                            </button>
+                                            <button className='dropdown-item' onClick={() => navigate('/weather-routing')}>
+                                                Weather Routing
+                                            </button>
+                                            <button className='dropdown-item' onClick={() => navigate('/chatbot')}>
+                                                Chatbot
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            </>
+                        )}
+                        {/* ======================================================= */}
+                    </div>
+                </div>
+            </div>
+
+
+            {/* Center Navbar */}
+            <div className="center-navbar center" >
+                <button 
+                    // Change this navigation to /map when complete
+                    className={`btn-navbar `} 
+                    onClick={() => navigate('/map')}
+                >
+                    <img src={logo} alt="Logo" className="logo-navbar"/>
+                    <h5 className='title-navbar'>Electric Vehicle Adoption Tool</h5>
+                </button>
+            </div>
+
+
+            {/* Right Navbar */}
+            <div className="right-navbar">
+                <img 
+                    src={user.avatarURL || "defaultProfilePictures/default-white.png"} 
+                    alt="User Avatar"
+                    className="icon-navbar middle" 
+                    onClick={() => navigate('/profile')}
+                    key={user.avatarURL}
+                />
+                <button 
+                    alt="Sign Out"
+                    className={`btn btn-navbar`} 
+                    onClick={handleSignOut}
+                ><LogOut/></button>
+            </div>
+        </nav>
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        ...StyleSheet.absoluteFillObject,
-        flex: 1,
-    },
-    navbar: {
-        width: Dimensions.get('window').width,
-        height: 60,
-        backgroundColor: '#eee',
-        position: 'absolute',
-        flexDirection: 'row',
-        bottom: 0,
-        borderTopColor: '#ccc',
-        borderTopWidth: 1,
-        color: 'white',
-        textAlign: 'center',
-        alignItems: 'center',
-        margin: 0,
-        padding: 0,
-        // justifyContent: 'space-between',
-    },
-    navbutton: {
-        width: Dimensions.get('window').width / 3,
-        height: 60,
-        //// backgroundColor: '#66aa66',
-        color: 'red',
-        justifyContent: 'center',
-        alignItems: 'center',
-        flexDirection: 'column',
-        flex: 1,
-        // paddingTop: 10,
-        textAlign: 'center',
-    },
-    verticleLine:{
-        height: '60%',
-        width: 2,
-        backgroundColor: '#ccc',
-      },
-    navbuttonText: {
-        color: '#000',
-        fontSize: 12,
-        textAlign: 'center',
-        justifyContent: 'center',
-    },
-    navbarIcon: {
-        // padding: 0,
-        // margin: 0,
-        width: 28,
-        height: 28,
-        textAlign: 'center',
-        alignItems: 'center',
-        // marginRight: 5,
-        resizeMode: 'contain',
-        alignContent: 'center',
-        justifyContent: 'center',
-        // color: '#fff',
-    }
-})
-
 export default NavBar;
+
+
