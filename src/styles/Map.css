@@ -90,6 +90,23 @@ mode has not been expanded to the rest of the site.
     color: #4CAF50;
 }
 
+.overlay {
+    position: absolute;
+    z-index: 1000;
+    background: #ffffff;
+    padding: 22px;
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    width: 320px;
+    font-family: Inter, sans-serif;
+    color: #111827;
+}
+
+.overlay.dark {
+    background: #505050;
+    color: #fff;
+}
+
 /* Leaflet Zoom Control */
 .leaflet-control-zoom {
     position: fixed !important;
@@ -189,6 +206,11 @@ mode has not been expanded to the rest of the site.
         max-width: calc(100% - 24px) !important;
         font-size: 13px !important;
     }
+}
+
+hr.separator {
+    margin-top: 1em;
+    border: 1px solid rgb(182, 182, 182);
 }
 
 /* var(); */

@@ -37,8 +37,7 @@ export default function EnvironmentalImpact({
   // Fetch ICE vehicles ONLY when this component mounts
   useEffect(() => {
     const fetchIceVehicles = async () => {
-      if (!user?.token ) return;
-      //|| loadingIce
+      if (!user?.token || loadingIce) return;
 
       setLoadingIce(true);
       setIceError(null);

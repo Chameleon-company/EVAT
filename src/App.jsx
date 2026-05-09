@@ -10,6 +10,9 @@ import Favourite from './pages/Favourite';
 import ContactSupport from './pages/ContactSupport';
 import ApiTester from './pages/ApiTester';
 import VoiceQueryPage from './pages/VoiceQueryPage';
+import PersonalisedInsightsForm from "./pages/PersonalisedInsightsForm";
+import PersonalisedInsights from "./pages/PersonalisedInsights";
+import WeatherAwareRouting from "./pages/WeatherAwareRouting";
 import { UserProvider } from './context/user';
 import { FavouritesProvider } from "./context/FavouritesContext";
 import { ToastContainer } from 'react-toastify';
@@ -41,6 +44,11 @@ function App() {
             <Route path="/support" element={<ContactSupport />} />
             <Route path="/apitester" element={<ApiTester />} />
             <Route path="/voice-query" element={<VoiceQueryPage />} />
+
+            {/* Jeremy's PEVI and WAR routes */}
+            <Route path="/insights-form" element={<PersonalisedInsightsForm />} />
+            <Route path="/insights" element={<PersonalisedInsights />} />
+            <Route path="/weather-aware-routing" element={<WeatherAwareRouting />} />
 
             {/* Use Case Dashboard */}
             <Route path="/use-cases" element={<Dashboard />} />
