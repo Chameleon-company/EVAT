@@ -132,7 +132,7 @@ body {
 /* Background */
 .background-image {
   position: fixed;        /* doesnt move */
-  top: 76px;              /* starts below the navbar */
+  top: var(--navbar-height); /* starts below the navbar */
   left: 0;
   width: 100%;
   height: 100%;
@@ -145,7 +145,7 @@ body {
 .background-image::before {
   content: "";
   position: absolute;
-  top: -76px;
+  top: calc(var(--navbar-height) * -1);
   left: 0;
   right: 0;
   bottom: 0;
@@ -178,14 +178,56 @@ body {
   height: auto;
 }
 
+/* edit icon styling for details */
+.details-edit-icon {
+  background: none;
+  color: var(--gray-light);
+  box-shadow: none;
+  cursor: pointer;
+}
+
 /* dashboard profile image */
+.profile-image-wrapper {
+  position: relative;
+  width: 150px;
+}
+
 .profile-image {
-  width: 100px;
-  height: fit-content;
+  width: 150px;
+  height: 150px;
   object-fit: cover;
-  position: absolute;
   display: block;
-  margin: 0 auto;
+  border-radius: 50%;
+  border: 4px solid var(--primary-color-base); 
+  z-index: 0;
+  transition: 150ms ease;
+  margin-bottom: 10px;
+}
+
+.profile-image-wrapper:hover .profile-image {
+  border-bottom-right-radius: 0;
+}
+
+/* edit image icon styling */
+.edit-icon {
+  position: absolute;
+  bottom: 20px;
+  right: 2px;
+  transform: translate(25%, 25%);
+  background: var(--primary-color-base);
+  color:  var(--white);
+  border: none;
+  border-radius: 50%;
+  border-bottom-right-radius: 0;
+  padding: 6px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+
+/* Show icon on hover */
+.profile-image-wrapper:hover .edit-icon {
+  opacity: 1;
 }
 
 /* game reward image */
@@ -197,6 +239,7 @@ body {
   display: block;
   position: absolute;
   margin: auto;
+  z-index: 0;
 }
 
 .cost-image {
@@ -277,6 +320,14 @@ body {
   width: 100px;
 }
 
+.one-hundred-50-width {
+  width: 150px;
+}
+
+.one-hundred-25-width {
+  width: 125px;
+}
+
 .half-width {
   width: 50%;
   min-width: unset;
@@ -307,6 +358,118 @@ body {
   overflow-x: scroll;
 }
 
+/* Profile avatar tool */
+.avatar-tool-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--overlay-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
 
+.avatar-tool-content {
+  background: var(--avatar-container-background);
+  border-radius: var(--filter-radius);
+  width: fit-content;
+  max-width: var(--avatar-max-width);
+  max-height: var(--avatar-max-height);
+  overflow-y: auto;
+}
 
+.avatar-tool .avatar-tool-header {
+  background-color: var(--avatar-header-background-color);
+  padding: var(--avatar-header-padding);
+  max-height: var(--avatar-header-max-height);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
+.avatar-grid {
+  display: flex;
+  flex-wrap: wrap;
+  place-content: center;
+  gap: var(--avatar-options-gap);
+  padding: var(--avatar-padding);
+}
+
+.avatar-option {
+  position: relative;
+  width: var(--avatar-option-size);
+  height: var(--avatar-option-size);
+  cursor: pointer;
+  border-radius: 50%;
+  overflow: hidden;
+  border: var(--avatar-option-border);
+  transition: var(--website-transition);
+  flex-shrink: 0;
+}
+
+.avatar-option:hover {
+  transform: scale(var(--avatar-option-scale-hover));
+  border: var(--avatar-option-border-hover);
+  box-shadow: var(--avatar-option-selected-shadow-hover);
+}
+
+.avatar-option.selected {
+  border: var(--avatar-option-border-selected);
+  box-shadow: var(--avatar-option-selected-shadow);
+}
+
+.avatar-option img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.selected-check {
+  position: absolute;
+  bottom: var(--selected-check-bottom);
+  right: var(--selected-check-right);
+  width: var(--selected-check-size);
+  height: var(--selected-check-size);
+  background: var(--selected-check-background-color);
+  color: var(--selected-check-tick-color);
+  border-radius: 50%;
+  padding: var(--selected-check-padding);
+  display: flex;
+  align-items: center;
+}
+
+.upload-section {
+  padding: var(--avatar-padding);
+  text-align: center;
+  border-top: var(--avatar-line-separater);
+}
+
+.upload-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--avatar-options-gap);
+  cursor: pointer;
+}
+
+.avatar-tool-actions {
+  background-color: var(--avatar-header-background-color);
+  border-top: var(--avatar-line-separater);
+  padding: var(--avatar-padding);
+  gap: var(--avatar-options-gap);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.custom-url-input-group {
+  display: flex;
+  gap: var(--avatar-options-gap);
+  margin-top: var(--filter-margin);
+}
+
+.custom-url-input-group .input {
+  flex: 1;
+}
