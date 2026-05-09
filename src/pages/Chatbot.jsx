@@ -1,42 +1,70 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useContext } from "react";
 import { useNavigate } from "react-router-dom";
+import { UserContext } from "../context/user";
 
 const CHATBOT_URL = "https://evat-rasa-3cn2oy3gna-ts.a.run.app/webhooks/rest/webhook";
-
-const generateId = () => Math.random().toString(36).substring(2, 10);
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
 
 const getSessionId = () => {
   const s = localStorage.getItem("evat_chat_session");
   if (s) return s;
-  const id = "evat-" + generateId();
+  const id = "evat-" + Math.random().toString(36).substring(2, 10);
   localStorage.setItem("evat_chat_session", id);
   return id;
 };
 
-const SUGGESTIONS = [
-  "Find charging stations near me",
-  "Compare EV vs petrol costs",
-  "Plan a route with charging stops",
-  "Emergency charging nearby",
-  "What is demand forecasting?",
-  "How does congestion prediction work?",
+const FLOWS = [
+  { id: "route", icon: "🗺️", title: "Route Planning", desc: "Plan charging stops along your journey. Enter your destination and find stations on the way.", payload: "1", color: "#6366f1" },
+  { id: "emergency", icon: "⚡", title: "Emergency Charging", desc: "Find the nearest charger fast when your battery is running low.", payload: "2", color: "#f59e0b" },
+  { id: "preferences", icon: "⚙️", title: "Charging Preferences", desc: "Find stations filtered by cheapest, fastest, or premium options.", payload: "3", color: "#10b981" },
+];
+
+const CONNECTORS = ["Tesla Model 3", "Tesla Model Y", "Type 2", "CCS", "CHAdeMO", "AC Type 1"];
+const PREFERENCES = [
+  { label: "Cheapest", icon: "💵", desc: "Lowest cost per kWh" },
+  { label: "Fastest", icon: "⚡", desc: "Highest power output" },
+  { label: "Premium", icon: "⭐", desc: "Top rated stations" },
+];
+const POST_STATION = [
+  { label: "Get Directions", payload: "get directions", icon: "🧭" },
+  { label: "Check Availability", payload: "check availability", icon: "🔍" },
+  { label: "End Chat", payload: "bye", icon: "👋" },
+];
+const GEMINI_SUGGESTIONS = [
+  "How far can an EV travel on a full charge?",
+  "What is the cheapest EV to own in Australia?",
+  "How long does it take to charge an EV?",
+  "What are the benefits of switching to an EV?",
 ];
 
 export default function Chatbot() {
   const navigate = useNavigate();
-  const [conversations, setConversations] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("evat_conversations") || "[]");
-    } catch { return []; }
+  const { user } = useContext(UserContext);
+  const firstName = user?.firstName || "there";
+
+  const [activeTab, setActiveTab] = useState("station");
+  const [showHistory, setShowHistory] = useState(false);
+
+  const [rasaMessages, setRasaMessages] = useState([]);
+  const [rasaStarted, setRasaStarted] = useState(false);
+  const [activeFlow, setActiveFlow] = useState(null);
+  const [awaitingInput, setAwaitingInput] = useState(null);
+  const [showPostStation, setShowPostStation] = useState(false);
+  const [rasaInput, setRasaInput] = useState("");
+  const [rasaLoading, setRasaLoading] = useState(false);
+
+  const [geminiMessages, setGeminiMessages] = useState([]);
+  const [geminiInput, setGeminiInput] = useState("");
+  const [geminiLoading, setGeminiLoading] = useState(false);
+
+  const [history, setHistory] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("evat_chat_history") || "[]"); } catch { return []; }
   });
-  const [activeChatId, setActiveChatId] = useState(null);
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
+
   const [location, setLocation] = useState(null);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const bottomRef = useRef(null);
-  const inputRef = useRef(null);
+  const rasaBottomRef = useRef(null);
+  const geminiBottomRef = useRef(null);
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -47,44 +75,12 @@ export default function Chatbot() {
     }
   }, []);
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, loading]);
+  useEffect(() => { rasaBottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [rasaMessages, rasaLoading]);
+  useEffect(() => { geminiBottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [geminiMessages, geminiLoading]);
+  useEffect(() => { localStorage.setItem("evat_chat_history", JSON.stringify(history)); }, [history]);
 
-  useEffect(() => {
-    localStorage.setItem("evat_conversations", JSON.stringify(conversations));
-  }, [conversations]);
-
-  const startNewChat = () => {
-    setActiveChatId(null);
-    setMessages([]);
-    inputRef.current?.focus();
-  };
-
-  const loadChat = (id) => {
-    const chat = conversations.find(c => c.id === id);
-    if (chat) {
-      setActiveChatId(id);
-      setMessages(chat.messages);
-    }
-  };
-
-  const deleteChat = (e, id) => {
-    e.stopPropagation();
-    setConversations(prev => prev.filter(c => c.id !== id));
-    if (activeChatId === id) { setActiveChatId(null); setMessages([]); }
-  };
-
-  const sendMessage = async (text) => {
-    const msg = (text || input).trim();
-    if (!msg || loading) return;
-    setInput("");
-
-    const userMsg = { from: "user", text: msg, time: new Date().toISOString() };
-    const newMessages = [...messages, userMsg];
-    setMessages(newMessages);
-    setLoading(true);
-
+  const sendToRasa = async (msg) => {
+    setRasaLoading(true);
     try {
       const res = await fetch(CHATBOT_URL, {
         method: "POST",
@@ -95,226 +91,470 @@ export default function Chatbot() {
           ...(location && { metadata: { latitude: location.latitude, longitude: location.longitude } })
         }),
       });
+      return await res.json() || [];
+    } catch { return []; }
+    finally { setRasaLoading(false); }
+  };
 
-      const data = await res.json();
-      const botMessages = data?.length > 0
-        ? data.map(d => ({ from: "bot", text: d.text, buttons: d.buttons || [], time: new Date().toISOString() }))
-        : [{ from: "bot", text: "I didn't quite get that. Try asking about charging stations, route planning, or EV costs.", buttons: [], time: new Date().toISOString() }];
-
-      const finalMessages = [...newMessages, ...botMessages];
-      setMessages(finalMessages);
-
-      // Save to conversations
-      const chatId = activeChatId || generateId();
-      if (!activeChatId) setActiveChatId(chatId);
-
-      setConversations(prev => {
-        const existing = prev.find(c => c.id === chatId);
-        if (existing) {
-          return prev.map(c => c.id === chatId ? { ...c, messages: finalMessages, updatedAt: new Date().toISOString() } : c);
-        }
-        return [{ id: chatId, title: msg.slice(0, 40), messages: finalMessages, updatedAt: new Date().toISOString() }, ...prev];
-      });
-
-    } catch {
-      setMessages(prev => [...prev, { from: "bot", text: "Sorry, I'm having trouble connecting. Please try again.", time: new Date().toISOString() }]);
-    } finally {
-      setLoading(false);
+  const addRasaBot = (responses, showPost = false) => {
+    if (!responses.length) {
+      setRasaMessages(prev => [...prev, { from: "bot", text: "Sorry, I couldn't get a response.", buttons: [] }]);
+      return;
     }
-  };
-
-  const formatTime = (iso) => new Date(iso).toLocaleTimeString("en-AU", { hour: "2-digit", minute: "2-digit" });
-
-  const groupByDate = (convs) => {
-    const today = new Date(); today.setHours(0,0,0,0);
-    const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
-    const week = new Date(today); week.setDate(week.getDate() - 7);
-    const groups = { "Today": [], "Yesterday": [], "Last 7 Days": [], "Older": [] };
-    convs.forEach(c => {
-      const d = new Date(c.updatedAt); d.setHours(0,0,0,0);
-      if (d >= today) groups["Today"].push(c);
-      else if (d >= yesterday) groups["Yesterday"].push(c);
-      else if (d >= week) groups["Last 7 Days"].push(c);
-      else groups["Older"].push(c);
+    responses.forEach((r, i) => {
+      setTimeout(() => {
+        setRasaMessages(prev => {
+          const updated = [...prev, { from: "bot", text: r.text, buttons: r.buttons || [] }];
+          // Update history with latest messages
+          setHistory(hist => {
+            const existing = hist.find(h => h.tab === "station" && h.active);
+            if (existing) return hist.map(h => h.active && h.tab === "station" ? { ...h, messages: updated, date: new Date().toISOString() } : h);
+            return [{ id: Date.now(), title: updated.find(m => m.from === "user")?.text?.slice(0, 40) || "Station Chat", tab: "station", messages: updated, date: new Date().toISOString(), active: true }, ...hist.slice(0, 19)];
+          });
+          return updated;
+        });
+        if (i === responses.length - 1 && showPost) setShowPostStation(true);
+      }, i * 300);
     });
-    return groups;
   };
 
-  const grouped = groupByDate(conversations);
-  const isNew = messages.length === 0;
+  const handleRasaStart = async () => {
+    setRasaStarted(true);
+    setRasaMessages([{ from: "user", text: "hi" }]);
+    const r = await sendToRasa("hi");
+    addRasaBot(r);
+  };
+
+  const handleFlowSelect = async (flow) => {
+    setActiveFlow(flow.id);
+    setShowPostStation(false);
+    setRasaMessages(prev => [...prev, { from: "user", text: flow.title }]);
+    const r = await sendToRasa(flow.payload);
+    if (flow.id === "route") setAwaitingInput("route_destination");
+    else if (flow.id === "emergency") setAwaitingInput("emergency_location");
+    else if (flow.id === "preferences") setAwaitingInput(null);
+    addRasaBot(r);
+  };
+
+  const handleConnectorSelect = async (c) => {
+    setRasaMessages(prev => [...prev, { from: "user", text: c }]);
+    setAwaitingInput("station_select");
+    const r = await sendToRasa(c);
+    addRasaBot(r, true);
+  };
+
+  const handlePreferenceSelect = async (p) => {
+    setRasaMessages(prev => [...prev, { from: "user", text: p.label }]);
+    setAwaitingInput("preference_location");
+    const r = await sendToRasa(p.label);
+    addRasaBot(r);
+  };
+
+  const handlePostStation = async (action) => {
+    setShowPostStation(false);
+    if (action.payload === "bye") {
+      setHistory(prev => [{ id: Date.now(), title: rasaMessages[1]?.text || "Station Chat", tab: "station", date: new Date().toISOString() }, ...prev]);
+      setRasaStarted(false); setActiveFlow(null); setAwaitingInput(null); setRasaMessages([]);
+      localStorage.removeItem("evat_chat_session");
+      return;
+    }
+    setRasaMessages(prev => [...prev, { from: "user", text: action.label }]);
+    const r = await sendToRasa(action.payload);
+    addRasaBot(r, true);
+  };
+
+  const handleRasaTextSubmit = async () => {
+    if (!rasaInput.trim() || rasaLoading) return;
+    const msg = rasaInput.trim();
+    setRasaInput("");
+    setRasaMessages(prev => [...prev, { from: "user", text: msg }]);
+    const r = await sendToRasa(msg);
+    if (awaitingInput === "route_destination") { setAwaitingInput("station_select"); addRasaBot(r, true); }
+    else if (awaitingInput === "emergency_location") { setAwaitingInput("connector_select"); addRasaBot(r); }
+    else if (awaitingInput === "preference_location") { setAwaitingInput("station_select"); addRasaBot(r, true); }
+    else if (awaitingInput === "station_select") { setAwaitingInput(null); addRasaBot(r, true); }
+    else addRasaBot(r);
+  };
+
+  const handleGeminiSend = async (text) => {
+    const msg = (text || geminiInput).trim();
+    if (!msg || geminiLoading) return;
+    setGeminiInput("");
+    setGeminiMessages(prev => [...prev, { from: "user", text: msg }]);
+    setGeminiLoading(true);
+    try {
+      if (!GEMINI_API_KEY) {
+        setTimeout(() => {
+          setGeminiMessages(prev => [...prev, { from: "bot", text: "Gemini API key not configured yet. Add VITE_GEMINI_API_KEY to your .env file." }]);
+          setGeminiLoading(false);
+        }, 500);
+        return;
+      }
+      const ctx = geminiMessages.map(m => ({ role: m.from === "user" ? "user" : "model", parts: [{ text: m.text }] }));
+      const res = await fetch(GEMINI_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          system_instruction: { parts: [{ text: "You are an EV assistant for the EVAT platform in Australia. Answer questions about electric vehicles, charging, range, costs, and sustainability. Keep answers concise and helpful." }] },
+          contents: [...ctx, { role: "user", parts: [{ text: msg }] }]
+        }),
+      });
+      const data = await res.json();
+      const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I couldn't generate a response.";
+      setGeminiMessages(prev => [...prev, { from: "bot", text: reply }]);
+      setHistory(prev => [{ id: Date.now(), title: msg.slice(0, 40), tab: "ai", date: new Date().toISOString() }, ...prev.slice(0, 19)]);
+    } catch {
+      setGeminiMessages(prev => [...prev, { from: "bot", text: "Something went wrong. Please try again." }]);
+    } finally { setGeminiLoading(false); }
+  };
+
+  const renderText = (text) => text
+    ?.replace(/[\u{1F4CD}\u{26A1}\u{1F4B0}\u{1F3AF}\u274C\u2705\u{1F4A1}\u{1F50C}\u{1F5FA}\u{1F697}\u{1F50B}]/gu, '')
+    ?.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    ?.replace(/\*(.*?)\*/g, '<em>$1</em>')
+    ?.trim() || "";
+
+  const rasaInputPlaceholder = {
+    route_destination: "e.g. to Carlton or from Carlton to Geelong",
+    emergency_location: "Enter your suburb e.g. Richmond",
+    preference_location: "Enter your suburb e.g. Carlton",
+    station_select: "Type the station name from the list above",
+  }[awaitingInput] || "Type your message...";
+
+  const showRasaTextInput = !!awaitingInput && awaitingInput !== "connector_select";
+  const showConnectors = awaitingInput === "connector_select";
+  const showPreferences = activeFlow === "preferences" && !awaitingInput && rasaStarted && rasaMessages.length > 1;
+  const showFlows = rasaStarted && !activeFlow && rasaMessages.length > 0;
 
   return (
-    <div style={{ display: "flex", height: "100vh", backgroundColor: "#0a0d0b", fontFamily: "'Segoe UI', sans-serif", overflow: "hidden" }}>
+    <div style={{ display: "flex", height: "100vh", backgroundColor: "#f8f9fc", fontFamily: "'Segoe UI', sans-serif", overflow: "hidden" }}>
       <style>{`
-        @keyframes fadeUp { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
         @keyframes typingDot { 0%,80%,100%{opacity:0.3;transform:scale(0.8)} 40%{opacity:1;transform:scale(1)} }
-        .msg-row { animation: fadeUp 0.25s ease forwards; }
-        .dot { width:6px;height:6px;border-radius:50%;background:#00b482;display:inline-block;animation:typingDot 1.2s infinite; }
+        .msg { animation: fadeUp 0.25s ease forwards; }
+        .dot { width:7px;height:7px;border-radius:50%;background:#6366f1;display:inline-block;animation:typingDot 1.2s infinite; }
         .dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
-        .conv-item:hover { background: rgba(255,255,255,0.06) !important; }
-        .conv-item.active { background: rgba(0,180,130,0.1) !important; border-left: 2px solid #00b482 !important; }
-        .suggestion:hover { background: rgba(0,180,130,0.1) !important; border-color: rgba(0,180,130,0.4) !important; color: #fff !important; }
-        .send-btn:hover:not(:disabled) { background: #00c990 !important; }
-        ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+        .flow-card { transition:all 0.2s ease;cursor:pointer;background:#fff;border-radius:16px;padding:20px;box-shadow:0 2px 12px rgba(0,0,0,0.06);border:1px solid #eee; }
+        .flow-card:hover { transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,0.1); }
+        .chip:hover { opacity:0.85;transform:scale(1.02); }
+        .side-btn { width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;transition:all 0.2s;border:none;background:transparent; }
+        .side-btn:hover { background:#f0f0f5; }
+        .side-btn.active { background:#ede9fe; }
+        .hist-item:hover { background:#f5f5fa; }
+        ::-webkit-scrollbar{width:3px} ::-webkit-scrollbar-thumb{background:#ddd;border-radius:2px}
+        .tab-btn { padding:8px 18px;border-radius:10px;border:none;background:transparent;color:#888;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s; }
+        .tab-btn.active { background:#fff;color:#1a1a2e;box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+        .send-btn { transition:all 0.2s; }
+        .send-btn:hover:not(:disabled) { transform:scale(1.05); }
+        .input-bar { background:#fff;border:1.5px solid #e8e8f0;border-radius:16px;display:flex;align-items:center;padding:6px 6px 6px 18px;box-shadow:0 4px 16px rgba(0,0,0,0.06); }
+        .input-bar:focus-within { border-color:#6366f1;box-shadow:0 4px 20px rgba(99,102,241,0.12); }
+        .user-bubble { background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;border-radius:18px 18px 4px 18px;padding:10px 16px;font-size:14px;max-width:65%;line-height:1.5; }
+        .bot-bubble { background:#fff;border:1px solid #eee;border-radius:4px 18px 18px 18px;padding:12px 16px;font-size:14px;color:#1a1a2e;line-height:1.7;box-shadow:0 2px 8px rgba(0,0,0,0.05); }
+        .action-chip { background:#fff;border:1.5px solid #e0e0f0;border-radius:20px;color:#6366f1;font-size:13px;font-weight:600;padding:8px 18px;cursor:pointer;transition:all 0.2s; }
+        .action-chip:hover { background:#ede9fe;border-color:#6366f1; }
       `}</style>
 
-      {/* Sidebar */}
-      {sidebarOpen && (
-        <div style={{ width: "260px", backgroundColor: "#0f1610", borderRight: "1px solid rgba(255,255,255,0.06)", display: "flex", flexDirection: "column", flexShrink: 0 }}>
+      {/* Left sidebar */}
+      <div style={{ width: "64px", background: "#fff", borderRight: "1px solid #eee", display: "flex", flexDirection: "column", alignItems: "center", padding: "16px 0", gap: "8px" }}>
+        <button className="side-btn" onClick={() => navigate("/use-cases")} title="Back">←</button>
+        <div style={{ width: "32px", height: "1px", background: "#eee", margin: "4px 0" }} />
+        <button className={`side-btn ${!showHistory ? "active" : ""}`} onClick={() => setShowHistory(false)} title="Home">🏠</button>
+        <button className={`side-btn ${showHistory ? "active" : ""}`} onClick={() => setShowHistory(s => !s)} title="History">🕐</button>
+      </div>
 
-          {/* Sidebar header */}
-          <div style={{ padding: "20px 16px 12px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "14px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <span style={{ fontSize: "18px" }}>🤖</span>
-                <span style={{ color: "#fff", fontWeight: 700, fontSize: "14px" }}>EV Assistant</span>
+      {/* History panel */}
+      {showHistory && (
+        <div key={history.length} style={{ width: "230px", background: "#fff", borderRight: "1px solid #eee", padding: "16px 12px", overflowY: "auto", display: "flex", flexDirection: "column" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
+            <p style={{ color: "#999", fontSize: "10px", fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", margin: 0 }}>Recent Chats</p>
+            <button onClick={() => {
+              setRasaStarted(false); setActiveFlow(null); setAwaitingInput(null); setShowPostStation(false); setRasaMessages([]);
+              setGeminiMessages([]);
+              localStorage.removeItem("evat_chat_session");
+              setHistory(prev => prev.map(h => ({ ...h, active: false })));
+            }} style={{ background: "linear-gradient(135deg,#6366f1,#4f46e5)", color: "#fff", border: "none", borderRadius: "8px", padding: "5px 10px", fontSize: "11px", fontWeight: 600, cursor: "pointer" }}>+ New</button>
+          </div>
+          {history.length === 0 ? (
+            <p style={{ color: "#ccc", fontSize: "12px", textAlign: "center", marginTop: "40px" }}>No history yet</p>
+          ) : history.map(h => (
+            <div key={h.id} className="hist-item" style={{ padding: "10px", borderRadius: "10px", marginBottom: "4px", cursor: "pointer", background: h.active ? "#f0f0ff" : "transparent" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "3px" }}>
+                <span style={{ fontSize: "10px", backgroundColor: h.tab === "ai" ? "#ede9fe" : "#e0f2fe", color: h.tab === "ai" ? "#6366f1" : "#0284c7", padding: "1px 7px", borderRadius: "4px", fontWeight: 600 }}>{h.tab === "ai" ? "AI" : "Station"}</span>
+                {h.active && <span style={{ fontSize: "9px", color: "#10b981", fontWeight: 600 }}>LIVE</span>}
               </div>
-              <button onClick={() => navigate("/use-cases")} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.3)", cursor: "pointer", fontSize: "16px", padding: "2px" }} title="Back">✕</button>
+              <p style={{ color: "#333", fontSize: "12px", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{h.title}</p>
+              <p style={{ color: "#bbb", fontSize: "10px", margin: "2px 0 0 0" }}>{new Date(h.date).toLocaleDateString()}</p>
             </div>
-            <button onClick={startNewChat} style={{ width: "100%", backgroundColor: "#00b482", color: "#fff", border: "none", borderRadius: "8px", padding: "9px 14px", fontWeight: 600, fontSize: "13px", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px", justifyContent: "center" }}>
-              <span style={{ fontSize: "16px" }}>+</span> New Chat
-            </button>
-          </div>
-
-          {/* Conversations */}
-          <div style={{ flex: 1, overflowY: "auto", padding: "8px" }}>
-            {conversations.length === 0 ? (
-              <p style={{ color: "rgba(255,255,255,0.2)", fontSize: "12px", textAlign: "center", padding: "20px 0" }}>No conversations yet</p>
-            ) : (
-              Object.entries(grouped).map(([group, convs]) => convs.length > 0 && (
-                <div key={group} style={{ marginBottom: "16px" }}>
-                  <p style={{ color: "rgba(255,255,255,0.25)", fontSize: "10px", fontWeight: 600, letterSpacing: "1px", textTransform: "uppercase", padding: "4px 8px", margin: "0 0 4px 0" }}>{group}</p>
-                  {convs.map(c => (
-                    <div key={c.id} className={`conv-item ${activeChatId === c.id ? "active" : ""}`}
-                      onClick={() => loadChat(c.id)}
-                      style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 10px", borderRadius: "6px", cursor: "pointer", borderLeft: "2px solid transparent", transition: "all 0.15s", marginBottom: "2px" }}>
-                      <span style={{ color: "rgba(255,255,255,0.65)", fontSize: "12px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>{c.title}</span>
-                      <button onClick={(e) => deleteChat(e, c.id)} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.2)", cursor: "pointer", fontSize: "12px", padding: "0 0 0 6px", flexShrink: 0 }}>🗑</button>
-                    </div>
-                  ))}
-                </div>
-              ))
-            )}
-          </div>
-
-          {/* Location status */}
-          <div style={{ padding: "12px 16px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <span style={{ width: 7, height: 7, borderRadius: "50%", backgroundColor: location ? "#34d399" : "#f87171", display: "inline-block" }} />
-              <span style={{ color: "rgba(255,255,255,0.3)", fontSize: "11px" }}>{location ? "Location enabled" : "Location disabled"}</span>
-            </div>
-          </div>
+          ))}
         </div>
       )}
 
-      {/* Main chat area */}
+      {/* Main content */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
 
         {/* Top bar */}
-        <div style={{ padding: "14px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)", display: "flex", alignItems: "center", gap: "12px" }}>
-          <button onClick={() => setSidebarOpen(p => !p)} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.4)", cursor: "pointer", fontSize: "18px", padding: "2px 6px" }}>☰</button>
-          <span style={{ color: "rgba(255,255,255,0.5)", fontSize: "13px" }}>EV Assistant <span style={{ color: "#00b482" }}>·</span> Powered by Rasa</span>
+        <div style={{ padding: "14px 28px", background: "#fff", borderBottom: "1px solid #eee", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+            <span style={{ fontSize: "13px", color: "#999" }}>EV Assistant</span>
+            <span style={{ color: "#ddd" }}>·</span>
+            <span style={{ fontSize: "11px", color: "#bbb" }}>Rasa & Gemini</span>
+          </div>
+          <div style={{ background: "#f5f5fa", borderRadius: "12px", padding: "4px", display: "flex", gap: "2px" }}>
+            <button className={`tab-btn ${activeTab === "station" ? "active" : ""}`} onClick={() => setActiveTab("station")}>🗺️ Station Assistant</button>
+            <button className={`tab-btn ${activeTab === "ai" ? "active" : ""}`} onClick={() => setActiveTab("ai")}>✨ Ask AI</button>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+            <span style={{ width: 7, height: 7, borderRadius: "50%", backgroundColor: location ? "#10b981" : "#f87171", display: "inline-block" }} />
+            <span style={{ color: "#bbb", fontSize: "11px" }}>{location ? "GPS on" : "GPS off"}</span>
+          </div>
         </div>
 
-        {/* Messages */}
-        <div style={{ flex: 1, overflowY: "auto", padding: "0 24px" }}>
+        {/* ── STATION TAB ── */}
+        {activeTab === "station" && (
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+            <div style={{ flex: 1, overflowY: "auto", padding: "32px 40px" }}>
+              <div style={{ maxWidth: "760px", margin: "0 auto" }}>
 
-          {/* Empty state */}
-          {isNew && (
-            <div style={{ maxWidth: "680px", margin: "60px auto 0", textAlign: "center" }}>
-              <div style={{ fontSize: "40px", marginBottom: "16px" }}>🤖</div>
-              <h2 style={{ color: "#fff", fontSize: "28px", fontWeight: 700, margin: "0 0 8px 0" }}>EV Charging <span style={{ color: "#00b482" }}>Assistant</span></h2>
-              <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "14px", margin: "0 0 40px 0" }}>Ask me about charging stations, route planning, EV costs, or anything about the EVAT platform.</p>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", textAlign: "left" }}>
-                {SUGGESTIONS.map(s => (
-                  <button key={s} className="suggestion" onClick={() => sendMessage(s)}
-                    style={{ backgroundColor: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "10px", padding: "12px 16px", color: "rgba(255,255,255,0.6)", fontSize: "13px", cursor: "pointer", textAlign: "left", transition: "all 0.2s", lineHeight: "1.4" }}>
-                    {s}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Message list */}
-          <div style={{ maxWidth: "720px", margin: "0 auto", paddingTop: "32px", paddingBottom: "20px" }}>
-            {messages.map((msg, i) => (
-              <div key={i} className="msg-row" style={{ marginBottom: "28px" }}>
-                {msg.from === "user" ? (
-                  <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
-                    <div style={{ width: 30, height: 30, borderRadius: "50%", backgroundColor: "rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", flexShrink: 0, marginTop: "2px" }}>👤</div>
-                    <div style={{ flex: 1 }}>
-                      <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px", margin: "0 0 4px 0", fontWeight: 600 }}>YOU · {formatTime(msg.time)}</p>
-                      <p style={{ color: "rgba(255,255,255,0.85)", fontSize: "14px", margin: 0, lineHeight: "1.6" }}>{msg.text}</p>
+                {/* Landing */}
+                {!rasaStarted && (
+                  <>
+                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "40px" }}>
+                      <div>
+                        <h1 style={{ fontSize: "38px", fontWeight: 800, margin: "0 0 10px 0", color: "#1a1a2e", lineHeight: 1.2 }}>
+                          Hi {firstName}, <span style={{ color: "#888", fontWeight: 400 }}>Ready to</span><br />
+                          <span style={{ color: "#6366f1" }}>Find a Charger?</span>
+                        </h1>
+                        <p style={{ color: "#999", fontSize: "14px", margin: "0 0 24px 0" }}>Select a flow below to get started. Your GPS location is used automatically.</p>
+                        <button onClick={handleRasaStart}
+                          style={{ background: "linear-gradient(135deg,#6366f1,#4f46e5)", color: "#fff", border: "none", borderRadius: "12px", padding: "12px 28px", fontWeight: 700, fontSize: "14px", cursor: "pointer", boxShadow: "0 6px 20px rgba(99,102,241,0.3)" }}>
+                          Start Session →
+                        </button>
+                      </div>
+                      <div style={{ textAlign: "right" }}>
+                        <p style={{ color: "#bbb", fontSize: "13px", margin: "0 0 4px 0" }}>Hey there 👋</p>
+                        <h2 style={{ color: "#1a1a2e", fontSize: "28px", fontWeight: 800, margin: 0, lineHeight: 1.3 }}>Hi, I am<br /><span style={{ color: "#6366f1" }}>EVAT-AI</span></h2>
+                      </div>
                     </div>
-                  </div>
-                ) : (
-                  <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
-                    <div style={{ width: 30, height: 30, borderRadius: "50%", backgroundColor: "rgba(0,180,130,0.15)", border: "1px solid rgba(0,180,130,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", flexShrink: 0, marginTop: "2px" }}>🤖</div>
-                    <div style={{ flex: 1 }}>
-                      <p style={{ color: "#00b482", fontSize: "11px", margin: "0 0 4px 0", fontWeight: 700, letterSpacing: "0.5px" }}>EV ASSISTANT · {formatTime(msg.time)}</p>
-                      <p style={{ color: "rgba(255,255,255,0.85)", fontSize: "15px", margin: 0, lineHeight: "1.9", whiteSpace: "pre-wrap" }}
-                        dangerouslySetInnerHTML={{ __html: msg.text
-                          .replace(/[\u{1F4CD}\u{26A1}\u{1F4B0}\u{1F3AF}\u274C\u2705\u{1F4A1}\u{1F50C}\u{1F5FA}\u{1F697}\u{1F50B}]/gu, '')
-                          .replace(/\*\*(.*?)\*\*/g, '<strong style="color:#fff;font-weight:700">$1</strong>')
-                          .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                          .trim()
-                        }}
-                      />
-                      {msg.buttons?.length > 0 && (
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginTop: "12px" }}>
-                          {msg.buttons.map((btn, bi) => (
-                            <button key={bi} onClick={() => sendMessage(btn.payload)}
-                              style={{ backgroundColor: "rgba(0,180,130,0.12)", border: "1px solid rgba(0,180,130,0.4)", borderRadius: "20px", color: "#00b482", fontSize: "13px", fontWeight: 600, padding: "7px 16px", cursor: "pointer", transition: "all 0.2s", fontFamily: "'Segoe UI', sans-serif" }}
-                              onMouseEnter={e => { e.currentTarget.style.backgroundColor = "rgba(0,180,130,0.25)"; e.currentTarget.style.color = "#fff"; }}
-                              onMouseLeave={e => { e.currentTarget.style.backgroundColor = "rgba(0,180,130,0.12)"; e.currentTarget.style.color = "#00b482"; }}
-                            >
-                              {btn.title}
-                            </button>
-                          ))}
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
+                      {FLOWS.map(f => (
+                        <div key={f.id} className="flow-card" onClick={handleRasaStart} style={{ borderTop: `3px solid ${f.color}` }}>
+                          <div style={{ fontSize: "28px", marginBottom: "12px" }}>{f.icon}</div>
+                          <p style={{ color: "#1a1a2e", fontWeight: 700, fontSize: "15px", margin: "0 0 8px 0" }}>{f.title}</p>
+                          <p style={{ color: "#999", fontSize: "13px", margin: "0 0 12px 0", lineHeight: "1.5" }}>{f.desc}</p>
+                          <span style={{ color: f.color, fontSize: "12px", fontWeight: 600 }}>Get Started →</span>
                         </div>
-                      )}
+                      ))}
+                    </div>
+                  </>
+                )}
+
+                {/* Messages */}
+                {rasaMessages.map((msg, i) => (
+                  <div key={i} className="msg" style={{ marginBottom: "16px" }}>
+                    {msg.from === "user" ? (
+                      <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                        <div className="user-bubble">{msg.text}</div>
+                      </div>
+                    ) : (
+                      <div style={{ display: "flex", gap: "10px", alignItems: "flex-start" }}>
+                        <div style={{ width: 32, height: 32, borderRadius: "50%", background: "linear-gradient(135deg,#6366f1,#4f46e5)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", flexShrink: 0 }}>🤖</div>
+                        <div style={{ flex: 1 }}>
+                          <div className="bot-bubble" dangerouslySetInnerHTML={{ __html: renderText(msg.text) }} />
+                          {msg.buttons?.length > 0 && (
+                            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginTop: "10px" }}>
+                              {msg.buttons.map((btn, bi) => (
+                                <button key={bi} className="action-chip" onClick={async () => {
+                                  setRasaMessages(prev => [...prev, { from: "user", text: btn.title }]);
+                                  const r = await sendToRasa(btn.payload);
+                                  addRasaBot(r, true);
+                                }}>{btn.title}</button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+
+                {rasaLoading && (
+                  <div className="msg" style={{ display: "flex", gap: "10px", alignItems: "center", marginBottom: "16px" }}>
+                    <div style={{ width: 32, height: 32, borderRadius: "50%", background: "linear-gradient(135deg,#6366f1,#4f46e5)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px" }}>🤖</div>
+                    <div style={{ background: "#fff", border: "1px solid #eee", borderRadius: "4px 18px 18px 18px", padding: "12px 16px", display: "flex", gap: "4px", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
+                      <span className="dot" /><span className="dot" /><span className="dot" />
                     </div>
                   </div>
                 )}
-              </div>
-            ))}
 
-            {/* Typing */}
-            {loading && (
-              <div className="msg-row" style={{ display: "flex", gap: "12px", alignItems: "flex-start", marginBottom: "28px" }}>
-                <div style={{ width: 30, height: 30, borderRadius: "50%", backgroundColor: "rgba(0,180,130,0.15)", border: "1px solid rgba(0,180,130,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", flexShrink: 0 }}>🤖</div>
-                <div style={{ paddingTop: "10px", display: "flex", gap: "4px" }}>
-                  <span className="dot" /><span className="dot" /><span className="dot" />
+                {/* Flow selector */}
+                {showFlows && !rasaLoading && (
+                  <div className="msg" style={{ marginBottom: "16px" }}>
+                    <p style={{ color: "#bbb", fontSize: "11px", marginBottom: "10px", letterSpacing: "1px", textTransform: "uppercase" }}>Choose a flow</p>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
+                      {FLOWS.map(f => (
+                        <div key={f.id} className="flow-card" onClick={() => handleFlowSelect(f)} style={{ borderTop: `2px solid ${f.color}`, padding: "14px" }}>
+                          <div style={{ fontSize: "20px", marginBottom: "6px" }}>{f.icon}</div>
+                          <p style={{ color: "#1a1a2e", fontWeight: 700, fontSize: "13px", margin: "0 0 2px 0" }}>{f.title}</p>
+                          <p style={{ color: "#999", fontSize: "11px", margin: 0 }}>{f.desc.split(".")[0]}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Connectors */}
+                {showConnectors && !rasaLoading && (
+                  <div className="msg" style={{ marginBottom: "16px" }}>
+                    <p style={{ color: "#bbb", fontSize: "11px", marginBottom: "10px", letterSpacing: "1px", textTransform: "uppercase" }}>Select connector</p>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                      {CONNECTORS.map(c => (
+                        <button key={c} className="action-chip" onClick={() => handleConnectorSelect(c)}>{c}</button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Preferences */}
+                {showPreferences && !rasaLoading && (
+                  <div className="msg" style={{ marginBottom: "16px" }}>
+                    <p style={{ color: "#bbb", fontSize: "11px", marginBottom: "10px", letterSpacing: "1px", textTransform: "uppercase" }}>Your preference</p>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
+                      {PREFERENCES.map(p => (
+                        <div key={p.label} className="flow-card" onClick={() => handlePreferenceSelect(p)} style={{ textAlign: "center", padding: "14px" }}>
+                          <div style={{ fontSize: "22px", marginBottom: "6px" }}>{p.icon}</div>
+                          <p style={{ color: "#1a1a2e", fontWeight: 700, fontSize: "13px", margin: "0 0 2px 0" }}>{p.label}</p>
+                          <p style={{ color: "#999", fontSize: "11px", margin: 0 }}>{p.desc}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Post station */}
+                {showPostStation && !rasaLoading && (
+                  <div className="msg" style={{ marginBottom: "16px" }}>
+                    <p style={{ color: "#bbb", fontSize: "11px", marginBottom: "10px", letterSpacing: "1px", textTransform: "uppercase" }}>What next?</p>
+                    <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                      {POST_STATION.map(a => (
+                        <button key={a.label} className="action-chip" onClick={() => handlePostStation(a)} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                          {a.icon} {a.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <div ref={rasaBottomRef} />
+              </div>
+            </div>
+
+            {/* Rasa input */}
+            {showRasaTextInput && (
+              <div style={{ padding: "12px 40px 20px", background: "#f8f9fc", borderTop: "1px solid #eee" }}>
+                <div style={{ maxWidth: "760px", margin: "0 auto" }}>
+                  <div className="input-bar">
+                    <input type="text" value={rasaInput}
+                      onChange={(e) => setRasaInput(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleRasaTextSubmit()}
+                      placeholder={rasaInputPlaceholder}
+                      style={{ flex: 1, background: "none", border: "none", color: "#1a1a2e", fontSize: "14px", outline: "none", padding: "8px 0" }}
+                      autoFocus />
+                    <button className="send-btn" onClick={handleRasaTextSubmit} disabled={rasaLoading || !rasaInput.trim()}
+                      style={{ background: rasaLoading || !rasaInput.trim() ? "#ddd" : "linear-gradient(135deg,#6366f1,#4f46e5)", color: "#fff", border: "none", borderRadius: "10px", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center", cursor: rasaLoading || !rasaInput.trim() ? "not-allowed" : "pointer" }}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                    </button>
+                  </div>
+                  <p style={{ color: "#bbb", fontSize: "11px", textAlign: "center", marginTop: "6px" }}>{rasaInputPlaceholder}</p>
                 </div>
               </div>
             )}
-            <div ref={bottomRef} />
           </div>
-        </div>
+        )}
 
-        {/* Input */}
-        <div style={{ padding: "16px 24px 24px" }}>
-          <div style={{ maxWidth: "720px", margin: "0 auto" }}>
-            <div style={{ backgroundColor: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "12px", display: "flex", alignItems: "center", padding: "4px 4px 4px 16px", transition: "border-color 0.2s" }}>
-              <input ref={inputRef} type="text" value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendMessage()}
-                placeholder="Ask about EV charging, routes, or nearby stations..."
-                style={{ flex: 1, background: "none", border: "none", color: "#fff", fontSize: "14px", outline: "none", padding: "10px 0" }}
-              />
-              <button className="send-btn" onClick={() => sendMessage()} disabled={loading || !input.trim()}
-                style={{ backgroundColor: loading || !input.trim() ? "rgba(0,180,130,0.3)" : "#00b482", color: "#fff", border: "none", borderRadius: "8px", width: "38px", height: "38px", display: "flex", alignItems: "center", justifyContent: "center", cursor: loading || !input.trim() ? "not-allowed" : "pointer", transition: "background 0.2s", flexShrink: 0 }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
-                </svg>
-              </button>
+        {/* ── AI TAB ── */}
+        {activeTab === "ai" && (
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+            <div style={{ flex: 1, overflowY: "auto", padding: "32px 40px" }}>
+              <div style={{ maxWidth: "760px", margin: "0 auto" }}>
+                {geminiMessages.length === 0 && (
+                  <>
+                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "40px" }}>
+                      <div>
+                        <h1 style={{ fontSize: "38px", fontWeight: 800, margin: "0 0 10px 0", color: "#1a1a2e", lineHeight: 1.2 }}>
+                          I am <span style={{ color: "#6366f1" }}>EVAT-AI</span><br />
+                          <span style={{ color: "#888", fontWeight: 400, fontSize: "32px" }}>Ask me anything</span>
+                        </h1>
+                        <p style={{ color: "#999", fontSize: "14px", margin: 0 }}>Powered by Gemini AI — range, costs, charging, sustainability and more.</p>
+                      </div>
+                      <div style={{ textAlign: "right" }}>
+                        <p style={{ color: "#bbb", fontSize: "13px", margin: "0 0 4px 0" }}>Hey there 👋</p>
+                        <h2 style={{ color: "#1a1a2e", fontSize: "28px", fontWeight: 800, margin: 0, lineHeight: 1.3 }}>Ask me<br /><span style={{ color: "#6366f1" }}>Anything about EVs</span></h2>
+                      </div>
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
+                      {GEMINI_SUGGESTIONS.map(s => (
+                        <div key={s} className="flow-card" onClick={() => handleGeminiSend(s)} style={{ padding: "16px" }}>
+                          <p style={{ color: "#555", fontSize: "13px", margin: 0, lineHeight: "1.5" }}>{s}</p>
+                          <span style={{ color: "#6366f1", fontSize: "12px", fontWeight: 600, marginTop: "8px", display: "block" }}>Ask this →</span>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+
+                {geminiMessages.map((msg, i) => (
+                  <div key={i} className="msg" style={{ marginBottom: "20px" }}>
+                    {msg.from === "user" ? (
+                      <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                        <div className="user-bubble">{msg.text}</div>
+                      </div>
+                    ) : (
+                      <div style={{ display: "flex", gap: "10px", alignItems: "flex-start" }}>
+                        <div style={{ width: 32, height: 32, borderRadius: "50%", background: "linear-gradient(135deg,#6366f1,#10b981)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", flexShrink: 0 }}>✨</div>
+                        <div style={{ flex: 1 }}>
+                          <p style={{ color: "#6366f1", fontSize: "10px", fontWeight: 700, letterSpacing: "1px", margin: "0 0 6px 0" }}>EVAT-AI</p>
+                          <div className="bot-bubble" dangerouslySetInnerHTML={{ __html: renderText(msg.text) }} />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+
+                {geminiLoading && (
+                  <div className="msg" style={{ display: "flex", gap: "10px", alignItems: "center", marginBottom: "20px" }}>
+                    <div style={{ width: 32, height: 32, borderRadius: "50%", background: "linear-gradient(135deg,#6366f1,#10b981)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px" }}>✨</div>
+                    <div className="bot-bubble" style={{ display: "flex", gap: "4px" }}><span className="dot" /><span className="dot" /><span className="dot" /></div>
+                  </div>
+                )}
+                <div ref={geminiBottomRef} />
+              </div>
             </div>
-            <p style={{ color: "rgba(255,255,255,0.15)", fontSize: "11px", textAlign: "center", marginTop: "8px" }}>
-              Powered by Rasa · {location ? "📍 Location enabled for station search" : "📍 Enable location for nearby stations"}
-            </p>
+
+            <div style={{ padding: "12px 40px 20px", background: "#f8f9fc", borderTop: "1px solid #eee" }}>
+              <div style={{ maxWidth: "760px", margin: "0 auto" }}>
+                {!GEMINI_API_KEY && (
+                  <div style={{ background: "#fffbeb", border: "1px solid #fcd34d", borderRadius: "10px", padding: "10px 16px", marginBottom: "10px", textAlign: "center" }}>
+                    <span style={{ color: "#92400e", fontSize: "12px" }}>⚠️ Add VITE_GEMINI_API_KEY to your .env to enable AI chat</span>
+                  </div>
+                )}
+                <div className="input-bar">
+                  <span style={{ color: "#bbb", marginRight: "8px", fontSize: "16px" }}>✨</span>
+                  <input type="text" value={geminiInput}
+                    onChange={(e) => setGeminiInput(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleGeminiSend()}
+                    placeholder='Ask anything e.g. "How far can a Tesla go on one charge?"'
+                    style={{ flex: 1, background: "none", border: "none", color: "#1a1a2e", fontSize: "14px", outline: "none", padding: "8px 0" }}
+                  />
+                  <button className="send-btn" onClick={() => handleGeminiSend()} disabled={geminiLoading || !geminiInput.trim()}
+                    style={{ background: geminiLoading || !geminiInput.trim() ? "#ddd" : "linear-gradient(135deg,#6366f1,#10b981)", color: "#fff", border: "none", borderRadius: "10px", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center", cursor: geminiLoading || !geminiInput.trim() ? "not-allowed" : "pointer" }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                  </button>
+                </div>
+                <p style={{ color: "#bbb", fontSize: "11px", textAlign: "center", marginTop: "6px" }}>Powered by EVAT-AI · EV-focused assistant</p>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

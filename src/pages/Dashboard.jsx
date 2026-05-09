@@ -28,6 +28,14 @@ const useCases = [
     status: "live",
   },
   {
+  id: "personalised-insights",
+  title: "Personalised EV Insights",
+  description: "Get personalised recommendations based on your driving habits and lifestyle.",
+  icon: "🔍",
+  route: "/insights-form",
+  status: "live",
+},
+  {
   id: "congestion-prediction",
   title: "Congestion Prediction",
   icon: "🚦",
@@ -40,7 +48,7 @@ const useCases = [
     title: "Weather-Aware Routing",
     description: "Get optimal EV routes factoring in weather, terrain, and range impact.",
     icon: "🗺️",
-    route: "/weather-routing",
+    route: "/weather-aware-routing",
     status: "live",
   },
   {
