@@ -12,8 +12,6 @@ intents:
   - preference_charging
   - preference_selection
   - preference_location_input
-  - route_station_selection
-  - emergency_station_selection
   - preference_station_selection
   - action_selection
   - follow_up
@@ -32,6 +30,12 @@ intents:
   - nearby_stations
   - ask_congestion_prediction
   - restart
+  - emergency_station_selection
+  # Advanced directions intent
+  - get_advanced_directions
+  - get_directions
+  - provide_location
+  - route_station_selection
 
 entities:
   - menu_option
@@ -238,6 +242,8 @@ actions:
   - action_handle_emergency_location_input
   - action_handle_emergency_charging
   - action_handle_preference_charging
+  - action_get_live_chargers
+  # Enhanced preference filtering action
   - action_enhanced_preference_filtering
   - action_enhanced_charger_info
   - action_traffic_info

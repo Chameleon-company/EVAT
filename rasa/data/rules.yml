@@ -396,3 +396,14 @@ rules:
   steps:
     - intent: restart
     - action: action_restart
+# Find live charging stations using openchargemaps api 
+- rule: Find live chargers
+  steps:
+    - intent: find_chargers
+    - action: action_get_live_chargers
+
+#Trigger location collection
+- rule: Handle typed suburb location
+  steps:
+    - intent: provide_location
+    - action: action_collect_initial_location

@@ -84,6 +84,19 @@ nlu:
     - see you
     - thank you
 
+- intent: find_nearby_chargers
+  examples: |
+    - find nearby chargers
+    - show nearby charging stations
+    - find charging stations near me
+    - nearby EV chargers
+    - find EV chargers near me
+    - show chargers around me
+    - where can I charge my car
+    - find charging stations
+    - show me EV charging stations
+    - locate nearby charging stations
+
 - intent: route_planning
   examples: |
     - i need to plan a route
@@ -372,6 +385,33 @@ nlu:
     - [Noble Park](current_location)
     - [Keysborough](current_location)
 
+- intent: provide_location
+  examples: |
+    - Richmond
+    - Carlton
+    - Melbourne
+    - Docklands
+    - Southbank
+    - Fitzroy
+    - Brunswick
+    - St Kilda
+    - Hawthorn
+    - Geelong
+    - Box Hill
+    - Dandenong
+    - Frankston
+    - Collingwood
+    - Port Melbourne
+    - South Yarra
+    - Brighton
+    - Footscray
+    - Coburg
+    - Glen Waverley
+    - Oakleigh
+    - Point Cook
+    - Greenvale
+    - Eltham
+
 - intent: emergency_connector_input
   examples: |
     - Tesla
@@ -526,7 +566,6 @@ nlu:
 
 - intent: route_station_selection
   examples: |
-    - [station_name]
     - [Malvern Central](station_name)
     - Malvern Central
     - Swinburne University - TC Building
@@ -547,6 +586,7 @@ nlu:
     - Collingwood Library
     - Monash Caufield
     - ENGIE - Chadstone 2
+    - Malvern Central
     - Lynbrook Village
     - RMIT - City Campus
     - Camberwell Supercharger
@@ -626,7 +666,7 @@ nlu:
     - show only stations with pricing under [$0.30/kWh](price)
     - I want a station that is [free](price)
     - find me a [Type 2](connector_type) connector station
-    - I need a [CCS](connector_type) charger above [150](power_level)kW
+    - I need a [CCS](connector_type) charger above [150kW](power_level)
     - show available [CHAdeMO](connector_type) stations
     - where's the nearest [ultra-fast](charging_speed) charging point?
     - find me a working [Tesla](connector_type) supercharger
@@ -634,11 +674,11 @@ nlu:
     - show me stations with [Type 2](connector_type) and [CCS](connector_type) connectors
     - find [affordable](price) [fast](charging_speed) charging stations
     - are there any [free](price) [ultra-fast](charging_speed) chargers?
-    - show me stations with power above [50](power_level)kW
+    - show me stations with power above [50kW](power_level)
     - looking for [rapid](charging_speed) charging options
     - need a [Type 2](connector_type) charger with [fast](charging_speed) charging
     - find [CCS](connector_type) stations under [$0.40](price) per kWh
-    - show [CHAdeMO](connector_type) chargers with [150](power_level)kW or more
+    - show [CHAdeMO](connector_type) chargers with [150kW](power_level) or more
     - filter by [fast](charging_speed) charging
     - show [Type 2](connector_type) stations only
     - find [free](price) charging options
@@ -762,7 +802,6 @@ nlu:
 
 - intent: emergency_station_selection
   examples: |
-    - [station_name]
 
 - intent: preference_station_selection
   examples: |
@@ -779,6 +818,28 @@ nlu:
     - [bp pulse Dandenong North]
     - [Engie - The Glen]
     - [Bayside Gateway]
+    - Swinburne University - TC Building
+    - Monash Caufield
+    - RACV Solar Grovedale
+    - Forest Hill Chase Shopping Centre
+    - Blue Tongue Industries
+    - Evie Meredith
+    - ENGIE - Chadstone
+    - North Bellarine Aquatic Centre
+    - High Street
+    - bp pulse Dandenong North
+    - Swinburne University - TC Building
+    - Monash Caufield
+    - RACV Solar Grovedale
+    - Forest Hill Chase Shopping Centre
+    - Blue Tongue Industries
+    - Evie Meredith
+    - ENGIE - Chadstone
+    - North Bellarine Aquatic Centre
+    - High Street
+    - Engie - The Glen
+    - Bayside Gateway
+    - bp pulse Dandenong North
     - Swinburne University - TC Building
     - Monash Caufield
     - RACV Solar Grovedale
@@ -1090,3 +1151,10 @@ nlu:
     - high occupancy
     - heavy load
     - high usage
+- intent: find_chargers
+  examples: |
+    - find chargers near me
+    - show nearby charging stations
+    - where can I charge my car
+    - find EV chargers
+    - nearby EV charging stations
