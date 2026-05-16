@@ -105,7 +105,6 @@ body {
   display: flex;
   flex-direction: column;
   width: stretch;         /* fills the parent container */
-  margin: auto;           /* fills the parent container */
   align-items: center;
   min-width: 210px;
   justify-items: space-around;
@@ -115,10 +114,8 @@ body {
 .inner-right {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;  /* aligns content to right */
   min-width: 210px;
   width: fit-content;
-  margin-top: auto;       /* pushes content to bottom */
 }
 
 .wrap-center {
