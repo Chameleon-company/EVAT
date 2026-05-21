@@ -1,8 +1,8 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
+import { UserContext } from "../context/user";
 import { useNavigate, useLocation } from 'react-router-dom';
 import logo from '../assets/logo.png';
-import profileImage from '../assets/profileImage.png';
 import { Menu, LogOut} from "lucide-react";
 
 function NavBar() {
@@ -12,6 +12,8 @@ function NavBar() {
     const [devMenu, setDevMenuOpen] = useState(false);
     const isDev = import.meta.env.DEV; // check if in dev mode
 
+    const { user, updateUser } = useContext(UserContext);
+    
     // Handle Sign out
     const handleSignOut = () => {
         localStorage.removeItem("currentUser");
@@ -86,11 +88,32 @@ function NavBar() {
                                     {/* Developer Menu Options */}
                                     {devMenu && (
                                         <div className={`dropdown-list ${devMenu ? 'show' : ''}`}>
+                                            <button className='dropdown-item' onClick={() => navigate('/use-cases')}>
+                                                Use Case Dashboard
+                                            </button>
                                             <button className='dropdown-item' onClick={() => navigate('/apitester')}>
                                                 API Tester
                                             </button>
                                             <button className='dropdown-item' onClick={() => navigate('/voice-query')}>
                                                 Voice Query
+                                            </button>
+                                            <button className='dropdown-item' onClick={() => navigate('/cost-comparison')}>
+                                                Cost Comparison
+                                            </button>
+                                            <button className='dropdown-item' onClick={() => navigate('/environmental-impact')}>
+                                                Environmental Impact
+                                            </button>
+                                            <button className='dropdown-item' onClick={() => navigate('/demand-forecasting')}>
+                                                Demand Forecasting
+                                            </button>
+                                            <button className='dropdown-item' onClick={() => navigate('/congestion-prediction')}>
+                                                Congestion Prediction
+                                            </button>
+                                            <button className='dropdown-item' onClick={() => navigate('/weather-routing')}>
+                                                Weather Routing
+                                            </button>
+                                            <button className='dropdown-item' onClick={() => navigate('/chatbot')}>
+                                                Chatbot
                                             </button>
                                         </div>
                                     )}
@@ -118,10 +141,12 @@ function NavBar() {
 
             {/* Right Navbar */}
             <div className="right-navbar">
-                <img src={profileImage} 
-                    alt="Profile" 
+                <img 
+                    src={user.avatarURL || "defaultProfilePictures/default-white.png"} 
+                    alt="User Avatar"
                     className="icon-navbar middle" 
                     onClick={() => navigate('/profile')}
+                    key={user.avatarURL}
                 />
                 <button 
                     alt="Sign Out"

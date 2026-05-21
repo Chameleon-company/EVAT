@@ -458,13 +458,13 @@ clamp(<minimum size>, <preferred size>, <maximum size>);
     --navbar-button-active-text: var(--primary-color-dark);
     --navbar-button-disable-text: var(--grey-dark);
 
-    /* ====================================================== Smart Filter ====================================================== */
+    /* ====================================================== Overlays ====================================================== */
     --overlay-color: #000000b4;
     --filter-radius: var(--website-radius);
     --filter-padding: var(--website-padding);
     --filter-margin: var(--website-margin);
     --filter-max-height: 80vh;
-    --filter-max-width: 30vw;
+    --filter-max-width: 40vw;
     --filter-container-background: linear-gradient(90deg, var(--secondary-color-base), var(--secondary-color-light));
 
     /* Header and Footer */
@@ -483,6 +483,34 @@ clamp(<minimum size>, <preferred size>, <maximum size>);
     /* Slider - Smart Filter specific options */
     --filter-slider-container-margin-top: 1rem;
     --filter-slider-price-labels-padding-top: 1rem;
+
+    /* Avatar tool */
+    --avatar-grid-columns: 8;
+    --avatar-grid-width: 100px;
+    --avatar-max-height: 90vh;
+    --avatar-max-width: 40vw;
+    --avatar-header-background-color: var(--secondary-color-dark);
+    --avatar-header-max-height: 40px;
+    --avatar-header-padding: 30px var(--website-padding) var(--website-padding) 20px;
+    --avatar-container-background: linear-gradient(90deg, var(--secondary-color-base), var(--secondary-color-light));
+    --avatar-options-gap: var(--website-gap);
+    --avatar-padding: var(--website-padding);
+    --avatar-line-separater: 1px solid var(--white);
+    --avatar-option-border: 3px solid transparent;
+    --avatar-option-scale-hover: 1.04;
+    --avatar-option-border-hover: 3px solid var(--white);
+    --avatar-option-border-selected: 3px solid var(--primary-color-base);
+    --avatar-option-size: 85px;
+    --avatar-option-selected-shadow: var(--website-shadow-box);
+    --avatar-option-selected-shadow-hover: var(--website-shadow-hover);
+
+    /* Avatar tool selected check */
+    --selected-check-bottom: 4px;
+    --selected-check-right: 4px;
+    --selected-check-size: 12px;
+    --selected-check-background-color: var(--primary-color-base);
+    --selected-check-tick-color: var(--white);
+    --selected-check-padding: var(--website-padding);
 
     /* ====================================================== Side Bar ====================================================== */
     --sidebar-width: 22vw;

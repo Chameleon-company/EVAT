@@ -71,6 +71,14 @@ function Signin() {
           return;
         }
 
+        // Fetch detailed profile
+        const profileRes = await fetch(`${API_URL}/profile/user-profile`, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        if (!profileRes.ok)
+          throw new Error("Failed to fetch user profile details");
+        const profileData = await profileRes.json();
+
         // Construct user data with token included
         const userData = {
           ...(data?.data?.user || {}),
@@ -78,6 +86,8 @@ function Signin() {
                     `${data?.data?.user?.firstName || ''} ${data?.data?.user?.lastName || ''}`.trim(),
           mobile: data?.data?.user?.mobile,
           token: accessToken,
+          createdAt: data?.data?.user?.createdAt,
+          avatarURL: profileData?.data?.avatarURL,
         };
 
         // Update context and localStorage

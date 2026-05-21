@@ -63,7 +63,6 @@ The right side holds the navigation buttons and the profile icon is on the far r
     width: var(--navbar-profile-icon-size);
     height: var(--navbar-profile-icon-size);
     border-radius: var(--navbar-profile-icon-radius);
-    background-image: url('../assets/profileIcon.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -128,8 +127,8 @@ The right side holds the navigation buttons and the profile icon is on the far r
 /* Items in the dropdown */
 .dropdown-item {
     padding: var(--dropdown-menu-item-padding);
-    height: fit-content;
     border: none;
+    width:max-content;
     text-align: left;
     background: none;
     box-shadow: none;

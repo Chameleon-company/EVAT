@@ -211,12 +211,6 @@ function Game() {
             <p>No game profile data.</p>
           )}
         </div>
-
-        <div className="inner-right">
-          <button className="btn btn-secondary two-hundred-width uppercase" onClick={handleSignOut}>
-            SIGN OUT
-          </button>
-        </div>
       </div>
       <ChatBubble />
     </div>
