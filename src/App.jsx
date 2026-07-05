@@ -15,8 +15,14 @@ import { UserProvider } from './context/user';
 import { FavouritesProvider } from "./context/FavouritesContext";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import EVChatBubble from "./components/EVChatBubble";
 
-
+// Use Case Dashboard and pages
+import Dashboard from "./pages/Dashboard";
+import EnvironmentalImpact from "./pages/EnvironmentalImpact";
+import DemandForecasting from "./pages/DemandForecasting";
+import WeatherRouting from "./pages/WeatherRouting";
+import Chatbot from "./pages/Chatbot";
 
 function App() {
   return (
@@ -32,7 +38,7 @@ function App() {
             <Route path="/feedback" element={<Feedback />} />
             <Route path="/favourites" element={<Favourite />} />
             <Route path="/cost" element={<Cost />} />
-            <Route path="/game" element={<Game />} /> 
+            <Route path="/game" element={<Game />} />
             <Route path="/support" element={<ContactSupport />} />
             <Route path="/apitester" element={<ApiTester />} />
             <Route path="/voice-query" element={<VoiceQueryPage />} />
@@ -43,9 +49,9 @@ function App() {
         </Router>
       </FavouritesProvider>
       <ToastContainer position="top-center" autoClose={3000} />
+      <EVChatBubble />
     </UserProvider>
   );
 }
-
 
 export default App;

@@ -55,6 +55,12 @@ body {
   margin: auto;
 }
 
+.no-borderBckgrd {
+  background: none;
+  color: none;
+  border: none;
+}
+
 .container.horizontal {
   flex-direction: row;
   height: fit-content;
@@ -325,8 +331,25 @@ body {
   width: 125px;
 }
 
+.third-width {
+  width: 33%;
+}
+
+.thirty-width {
+  width: 30%;
+}
+
 .half-width {
   width: 50%;
+  min-width: unset;
+}
+
+.twoThird-width {
+  width: 66%;
+}
+
+.eighty-width {
+  width: 80%;
   min-width: unset;
 }
 
@@ -348,6 +371,10 @@ body {
 
 .auto-height {
   height: auto;
+}
+
+.full-height {
+  height: 100%;
 }
 
 .force-height {

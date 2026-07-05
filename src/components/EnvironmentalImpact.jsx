@@ -179,6 +179,15 @@ export default function EnvironmentalImpact({
       <table className="env-impact-table">
         <thead>
           <tr>
+  <td className="three-hundred-width wrap-center" style={{ textAlign: "center", fontWeight: "bold", fontSize: "18px", color: "#00b482", paddingBottom: "10px" }}>
+     Electric Vehicle (EV)
+  </td>
+  <td className="two-hundred-width"></td>
+  <td className="three-hundred-width wrap-center" style={{ textAlign: "center", fontWeight: "bold", fontSize: "18px", color: "#6b9ed2", paddingBottom: "10px" }}>
+     Petrol / Diesel (ICE)
+  </td>
+</tr>
+          <tr>
             <td className="three-hundred-width wrap-center">
               {/* EV Make Dropdown */}
               <select
