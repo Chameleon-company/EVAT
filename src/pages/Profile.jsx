@@ -25,6 +25,7 @@ import '../styles/NavBar.css';
 import '../styles/Sidebar.css';
 import '../styles/Tables.css';
 import '../styles/Validation.css';
+import '../styles/Achievements.css';
 
 const API_URL = import.meta.env.VITE_API_URL;
 const RECENT_SUCCESS_MESSAGE_LINGER = 5000; // 5 seconds * 1000
@@ -62,6 +63,12 @@ function Profile() {
   const [success, setSuccess] = useState('');
   // profile image tool
   const [showAvatarTool, setShowAvatarTool] = useState(false);
+  // achievement information
+  const [recentAchievements, setRecentAchievements] = useState([]);
+  const [achievementsLoading, setAchievementsLoading] = useState(true);
+  // user stats information
+  const [userStats, setUserStats] = useState(null);
+  const [statsLoading, setStatsLoading] = useState(true);
 
   // Sync context user and local user
   useEffect(() => {
@@ -182,6 +189,72 @@ function Profile() {
 
     fetchUserProfile();
   }, [navigate, token]);
+
+  // Fetch user stats when profile loads
+  useEffect(() => {
+    if (token) {
+      fetchUserStats();
+    }
+  }, [token]);
+
+  // Fetch user stats
+  const fetchUserStats = async () => {
+    if (!token) return;
+
+    try {
+      setStatsLoading(true);
+      const res = await fetch(`${API_URL}/user-stats/me`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) throw new Error("Failed to fetch stats");
+
+      const data = await res.json();
+      setUserStats(data.data || null);
+    } catch (err) {
+      console.error("Failed to fetch user stats:", err);
+      setUserStats(null);
+    } finally {
+      setStatsLoading(false);
+    }
+  };
+
+  // Fetch recent achievements when profile loads
+  useEffect(() => {
+    if (token) {
+      fetchRecentAchievements();
+    }
+  }, [token]);
+  
+  // Fetch recent achievements
+  const fetchRecentAchievements = async () => {
+    if (!token) return;
+
+    try {
+      setAchievementsLoading(true);
+      const res = await fetch(`${API_URL}/achievements/me-recent?limit=6`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(`HTTP ${res.status}: ${errorText}`);
+      }
+
+      const data = await res.json();
+      setRecentAchievements(data.data || []);
+    } catch (err) {
+      console.error("Failed to fetch recent achievements:", err);
+      setRecentAchievements([]);
+    } finally {
+      setAchievementsLoading(false);
+    }
+  };
 
   // Fetch vehicles when editing car OR when opening Environmental Impact tab
   useEffect(() => {
@@ -612,13 +685,13 @@ function Profile() {
               className="btn btn-transparent btn-tiny one-hundred-25-width spread" 
               onClick={() => {
                 if (originalUser != null){
-                  setLocalUser(originalUser);  // reset the details in case other edits are in progress
+                  setLocalUser(originalUser); // reset the details in case other edits are in progress
                   setErrors({});
                 }
-                setEditingCar(false);     // stop car edit
-                setEditingPayment(false); // stop payment edit
-                setOriginalUser(localUser);    // save the current values before editing
-                setEditingAbout(true);    // enter edit details mode
+                setEditingCar(false);         // stop car edit
+                setEditingPayment(false);     // stop payment edit
+                setOriginalUser(localUser);   // save the current values before editing
+                setEditingAbout(true);        // enter edit details mode
               }}
             >
               <Pencil size='14'/>Edit Profile
@@ -731,13 +804,13 @@ function Profile() {
               className="btn btn-transparent btn-tiny one-hundred-25-width spread" 
               onClick={() => {
                 if (originalUser != null){
-                  setLocalUser(originalUser);  // reset the details in case other edits are in progress
+                  setLocalUser(originalUser); // reset the details in case other edits are in progress
                   setErrors({});
                 }
-                setEditingAbout(false);   // stop details edit
-                setEditingPayment(false); // stop payment edit
-                setOriginalUser(localUser);    // save the current values before editing
-                setEditingCar(true);      // enter edit car mode
+                setEditingAbout(false);       // stop details edit
+                setEditingPayment(false);     // stop payment edit
+                setOriginalUser(localUser);   // save the current values before editing
+                setEditingCar(true);          // enter edit car mode
               }}
             >
               <Pencil size='14'/>Edit Vehcile
@@ -769,21 +842,109 @@ function Profile() {
           )}
 
           <div className='spacer' />
+          
+          {/* Other Buttons */}
+          <button className="btn btn-primary btn-tiny one-hundred-50-width spread" onClick={() => setActiveTab("payment")}> <CreditCard /> Payment</button>
+          <button className="btn btn-primary btn-tiny one-hundred-50-width spread" onClick={() => setActiveTab("history")}> <BookText /> Booking History</button>
+          <button className="btn btn-primary btn-tiny one-hundred-50-width spread" onClick={() => setActiveTab("env-impact")}> Environmental Impact</button>
+
+          <div className='spacer' />
           <div className='font-regular text-tiny'>
             Joined: {formatDate(localUser.createdAt)}
           </div>
         </div>
         
-        {/* center container - options and details*/}
-        <div className="inner-center">
+        {/* center container - details*/}
+        <div className="inner-center ">
           {activeTab === "dashboard" && (
             <>
-              <button className="btn btn-primary two-hundred-width spread" onClick={() => setActiveTab("payment")}> <CreditCard /> Payment</button>
-              <button className="btn btn-primary two-hundred-width spread" onClick={() => setActiveTab("history")}> <BookText /> Booking History</button>
-              <button className="btn btn-primary two-hundred-width spread" onClick={() => setActiveTab("env-impact")}> Environmental Impact</button>
-              <button className="btn btn-primary two-hundred-width spread" onClick={() => navigate('/insights-form')}>Submit EV Insight</button>
-<button className="btn btn-primary two-hundred-width spread" onClick={() => navigate('/insights')}>View EV Insights</button>
-<button className="btn btn-primary two-hundred-width spread" onClick={() => navigate('/weather-aware-routing')}> Weather Aware Routing</button>
+              {/* Recent Unlocked Achievements */}
+              <div className="recent-achievements-section">
+                <div className="section-header">
+                  <h5>Recent Unlocked Achievements</h5>
+                  <button onClick={() => navigate("/achievements")} className="see-all-link">
+                    (See full achievement list)
+                  </button>
+                </div>
+
+                {achievementsLoading ? (
+                  <p>Loading achievements...</p>
+                ) : recentAchievements.length > 0 ? (
+                  <div className="achievements-grid">   {/* 2-column grid */}
+                    {recentAchievements.map((ach) => (
+                      <div key={ach._id} className="achievement-card">
+                        <div className="achievement-icon">
+                          <img 
+                            src={ach.icon || "/default-badge.png"} 
+                            alt={ach.name}
+                            className="achievement-icon-img"
+                          />
+                        </div>
+                        <div className="achievement-info">
+                          <h4>{ach.name}</h4>
+                          <p className="achievement-description">{ach.description}</p>
+                          
+                          <div className="progress-container">
+                            <div className="progress-bar">
+                              <div className="progress-fill" style={{ width: "100%" }}></div>
+                            </div>
+                            <span className="completed-date">
+                              Completed: {new Date(ach.unlockedAt).toLocaleDateString('en-AU')}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p>You haven't unlocked any achievements yet. Start charging or updating your profile!</p>
+                )}
+              </div>
+              
+              <div className='spacer' />
+
+              {/* User Stats Section */}
+              <div className="user-stats-section">
+                <h3>Your Impact</h3>
+                
+                {statsLoading ? (
+                  <p>Loading your stats...</p>
+                ) : userStats ? (
+                  <div className="stats-grid">
+                    <div className="stat-card">
+                      <strong>Total Charging Sessions: </strong>
+                      <span>{userStats.counters.totalChargingSessions}</span>
+                    </div>
+                    
+                    <div className="stat-card">
+                      <strong>Total kWh Charged: </strong>
+                      <span>{(userStats.counters.totalWhCharged / 1000).toFixed(1)}</span>
+                    </div>
+
+                    <div className="stat-card">
+                      <strong>Total Distance Travelled: </strong>
+                      <span>{(userStats.counters.totalMetresTravelled / 1000).toFixed(1)} km</span>
+                    </div>
+
+                    <div className="stat-card">
+                      <strong>CO₂ Avoided: </strong>
+                      <span>{userStats.counters.totalCO2KgAvoided} kg</span>
+                    </div>
+
+                    <div className="stat-card">
+                      <strong>Petrol Savings: </strong>
+                      <span>${(userStats.counters.totalPetrolSavingsCents / 100).toFixed(2)}</span>
+                    </div>
+
+                    <div className="stat-card">
+                      <strong>Consecutive Login Days: </strong>
+                      <span>{userStats.counters.consecutiveLoginDays} days</span>
+                    </div>
+                  </div>
+                ) : (
+                  <p>Unable to load stats.</p>
+                )}
+              </div>
             </>
           )}
 
@@ -833,7 +994,7 @@ function Profile() {
                       value={localUser.expiryDate || ""}
                       placeholder="MM/YY"
                       onChange={(e) => {
-                        let val = e.target.value.replace(/\D/g, '').slice(0, 4); // digits only, max 4
+                        let val = e.target.value.replace(/\D/g, '').slice(0, 4);        // digits only, max 4
                         if (val.length > 2) val = val.slice(0, 2) + '/' + val.slice(2); // insert '/'
                         setLocalUser({ ...localUser, expiryDate: val });
                         setPaymentErrors({ ...paymentErrors, expiryDate: "" });
@@ -922,10 +1083,8 @@ function Profile() {
               </div>
             </div>
           )}
-        </div>
-
-        {/* RIGHT SECTION */}
-        <div className="inner-right">
+          
+          <div className='spacer' />
 
           {/* Payment */}
           {activeTab === "payment" && (
@@ -938,13 +1097,13 @@ function Profile() {
                     handleSavePayment();
                   } else {
                     if (originalUser != null){
-                      setLocalUser(originalUser);  // reset the details in case other edits are in progress
+                      setLocalUser(originalUser); // reset the details in case other edits are in progress
                       setErrors({});
                     }
-                    setEditingCar(false);     // stop car edit
-                    setEditingAbout(false);   // stop details edit
-                    setOriginalUser(localUser);    // save the current values before editing
-                    setEditingPayment(true);  // enter edit details mode
+                    setEditingCar(false);         // stop car edit
+                    setEditingAbout(false);       // stop details edit
+                    setOriginalUser(localUser);   // save the current values before editing
+                    setEditingPayment(true);      // enter edit details mode
                   }
                 }}
               >
