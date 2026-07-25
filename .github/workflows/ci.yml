@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-production:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Login to docker hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{secrets.CI_DOCKER_USERNAME}}
+          password: ${{secrets.CI_DOCKER_PASSWORD}}
+
+      - name: Build the docker image
+        run: |
+          docker build . -f Dockerfile -t ${{ secrets.CI_DOCKER_USERNAME }}/${{ secrets.APP_NAME }}:${{ github.sha }}
+      
+      - name: Push the docker image
+        run: |
+          docker push ${{ secrets.CI_DOCKER_USERNAME }}/${{ secrets.APP_NAME }}:${{ github.sha }}
+
+  deploy-production:
+    runs-on: ubuntu-latest
+    needs: build-production
+    environment: production
+
+    steps:
+      - name: Deploy to Production
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.USER_NAME }}
+          key: ${{ secrets.SERVER_PROD_KEY }}
+          script: |
+            echo '${{ secrets.CI_DOCKER_PASSWORD }}' | sudo docker login --username '${{ secrets.CI_DOCKER_USERNAME }}' --password-stdin;
+            sudo docker stop '${{ secrets.APP_NAME }}' || true;
+            sudo docker rm '${{ secrets.APP_NAME }}' || true;
+            sudo docker pull '${{ secrets.CI_DOCKER_USERNAME }}'/'${{ secrets.APP_NAME }}':'${{ github.sha }}';
+            sudo docker run -d \
+              --name "${{ secrets.APP_NAME }}" \
+              -p 8080:8080 \
+              -e NODE_ENV=production \
+              -e PORT=8080 \
+              -e MONGODB_URI="${{ secrets.MONGODB_URI }}" \
+              -e DOMAIN_URL="${{ secrets.DOMAIN_URL }}" \
+              -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
+              "${{ secrets.CI_DOCKER_USERNAME }}"/"${{ secrets.APP_NAME }}":"${{ github.sha }}";
+            sudo docker system prune -a -f;
+            sudo docker logout;
