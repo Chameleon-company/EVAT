@@ -1,4 +1,4 @@
-import express, { Application } from "express";
+ import express, { Application } from "express";
 import dotenv from "dotenv";
 import mongoose from 'mongoose';
 import swaggerUi from "swagger-ui-express";
@@ -30,6 +30,8 @@ import EnvImpactAnalysisRoutes from "./src/routes/env-impact-analysis-route";
 import VoiceRoutes from "./src/routes/voice-route";
 import userStatsRoutes from "./src/routes/user-stats-route";
 import achievementRoutes from "./src/routes/achievement-route";
+import personalisedEVInsightsRoutes from "./src/routes/personalised-ev-insights-routes";
+import weatherAwareRoutes from "./src/routes/weather-aware-routing-routes";
 
 dotenv.config();
 
@@ -123,6 +125,8 @@ app.use("/api/env-impact-analysis", EnvImpactAnalysisRoutes);
 app.use("/api/voice", VoiceRoutes);
 app.use("/api/user-stats", userStatsRoutes);
 app.use("/api/achievements", achievementRoutes);
+app.use("/api/personalised-ev-insights", personalisedEVInsightsRoutes);
+app.use("/api/weather-aware-routing", weatherAwareRoutes);
 
 
 // Serve React frontend

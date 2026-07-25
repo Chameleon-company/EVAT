@@ -54,7 +54,7 @@ function NavBar() {
                                 <button className='dropdown-item' onClick={() => navigate('/map')}>
                                     Map
                                 </button>
-                                <button className='dropdown-item' onClick={() => navigate('/use-cases')}>
+                                <button className='dropdown-item' onClick={() => navigate('/dashboard')}>
                                     Dashboard
                                 </button>
                                 <button className='dropdown-item' onClick={() => navigate('/favourites')}>

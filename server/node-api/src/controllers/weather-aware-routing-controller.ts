@@ -4,23 +4,37 @@ import WeatherAwareRoutingService from "../services/weather-aware-routing-servic
 export default class WeatherAwareRoutingController {
   static async predict(req: Request, res: Response) {
     try {
-      const { year, start_lat, start_lon } = req.body;
+      const { origin, destination, ac_on } = req.body;
 
       // validation
-      if (
-        year === undefined ||
-        start_lat === undefined ||
-        start_lon === undefined
-      ) {
+      if (!origin || !destination) {
         return res.status(400).json({
-          message: "year, start_lat and start_lon are required",
+          message: "origin and destination are required",
+        });
+      }
+
+      if (typeof origin !== "string" || origin.trim() === "") {
+        return res.status(400).json({
+          message: "origin must be a non-empty string",
+        });
+      }
+
+      if (typeof destination !== "string" || destination.trim() === "") {
+        return res.status(400).json({
+          message: "destination must be a non-empty string",
+        });
+      }
+
+      if (ac_on !== undefined && typeof ac_on !== "boolean") {
+        return res.status(400).json({
+          message: "ac_on must be a boolean value",
         });
       }
 
       const result = await WeatherAwareRoutingService.getPrediction({
-        year,
-        start_lat,
-        start_lon,
+        origin: origin.trim(),
+        destination: destination.trim(),
+        ac_on: ac_on ?? true,
       });
 
       return res.status(200).json(result);

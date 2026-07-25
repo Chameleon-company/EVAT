@@ -21,8 +21,10 @@ import EVChatBubble from "./components/EVChatBubble";
 import Dashboard from "./pages/Dashboard";
 import EnvironmentalImpact from "./pages/EnvironmentalImpact";
 import DemandForecasting from "./pages/DemandForecasting";
-import WeatherRouting from "./pages/WeatherRouting";
+import WeatherRouting from "./pages/WeatherAwareRouting";
 import Chatbot from "./pages/Chatbot";
+import PersonalisedInsightsForm from "./pages/PersonalisedInsightsForm";
+import PersonalisedInsights from "./pages/PersonalisedInsights";
 
 function App() {
   return (
@@ -43,6 +45,11 @@ function App() {
             <Route path="/apitester" element={<ApiTester />} />
             <Route path="/voice-query" element={<VoiceQueryPage />} />
             <Route path="/achievements" element={<Achievements />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/weather-aware-routing" element={<WeatherRouting />} />
+            <Route path="/environmental-impact" element={<EnvironmentalImpact />} />
+            <Route path="/insights-form" element={<PersonalisedInsightsForm />} />
+            <Route path="/insights" element={<PersonalisedInsights />} />
             {/* Catch-all Route */}
             <Route path="*" element={<div>404 Page Not Found</div>} />
           </Routes>

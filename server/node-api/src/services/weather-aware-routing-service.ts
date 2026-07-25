@@ -1,18 +1,67 @@
 import axios from "axios";
 
+const PYTHON_API = process.env.PYTHON_API_URL;
+
 export interface WeatherAwareRoutingPayload {
-  year: number;
-  start_lat: number;
-  start_lon: number;
+  origin: string;
+  destination: string;
+  ac_on: boolean;
+}
+
+export interface RouteLocation {
+  lat: number;
+  lng: number;
+}
+
+export interface RouteStep {
+  instruction: string;
+  distance_m: number;
+  duration_s: number;
+  start_location: RouteLocation;
+  end_location: RouteLocation;
+}
+
+export interface WeatherData {
+  temp_c: number;
+  wind_speed_ms: number;
+  wind_deg: number;
+}
+
+export interface ChargingStop {
+  name: string;
+  lat: number;
+  lng: number;
+  address: string;
+  rating: number | null;
+  open_now: boolean | null;
+  place_id: string;
 }
 
 export interface WeatherAwareRoutingResult {
-  prediction: number;
-  dist_to_nearest_ev_m: number;
-  ev_within_500m: number;
-  avg_temp: number;
-  total_prcp: number;
-  used_SHAPE_Length: number;
+  origin_resolved: string;
+  destination_resolved: string;
+
+  origin_coords: RouteLocation;
+  destination_coords: RouteLocation;
+
+  distance_km: number;
+  duration_min: number;
+  duration_in_traffic_min: number;
+  traffic_condition: "light" | "moderate" | "heavy";
+
+  polyline: string;
+  steps: RouteStep[];
+
+  energy_nominal_kwh: number;
+  energy_with_ac_kwh: number;
+  soc_needed_pct: number;
+  soc_with_contingency_pct: number;
+  ac_on: boolean;
+
+  weather: WeatherData;
+
+  charging_required: boolean;
+  charging_stops: ChargingStop[];
 }
 
 export default class WeatherAwareRoutingService {
@@ -20,20 +69,21 @@ export default class WeatherAwareRoutingService {
     payload: WeatherAwareRoutingPayload
   ): Promise<WeatherAwareRoutingResult> {
     try {
-      const response = await axios.post("http://127.0.0.1:5002/predict", payload);
-      const data = response.data;
+      console.log("Sending")
+      const response = await axios.post(`${PYTHON_API}/predict`, {
+        origin: payload.origin,
+        destination: payload.destination,
+        ac_on: payload.ac_on,
+      });
 
-      return {
-        prediction: data.prediction,
-        dist_to_nearest_ev_m: data.dist_to_nearest_ev_m,
-        ev_within_500m: data.ev_within_500m,
-        avg_temp: data.avg_temp,
-        total_prcp: data.total_prcp,
-        used_SHAPE_Length: data.used_SHAPE_Length,
-      };
+      console.log("Sent")
+
+      return response.data as WeatherAwareRoutingResult;
     } catch (error: any) {
       throw new Error(
-        error?.response?.data?.error || "Failed to fetch prediction"
+        error?.response?.data?.detail ||
+          error?.response?.data?.error ||
+          "Failed to fetch weather-aware routing prediction"
       );
     }
   }

@@ -8,7 +8,7 @@ const useCases = [
     title: "Cost Comparison",
     description: "Compare the total cost of owning an EV vs a petrol vehicle over time.",
     icon: "💰",
-    route: "/cost-comparison",
+    route: "/cost",
     status: "live",
   },
   {
