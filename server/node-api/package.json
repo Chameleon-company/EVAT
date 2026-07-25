@@ -34,6 +34,7 @@
   "dependencies": {
     "@googlemaps/google-maps-services-js": "^3.4.1",
     "@googlemaps/places": "^2.0.1",
+    "@mapbox/polyline": "^1.2.1",
     "axios": "^1.14.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
