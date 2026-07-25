@@ -8,18 +8,33 @@ This repository contains a **Vite + React** project. Follow the instructions bel
 
 - [Node.js](https://nodejs.org/)
 - [npm](https://www.npmjs.com/)
-- [Backend](https://github.com/Chameleon-company/EVAT-App-BE)
 
 ---
 
 ## ⚙️ Environment Variables
 
-You need a `.env` file at the root of the project to configure API endpoints and other secrets.
+You need a `.env` file at the client/web-app/ AND at the server/node-api/ of the project to configure API endpoints and other secrets.
 
+For the web-app (FE) location:
 Create a `.env` file:
 ```env
 VITE_API_URL=http://localhost:8080/api
 ```
+
+For the node-api (BE) location:
+Create a `.env` file:
+```env
+PORT = 8080
+MONGODB_URI = mongodb://<<address>>:<<port>>/EVAT
+JWT_SECRET = 'abc123'
+GOOGLE_MAPS_API_KEY=ABCD1234
+GOOGLE_AI_API_KEY=ABCD1234
+GOOGLE_APPLICATION_CREDENTIALS="C:\Path\To\Auth.json"
+EMAIL_USER = "sender@example.com"
+EMAIL_PASS = "See Nodemailer section"
+ADMIN_EMAIL = "reciever@example.com"
+```
+
 
 Also, make sure `.env` is listed in your `.gitignore` so secrets are not pushed to GitHub.
 
