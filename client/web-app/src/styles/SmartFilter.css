@@ -1,0 +1,158 @@
+/* SmartFilter.css */
+
+/*
+This CSS has the style settings for the Smart Filter (access via map page)
+
+The smart filter can be very delicate (especially the slider)
+*/
+
+/* Filter Overlay */
+.filter-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--overlay-color);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* Smart Filter Panel */
+.filter-container {
+  background: var(--filter-container-background);
+  border-radius: var(--filter-radius);
+  max-height: var(--filter-max-height);
+  max-width: var(--filter-max-width);
+  overflow-y: auto;
+  z-index: 1;
+}
+
+/* Header */
+.filter-header {
+  background-color: var(--filter-header-background-color);
+  padding: var(--filter-header-padding);
+  max-height: var(--filter-header-max-height);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Footer */
+.filter-footer {
+  background-color: var(--filter-footer-background-color);
+}
+
+/* Filter Sections */
+.filter-section {
+  padding: var(--filter-section-padding);
+}
+
+/* Filter Options */
+.filter-options {
+  padding: var(--filter-options-padding);
+  gap: var(--filter-options-gap);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* Price Range Slider */
+.price-slider-container {
+  margin-top: var(--filter-slider-container-margin-top);
+  position: relative;
+}
+
+.price-slider {
+  position: absolute;
+  pointer-events: none;
+}
+
+.price-slider-labels {
+  display: flex;
+  justify-content: space-between;
+  padding-top: var(--filter-slider-price-labels-padding-top);
+}
+
+/* Toggle Switch */
+.toggle-holder {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: var(--toggle-switch-width);
+  height: var(--toggle-switch-height);
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* toggle background */
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--toggle-switch-background-color);
+  transition: var(--toggle-ball-transition);
+  border-radius: var(--toggle-switch-border-radius);
+}
+
+/* toggle ball */
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: var(--toggle-ball-size);
+  width: var(--toggle-ball-size);
+  left: 3px;
+  bottom: 3px;
+  background-color: var(--toggle-ball-background-color);
+  transition: var(--toggle-ball-transition);
+  border-radius: var(--toggle-ball-border-radius);
+}
+
+/* toggle background while on */
+input:checked + .toggle-slider {
+  background-color: var(--toggle-switch-checked-background-color);
+}
+
+/* toggle ball position while on */
+input:checked + .toggle-slider:before {
+  transform: translateX(26px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .filter-toggle-button {
+    top: 130px; /* push below mobile navbar */
+  }
+}
+
+@media (max-width: 480px) {
+  .smart-filter-panel {
+    width: 95%;
+    margin: 1rem;
+  }
+  .filter-section {
+    padding: 1rem;
+  }
+  .filter-actions {
+    padding: 1rem;
+  }
+  .filter-button {
+    min-width: 70px;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+  }
+}

@@ -1,0 +1,1 @@
+declare module "long" { const Long: any; export = Long; export default Long; }

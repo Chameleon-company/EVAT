@@ -1,0 +1,64 @@
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import Signup from "./pages/Signup";
+import Signin from "./pages/Signin";
+import Profile from './pages/Profile';
+import Map from './pages/Map';
+import Cost from "./pages/Cost";
+import Game from "./pages/Game";
+import Feedback from './pages/Feedback';
+import Favourite from './pages/Favourite';
+import ContactSupport from './pages/ContactSupport';
+import ApiTester from './pages/ApiTester';
+import VoiceQueryPage from './pages/VoiceQueryPage';
+import Achievements from './pages/Achievements';
+import { UserProvider } from './context/user';
+import { FavouritesProvider } from "./context/FavouritesContext";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import EVChatBubble from "./components/EVChatBubble";
+
+// Use Case Dashboard and pages
+import Dashboard from "./pages/Dashboard";
+import EnvironmentalImpact from "./pages/EnvironmentalImpact";
+import DemandForecasting from "./pages/DemandForecasting";
+import WeatherRouting from "./pages/WeatherAwareRouting";
+import Chatbot from "./pages/Chatbot";
+import PersonalisedInsightsForm from "./pages/PersonalisedInsightsForm";
+import PersonalisedInsights from "./pages/PersonalisedInsights";
+
+function App() {
+  return (
+    <UserProvider>
+      <FavouritesProvider>
+        <Router>
+          <Routes>
+            <Route path="/" element={<Signin />} />
+            <Route path="/signin" element={<Signin />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/map" element={<Map />} />
+            <Route path="/feedback" element={<Feedback />} />
+            <Route path="/favourites" element={<Favourite />} />
+            <Route path="/cost" element={<Cost />} />
+            <Route path="/game" element={<Game />} />
+            <Route path="/support" element={<ContactSupport />} />
+            <Route path="/apitester" element={<ApiTester />} />
+            <Route path="/voice-query" element={<VoiceQueryPage />} />
+            <Route path="/achievements" element={<Achievements />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/weather-aware-routing" element={<WeatherRouting />} />
+            <Route path="/environmental-impact" element={<EnvironmentalImpact />} />
+            <Route path="/insights-form" element={<PersonalisedInsightsForm />} />
+            <Route path="/insights" element={<PersonalisedInsights />} />
+            {/* Catch-all Route */}
+            <Route path="*" element={<div>404 Page Not Found</div>} />
+          </Routes>
+        </Router>
+      </FavouritesProvider>
+      <ToastContainer position="top-center" autoClose={3000} />
+      <EVChatBubble />
+    </UserProvider>
+  );
+}
+
+export default App;
