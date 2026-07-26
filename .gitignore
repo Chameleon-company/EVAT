@@ -37,6 +37,8 @@ __pycache__/
 *.pyd
 .Python
 .ipynb_checkpoints/
+.venv/
+**/.venv/
 
 # =========================
 # Editor & OS Files
@@ -55,3 +57,5 @@ __pycache__/
 # Specific App Directories
 # =========================
 /auth
+server/auth/
+**/google-credintials.json

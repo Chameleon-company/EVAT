@@ -40,14 +40,20 @@ function App() {
             <Route path="/feedback" element={<Feedback />} />
             <Route path="/favourites" element={<Favourite />} />
             <Route path="/cost" element={<Cost />} />
+            <Route path="/cost-comparison" element={<Cost />} />
             <Route path="/game" element={<Game />} />
             <Route path="/support" element={<ContactSupport />} />
             <Route path="/apitester" element={<ApiTester />} />
             <Route path="/voice-query" element={<VoiceQueryPage />} />
             <Route path="/achievements" element={<Achievements />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/use-cases" element={<Dashboard />} />
             <Route path="/weather-aware-routing" element={<WeatherRouting />} />
+            <Route path="/weather-routing" element={<WeatherRouting />} />
             <Route path="/environmental-impact" element={<EnvironmentalImpact />} />
+            <Route path="/demand-forecasting" element={<DemandForecasting />} />
+            <Route path="/price-prediction" element={<PricePrediction />} />
+            <Route path="/chatbot" element={<Chatbot />} />
             <Route path="/insights-form" element={<PersonalisedInsightsForm />} />
             <Route path="/insights" element={<PersonalisedInsights />} />
             {/* Catch-all Route */}

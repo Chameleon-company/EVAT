@@ -98,7 +98,7 @@ function NavBar() {
                                             </button>
                                             <button className='dropdown-item' onClick={() => navigate('/cost-comparison')}>
                                                 Cost Comparison
-                                            </button>
+                                            </button>                                         \
                                             <button className='dropdown-item' onClick={() => navigate('/environmental-impact')}>
                                                 Environmental Impact
                                             </button>
