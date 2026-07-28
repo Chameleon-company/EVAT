@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+streamlit
+pandas
+numpy
+scikit-learn==1.8.0
+xgboost
+joblib
+requests
