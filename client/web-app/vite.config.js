@@ -1,8 +1,36 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import path from "node:path";
+import { defineConfig } from "vite";
+import dotenv from "dotenv";
+import { expand } from "dotenv-expand";
+import react from "@vitejs/plugin-react";
 
 // https://vite.dev/config/
-export default defineConfig({
-  plugins: [react()],
-  server: {port: 3000}
+export default defineConfig(() => {
+  const env = {
+    parsed: {
+      // Load root .env
+      ...(dotenv.config({
+        path: path.resolve(__dirname, "../../.env"),
+      }).parsed || {}),
+      // Load workspace-specific .env, overriding duplicates
+      ...(dotenv.config({
+        path: path.resolve(__dirname, "./.env"),
+      }).parsed || {}),
+    },
+  }
+  expand(env);
+
+  // Map thee to Vite's `define` so they are accessible via import.meta.env.*
+  const processEnv = {};
+  for (const key in env.parsed) {
+    if (key.startsWith("VITE_")) {
+      processEnv[`import.meta.env.${key}`] = JSON.stringify(env.parsed[key]);
+    }
+  }
+  
+  return {
+    define: processEnv,
+    plugins: [react()],
+    server: { port: 3000 },
+  };
 })

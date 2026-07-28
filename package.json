@@ -9,11 +9,17 @@
   ],
   "scripts": {
     "install:all": "npm install",
-    "dev:client": "npm run dev --workspace=client/web-app",
-    "dev:server": "npm run server --workspace=server/node-api",
-    "build:client": "npm run build --workspace=client/web-app",
-    "build:server": "npm run build --workspace=server/node-api",
-    "test:client": "npm run test --workspace=client/web-app",
-    "test:server": "npm run test --workspace=server/node-api"
+    "dev": "npx concurrently -c \"#93c5fd,#c4b5fd\" \"npm run dev:client\" \"npm run dev:server\" --names=client,server --kill-others",
+    "dev:client": "npm run dev --workspace=client",
+    "dev:server": "npm run server --workspace=server",
+    "build:client": "npm run build --workspace=client",
+    "build:server": "npm run build --workspace=server",
+    "test:client": "npm run test --workspace=client",
+    "test:server": "npm run test --workspace=server"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.4",
+    "eslint": "^10.8.0",
+    "typescript-eslint": "^8.65.0"
   }
 }

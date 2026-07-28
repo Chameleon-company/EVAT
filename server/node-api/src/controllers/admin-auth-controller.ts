@@ -1,16 +1,15 @@
 import { Request, Response } from 'express';
-import Admin from '../models/admin';
 import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer';
-import dotenv from 'dotenv';
 
-dotenv.config();
+import Admin from '../models/admin';
+import { env } from '../config/env';
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
+    user: env.EMAIL_USER,
+    pass: env.EMAIL_PASS
   }
 });
 
