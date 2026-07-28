@@ -27,9 +27,15 @@ Before you begin, ensure you have the following installed:
 
 ## ⚙️ Environment Variables
 
-Because this is a monorepo, you must create **two separate `.env` files**—one for the frontend and one for the backend. 
+Since this is a monorepo, you need to manage **multiple `.env`** files.
 
-### 1. Shared Environment Variable
+### Environment Variable Rules
+- Root `.env`: Store shared, non-secret local configuration here.
+- `server/node-api/.env`: Store backend-only secrets and backend-specific configuration here (these will override any duplicate variables found in the root .env).
+- `client/web-app/.env`: Any configuration exposed to the frontend must begin with the `VITE_*` prefix.
+- `**/.env.example`: Add any newly introduced variables to the corresponding `.env.example` file with an empty / placeholder value.
+
+#### 1. Shared Environment Variables
 Create a `.env` file in the root directory.
 This file controls the shared variables (for both frontend and backend).
 For now, it only contains which PORT the server should listen, and where the frontend should send the request to.
@@ -37,10 +43,10 @@ There's an `.env.example` file provided that you can copy.
 
 ```env
 PORT=8080
-VITE_API_URL="http://localhost:${PORT}$/api"
+VITE_API_URL="http://localhost:${PORT}/api"
 ```
 
-### 2. Backend Environment Variables
+#### 2. Backend Environment Variables
 Create a separate .env file in `/server/node-api/.env`. 
 There's an `.env.example` file provided that you can follow.
 
@@ -54,7 +60,7 @@ EMAIL_USER = "sender@example.com"
 EMAIL_PASS = "See Nodemailer section"
 ADMIN_EMAIL = "receiver@example.com"
 ```
-**IMPORTANT: Ensure .env and your .json credential files are never committed to version control!**
+### IMPORTANT: Ensure .env and your .json credential files are never committed to version control!
 
 ---
 
