@@ -46,7 +46,17 @@ PORT=8080
 VITE_API_URL="http://localhost:${PORT}/api"
 ```
 
-#### 2. Backend Environment Variables
+#### 2. Frontend Environment Variables
+Create a separate `.env` file in `client/web-app/.env`. 
+This file is dedicated exclusively to the frontend client and must use the `VITE_` prefix for any variables exposed to the application.
+There's an `.env.example` file provided that you can copy.
+
+```env
+VITE_GOOGLE_MAPS_API_KEY=ABCD1234 (provided that key is separate from the one used at the backend)
+VITE_GA_TRACKING_ID=XXX
+```
+
+#### 3. Backend Environment Variables
 Create a separate .env file in `/server/node-api/.env`. 
 There's an `.env.example` file provided that you can follow.
 
