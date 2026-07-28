@@ -23,6 +23,7 @@ import ProfileRoutes from "./src/routes/profile-route";
 import VehicleRoutes from "./src/routes/vehicle-route";
 import IceVehicleRoutes from "./src/routes/ice-vehicle-route";
 import StationRoutes from "./src/routes/station-route";
+import ChargerRecommendationRoutes from "./src/routes/charger-recommendation-route";
 import adminAuthRoutes from "./src/routes/admin-auth-route";
 import adminRoutes from "./src/routes/admin-route";
 import PredictRoutes from "./src/routes/predict-route";
@@ -111,6 +112,7 @@ app.use("/api/ice-vehicle", IceVehicleRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/admin-auth', adminAuthRoutes);
 app.use('/api/chargers', StationRoutes); // As laid out in teams https://teams.microsoft.com/l/message/19:7206bda1ca594fa2a18709af5d9fb718@thread.v2/1743116771178?context=%7B%22contextType%22%3A%22chat%22%7D
+app.use('/api/charger-recommendations', ChargerRecommendationRoutes);
 app.use("/api/navigation", NavigationRoutes);
 app.use("/api/altChargers", chargerRoutes);
 app.use("/api/charger-sessions", ChargerSessionRoutes);
