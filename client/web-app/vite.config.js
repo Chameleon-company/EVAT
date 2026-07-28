@@ -1,8 +1,8 @@
-import path from 'node:path'
-import { defineConfig } from 'vite'
-import dotenv from 'dotenv'
-import { expand } from 'dotenv-expand'
-import react from '@vitejs/plugin-react'
+import path from "node:path";
+import { defineConfig } from "vite";
+import dotenv from "dotenv";
+import { expand } from "dotenv-expand";
+import react from "@vitejs/plugin-react";
 
 // https://vite.dev/config/
 export default defineConfig(() => {
@@ -23,7 +23,9 @@ export default defineConfig(() => {
   // Map thee to Vite's `define` so they are accessible via import.meta.env.*
   const processEnv = {};
   for (const key in env.parsed) {
-    processEnv[`import.meta.env.${key}`] = JSON.stringify(env.parsed[key])
+    if (key.startsWith("VITE_")) {
+      processEnv[`import.meta.env.${key}`] = JSON.stringify(env.parsed[key]);
+    }
   }
   
   return {
