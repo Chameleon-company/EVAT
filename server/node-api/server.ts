@@ -1,11 +1,11 @@
  import express, { Application } from "express";
-import dotenv from "dotenv";
 import mongoose from 'mongoose';
 import swaggerUi from "swagger-ui-express";
 import swaggerJSDoc from "swagger-jsdoc";
 import cors from "cors";
 import path from "path";
 
+import { env } from "./src/config/env";
 import connectDB from "./src/config/database-config";
 import { notFound, errorHandler } from "./src/middlewares/error-middleware";
 
@@ -33,11 +33,9 @@ import achievementRoutes from "./src/routes/achievement-route";
 import personalisedEVInsightsRoutes from "./src/routes/personalised-ev-insights-routes";
 import weatherAwareRoutes from "./src/routes/weather-aware-routing-routes";
 
-dotenv.config();
-
 const app: Application = express();
-const PORT = process.env.PORT || 8080;
-const DOMAIN_URL = process.env.DOMAIN_URL || "http://localhost";
+const PORT = env.PORT;
+const DOMAIN_URL = env.DOMAIN_URL;
 
 // Mongoose deprecation warning for 'strictQuery'
 mongoose.set('strictQuery', true);
@@ -127,7 +125,6 @@ app.use("/api/user-stats", userStatsRoutes);
 app.use("/api/achievements", achievementRoutes);
 app.use("/api/personalised-ev-insights", personalisedEVInsightsRoutes);
 app.use("/api/weather-aware-routing", weatherAwareRoutes);
-
 
 // Serve React frontend
 const buildPath = path.join(__dirname, "/build");

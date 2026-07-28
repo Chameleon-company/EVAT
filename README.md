@@ -29,19 +29,22 @@ Before you begin, ensure you have the following installed:
 
 Because this is a monorepo, you must create **two separate `.env` files**—one for the frontend and one for the backend. 
 
-### 1. Frontend Environment Variables
-Create a `.env` file in `client/web-app/.env`:
+### 1. Shared Environment Variable
+Create a `.env` file in the root directory.
+This file controls the shared variables (for both frontend and backend).
+For now, it only contains which PORT the server should listen, and where the frontend should send the request to.
+There's an `.env.example` file provided that you can copy.
 
 ```env
-VITE_API_URL=http://localhost:8080/api
+PORT=8080
+VITE_API_URL="http://localhost:${PORT}$/api"
 ```
 
 ### 2. Backend Environment Variables
-Create a .env file in server/node-api/.env:
+Create a separate .env file in `/server/node-api/.env`. 
+There's an `.env.example` file provided that you can follow.
 
 ```env
-Code snippet
-PORT = 8080
 MONGODB_URI = mongodb://<<address>>:<<port>>/EVAT
 JWT_SECRET = 'abc123'
 GOOGLE_MAPS_API_KEY=ABCD1234
@@ -50,8 +53,8 @@ GOOGLE_APPLICATION_CREDENTIALS="./google-credentials.json"
 EMAIL_USER = "sender@example.com"
 EMAIL_PASS = "See Nodemailer section"
 ADMIN_EMAIL = "receiver@example.com"
-(Note: Ensure .env and your .json credential files are never committed to version control!)
 ```
+**IMPORTANT: Ensure .env and your .json credential files are never committed to version control!**
 
 ---
 
@@ -60,50 +63,49 @@ ADMIN_EMAIL = "receiver@example.com"
 Because we use NPM workspaces, you do not need to navigate into individual folders to install packages.
 
 1. Install all dependencies (Frontend & Backend):
-Navigate to the root of the repository and run:
+   Navigate to the root of the repository and run:
+   ```sh
+   npm install
+   ```
 
-Bash
-npm install
+2. Start the dev stack:
+   From the root of the repository, run:
+   ```sh
+   npm run dev
+   ```
 
-2. Start the Backend API:
-From the root directory (/server/node-api/), run:
+   or alternatively,
 
-Bash
-npm run dev:server
-The server will start on port 8080. Swagger UI is available at http://localhost:8080/api/docs.
-
-3. Start the Frontend Web App:
-Open a second terminal tab at the root directory (/client/web-app/), and run:
-
-Bash
-npm run dev:client
-Vite will provide a local URL (usually http://localhost:5173) to view the app.
+   - Start the Backend API:
+      ```sh
+      npm run dev:server
+      ```
+   - Start the Frontend Web App:
+      ```sh
+      npm run dev:client
+      ```
 
 ---
 
 ## 🔑 Authentication & API Setup
 
-Google Maps & AI
-Go to the Google Cloud Console and create a project with billing enabled.
+### Google Maps & AI
+1. Go to the Google Cloud Console and create a project with billing enabled.
+2. Under 'API & Services', enable:
+   - Places API (New),
+   - Places API,
+   - Distance Matrix API, and
+   - Directions API.
+3. Under 'Credentials', click Create Credentials -> API key. Copy this into GOOGLE_MAPS_API_KEY.
+4. Click Create Credentials -> Service account. Name it, assign the Viewer role, and click 'Done'.
+5. Click your new service account -> Keys -> Add key -> Create new key -> JSON.
+6. Move the downloaded JSON file into server/node-api/ and rename it to google-credentials.json.
+7. Ensure this path matches the GOOGLE_APPLICATION_CREDENTIALS variable in your backend .env.
 
-Under 'API & Services', enable: Places API (New), Places API, Distance Matrix API, and Directions API.
-
-Under 'Credentials', click Create Credentials -> API key. Copy this into Maps_API_KEY.
-
-Click Create Credentials -> Service account. Name it, assign the Viewer role, and click 'Done'.
-
-Click your new service account -> Keys -> Add key -> Create new key -> JSON.
-
-Move the downloaded JSON file into server/node-api/ and rename it to google-credentials.json.
-
-Ensure this path matches the GOOGLE_APPLICATION_CREDENTIALS variable in your backend .env.
-
-Nodemailer (Admin 2FA)
-EVAT uses Nodemailer for sending admin email 2FA codes. Currently, it is set up for a fixed Gmail sender address (EMAIL_USER) to an admin (ADMIN_EMAIL).
-
-To set up your Gmail account, follow Nodemailer's Gmail Instructions.
-
-Generate an 'App Password' (a 16-character string like abcd efgh ijkl mnop) and paste it into EMAIL_PASS.
+### Nodemailer (Admin 2FA)
+1. EVAT uses Nodemailer for sending admin email 2FA codes. Currently, it is set up for a fixed Gmail sender address (EMAIL_USER) to an admin (ADMIN_EMAIL).
+2. To set up your Gmail account, follow Nodemailer's Gmail Instructions.
+3. Generate an 'App Password' (a 16-character string like abcd efgh ijkl mnop) and paste it into EMAIL_PASS.
 
 ---
 
