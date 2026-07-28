@@ -1,0 +1,110 @@
+/* Recent Achievements Section */
+.recent-achievements-section {
+  margin-bottom: var(--website-margin);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--website-margin);
+}
+
+.section-header h3 {
+  margin: var(--website-margin);
+  color: var(--text-color-white);
+}
+
+.see-all-link {
+  color:  var(--primary-color-base);
+  text-decoration: none;
+}
+
+.see-all-link:hover {
+  text-decoration: underline;
+}
+
+/* 2-Column Grid */
+.achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(280px, 1fr));
+  gap: var(--website-gap);
+}
+
+/* Achievement Card */
+.achievement-card {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: var(--website-radius);
+  padding: var(--website-padding);
+  display: flex;
+  gap: var(--website-gap);
+  border: 1px solid var(--primary-color-base);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.achievement-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--website-shadow-hover);
+}
+
+.achievement-icon {
+  width: 70px;
+  height: 70px;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: var(--website-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.achievement-icon img {
+  width: 55px;
+  height: 55px;
+  object-fit: contain;
+}
+
+.achievement-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.achievement-info h4 {
+  margin: var(--website-margin);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.achievement-description {
+  margin-bottom: var(--website-margin);
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Progress Bar */
+.progress-container {
+  margin-top: var(--website-margin);
+}
+
+.progress-bar {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: var(--website-radius);
+  overflow: hidden;
+  margin-bottom: var(--website-margin);
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary-color-base), var(--primary-color-dark));
+  border-radius: var(--website-radius);
+}
+
+.completed-date {
+  color: var(--grey-light);
+}
