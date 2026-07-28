@@ -1,0 +1,57 @@
+make,model,variant,year,l_per_100km
+Toyota,Corolla,Ascent Sport,2022,6.0
+Toyota,Camry,Hybrid,2022,4.5
+Toyota,Camry,Ascent,2023,7.1
+Toyota,Camry,Ascent Sport,2023,7.1
+Toyota,Camry,SL,2023,7.1
+Toyota,RAV4,GX,2023,8.1
+Toyota,RAV4,GXL,2023,8.1
+Toyota,RAV4,Cruiser,2023,8.1
+Toyota,Corolla,SX,2023,6.0
+Toyota,HiLux,SR,2023,9.5
+Toyota,HiLux,SR5,2023,9.5
+Mazda,CX-5,Maxx,2022,7.4
+Mazda,CX-5,Touring,2023,6.8
+Mazda,CX-5,GT,2023,6.8
+Mazda,3,G20 Pure,2023,6.0
+Mazda,3,G25 GT,2023,6.5
+Hyundai,i30,Active,2022,7.0
+Hyundai,i30,Elite,2023,6.4
+Hyundai,Tucson,Active,2023,7.8
+Hyundai,Tucson,Elite,2023,7.8
+Hyundai,Santa Fe,Active,2023,8.5
+Kia,Sportage,S,2022,7.2
+Kia,Sportage,GT-Line,2023,7.8
+Kia,Cerato,S,2023,7.0
+Kia,Cerato,Sport,2023,7.0
+Ford,Ranger,XLT,2022,8.9
+Ford,Ranger,XLS,2023,9.2
+Ford,Ranger,Wildtrak,2023,9.5
+Ford,Escape,ST-Line,2023,7.5
+Ford,Puma,ST-Line,2023,5.8
+Holden,Commodore,LT,2020,8.0
+Honda,Civic,VTi-S,2022,6.4
+Honda,Civic,VTi,2023,6.1
+Honda,Civic,VTi-L,2023,6.1
+Honda,CR-V,Vi,2023,7.4
+Mitsubishi,Outlander,ES,2022,7.5
+Mitsubishi,Outlander,LS,2023,8.4
+Mitsubishi,ASX,MR,2023,6.8
+BMW,3 Series,320i,2022,6.3
+BMW,3 Series,320i,2023,6.3
+BMW,X3,xDrive20i,2023,7.1
+Mercedes-Benz,C-Class,C200,2022,6.9
+Mercedes-Benz,C-Class,C200,2023,7.0
+Mercedes-Benz,A-Class,A200,2023,6.4
+Audi,A4,35 TFSI,2022,6.1
+Audi,A4,35 TFSI,2023,6.8
+Audi,Q5,45 TFSI,2023,7.8
+Nissan,X-Trail,ST,2022,7.8
+Nissan,X-Trail,ST-L,2023,7.9
+Nissan,Navara,ST,2023,8.8
+Volkswagen,Golf,110TSI Life,2023,6.5
+Volkswagen,Golf,110TSI Style,2023,6.5
+Volkswagen,Tiguan,110TSI Life,2023,7.2
+Subaru,Forester,2.5i,2023,7.7
+Subaru,Outback,2.5i,2023,7.7
+Subaru,XV,2.0i,2023,6.9

@@ -1,0 +1,229 @@
+/* Map.css */
+
+/*
+This CSS has the style settings for the map
+
+There has been some work done to add a dark mode, however, dark 
+mode has not been expanded to the rest of the site.
+
+*/
+
+.container-map {
+  position: relative;
+  width: var(--map-container-width); 
+  height: var(--map-container-height); 
+  overflow-y: auto;
+  overflow-x: auto;
+}
+
+.map-visible-area {
+  width: var(--map-visible-width);
+  height: var(--map-visible-height);
+}
+
+.map-message {
+  position: absolute;
+  width: fit-content;
+  top: 12;
+  left: 12;
+  z-index: 1000;
+}
+
+.hide-scrollbar {
+  /* IE and Edge */
+  -ms-overflow-style: none;
+  /* Firefox */
+  scrollbar-width: none;
+  /* Chrome, Safari, and Opera */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Dark Mode Styles */
+.map-page.dark {
+    background-color: #1a1a1a;
+    color: #ffffff;
+}
+
+.map-page.dark .locate-button,
+.map-page.dark .dark-mode-floating {
+    background-color: #becac4ed;
+}
+
+.map-page.dark nav {
+    background-color: #2d2d2d;
+    border-bottom: 1px solid #444;
+}
+
+.map-page.dark nav button,
+.map-page.dark .logo-text {
+    color: #ccc;
+}
+
+.map-page.dark nav button:hover {
+    color: #4CAF50;
+}
+
+.map-page.dark nav button.active,
+.map-page.dark nav button[style*="font-weight: bold"] {
+    color: #4CAF50;
+}
+
+/* Dark mode for map tiles */
+.map-page.dark .leaflet-tile-pane {
+    filter: invert(90%) hue-rotate(180deg);
+}
+
+/* Dark mode for popups */
+.map-page.dark .leaflet-popup-content-wrapper {
+    background-color: #2d2d2d;
+    color: #ffffff;
+}
+
+.map-page.dark .leaflet-popup-content h3 {
+    color: #4CAF50;
+}
+
+.map-page.dark .leaflet-popup-content strong {
+    color: #4CAF50;
+}
+
+.overlay {
+    position: absolute;
+    z-index: 1000;
+    background: #ffffff;
+    padding: 22px;
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    width: 320px;
+    font-family: Inter, sans-serif;
+    color: #111827;
+}
+
+.overlay.dark {
+    background: #505050;
+    color: #fff;
+}
+
+/* Leaflet Zoom Control */
+.leaflet-control-zoom {
+    position: fixed !important;
+    top: calc(12.5rem + 44px + 8px);
+    right: 0.8rem !important;
+    z-index: 900;
+}
+
+.leaflet-control-zoom a {
+    width: var(--button-zoom-size);
+    height: var(--button-zoom-size);
+    line-height: 60px;
+    background: var(--button-zoom-background);
+    color: var(--button-zoom-text-color);
+    border-color: var(--button-zoom-border-color);
+    border: var(--button-zoom-border);
+    align-items: center;
+    justify-content: center;
+}
+
+.leaflet-control-zoom a:hover {
+    box-shadow: var(--button-shadow-hover);
+    background: var(--button-zoom-hover-background);
+    background-position: 0% 0%;
+}
+.leaflet-control-zoom a:active {
+    background:  var(--button-zoom-background-active);
+}
+
+/* status messages */
+.map-status-message {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.map-loading {
+    color: #1976d2;
+}
+
+.map-error {
+    animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+.map-info {
+    animation: slideDown 0.4s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.map-warning {
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.9;
+    }
+}
+
+@media (max-width: 768px) {
+    .locate-button {
+        top: 185px; /* push below mobile smart filter */
+    }
+    .dark-mode-floating {
+        top: 240px; /* push below locate user button */
+    }
+    
+    .map-status-message {
+        max-width: calc(100% - 24px) !important;
+        font-size: 13px !important;
+    }
+}
+
+hr.separator {
+    margin-top: 1em;
+    border: 1px solid rgb(182, 182, 182);
+}
+
+/* var(); */
+.selected-marker {
+  background-color: #2563eb;
+  color: white;
+  border: 3px solid #facc15;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  box-shadow: 0 0 0 8px rgba(37, 99, 235, 0.3);
+}

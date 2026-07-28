@@ -1,0 +1,245 @@
+/* NavBar.css */
+
+/*
+This CSS has the style settings for the Navigation Bar
+
+The navigation bar is split into two sides: left and right.
+The left side holds the EVAT logo and title
+The right side holds the navigation buttons and the profile icon is on the far right.
+*/
+
+.navbar {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    background-color: var(--secondary-color-light);
+    padding: var(--navbar-padding);
+    height: var(--navbar-height);
+    position: sticky;
+    z-index: 5000;
+}
+
+.title-navbar {
+    margin: var(--navbar-title-marging);
+    padding: var(--navbar-left-padding);
+    vertical-align: middle;
+}
+
+.left-navbar {
+    display: flex;
+    align-items: center; 
+    justify-content: start;
+    vertical-align: middle;
+    width: 250px;
+    height: inherit;
+}
+
+.center-navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    width: calc(100% - 500px);
+    height: inherit;
+}
+
+.right-navbar {
+    display: flex;
+    align-items: center; 
+    justify-content: end;
+    vertical-align: middle;
+    gap: var(--narbar-right-gap);
+    width: 250px;
+    height: inherit;
+}
+
+.logo-navbar {
+    width: auto;
+    height: var(--navbar-logo-height);
+    flex-shrink: 0;
+}
+
+
+.icon-navbar {
+    width: var(--navbar-profile-icon-size);
+    height: var(--navbar-profile-icon-size);
+    border-radius: var(--navbar-profile-icon-radius);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+/* Menu buttons in the navbar */
+.navbar-menu-option {
+    display:inline;
+    vertical-align: middle;
+    cursor: pointer;
+}
+
+.dropdown-container > .navbar-menu-option:focus, 
+.navbar-menu-option:hover {
+  color: var(--navbar-button-hover-text);
+}
+
+.dropdown-wrapper {
+    display: flex;
+    justify-content: center;
+}
+
+.dropdown-container {
+    position: relative;
+    display: inline-block;
+}
+
+/* The dropdown container holding the items */
+.dropdown-list {
+    display: none;
+    position: absolute;
+    top: calc(var(--navbar-height) - 2px);
+    left: relative;
+    padding: var(--dropdown-menu-item-padding);
+    box-shadow: var(--dropdown-menu-shadow);
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 150ms ease-in-out, transform 150ms ease-in-out;
+    visibility: hidden;
+    pointer-events: none;
+    z-index: 5000;
+    display: flex;
+    flex-direction: column;
+    width: fit-content;
+    background: var(--dropdown-menu-background-color);
+    border: var(--dropdown-menu-border);
+    border-radius: var(--element-radius);
+    border-top-left-radius: 0;
+}
+
+.dropdown-list.show,
+.dropdown-container > .navbar-menu-option:focus + .dropdown-list {
+    opacity: 1;
+    transform: translateY(0);
+    visibility: visible;
+    pointer-events: auto;
+    z-index: 5000;
+}
+
+/* Items in the dropdown */
+.dropdown-item {
+    padding: var(--dropdown-menu-item-padding);
+    border: none;
+    width:max-content;
+    text-align: left;
+    background: none;
+    box-shadow: none;
+    font-size: var(--navbar-font-size);
+    color: var(--text-color-white);
+}
+
+/* Item hover in the dropdown */
+.dropdown-item:hover {
+    background-color: var(--primary-color-base);
+    color: var(--text-color-black);
+}
+
+/* Responsive NavBar updates */
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: var(--narbar-right-gap);
+}
+
+.mobile-menu-btn {
+    display: none;
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 1.8rem;
+    cursor: pointer;
+}
+
+/* Tablet */
+@media (max-width: 1024px) {
+    .title-navbar {
+        font-size: 0.9rem;
+    }
+
+    .btn-navbar {
+        font-size: 0.85rem;
+        padding: 0.4rem 0.6rem;
+    }
+
+    .right-navbar {
+        gap: 0.5rem;
+    }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .navbar {
+        height: auto;
+        min-height: var(--narbar-height);
+        position: sticky;
+    }
+
+    .title-navbar {
+        font-size: 0.85rem;
+        max-width: 150px;
+        line-height: 1.2;
+    }
+
+    .mobile-menu-btn {
+        display: block;
+        margin-left: auto;
+    }
+
+    .right-navbar {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background-color: var(--secondary-color-dark);
+        padding: 1rem;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+
+    .right-navbar.open {
+        display: flex;
+    }
+
+    .nav-links {
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+        gap: 0.5rem;
+    }
+
+    .btn-navbar {
+        width: 100%;
+        text-align: left;
+        padding: 0.75rem 1rem;
+    }
+
+    .icon-navbar {
+        align-self: flex-end;
+    }
+}
+
+/* Small mobile */
+@media (max-width: 480px) {
+    .title-navbar {
+        display: none;
+    }
+
+    .logo-navbar {
+        height: 45px;
+    }
+
+    .navbar {
+        padding: 0.5rem 1rem;
+    }
+}
