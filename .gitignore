@@ -55,4 +55,4 @@ __pycache__/
 # =========================
 # Specific App Directories
 # =========================
-/auth
+**/auth
