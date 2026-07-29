@@ -3,6 +3,7 @@ import ProfileService from "./profile-service";
 import VehicleService from "./vehicle-service";
 import PredictService from "./predict-service";
 import WeatherAwareRoutingService from "./weather-aware-routing-service";
+import buildRecommendationRequest from "./recommendation-request-builder";
 
 interface RecommendationRequest {
   userId: string;
@@ -41,42 +42,41 @@ export default class ChargerRecommendationService {
     const stationIds = stations.map((s: any) => s._id.toString());
     const { congestionLevels } = await this.predictService.getCongestionLevels(stationIds);
 
-    // Step 4/5: Weather-aware routing — call once per candidate station,
-    // using the user's current location as origin and each station as destination
+    // Step 4/5: Weather-aware routing — call once per candidate station
     const routingResults = await Promise.all(
       stations.map(async (station: any) => {
         try {
           const result = await WeatherAwareRoutingService.getPrediction({
             origin: `${latitude},${longitude}`,
             destination: `${station.latitude},${station.longitude}`,
-            ac_on: true, // TODO: confirm default / where this comes from (user preference?)
+            ac_on: true, // TODO: confirm default / where this comes from
           });
           return { stationId: station._id.toString(), routing: result };
         } catch (error: any) {
-          // Don't let one failed routing call break the whole recommendation batch
           console.error(`Weather routing failed for station ${station._id}:`, error.message);
           return { stationId: station._id.toString(), routing: null };
         }
       })
     );
 
-    // Step 14: Assemble payload for the Recommendation ML API
-    const candidatePayload = {
+    // Step 14: Assemble the request for the Recommendation ML API
+    // NOTE: this shape is a PROPOSAL pending confirmation from Tom/Kawser
+    const recommendationRequest = buildRecommendationRequest(
       userId,
-      profile,
-      vehicle,
+      latitude,
+      longitude,
       stations,
-      congestionLevels,
       routingResults,
-      // history,
-    };
+      congestionLevels,
+      vehicle
+    );
 
     // Step 17: Call the Recommendation ML API
     // TODO: confirm endpoint URL/contract with Tom/Kawser
-    // const ranked = await RecommendationMlService.rank(candidatePayload);
+    // const ranked = await RecommendationMlService.rank(recommendationRequest);
 
     // Step 18: Return ranked recommendations
-    return candidatePayload; // placeholder until ranking call is wired in
+    return recommendationRequest;
   }
 
   async saveSelection(recommendationId: string, stationId: string) {
