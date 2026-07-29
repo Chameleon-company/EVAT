@@ -34,16 +34,31 @@ export default class ChargerRecommendationService {
       : null;
 
     // Step 12/13: Recommendation history
-    // TODO: blocked on RecommendationHistoryService — ask Duncan
+    // TODO: blocked on RecommendationHistoryService — Duncan hasn't started task 041S0 yet
     // const history = await recommendationHistoryService.getRecentCompletedByUserId(userId);
 
     // Step 6/7: Congestion for these stations
     const stationIds = stations.map((s: any) => s._id.toString());
     const { congestionLevels } = await this.predictService.getCongestionLevels(stationIds);
 
-    // Step 4/5: Weather-aware routing (needs an origin/destination — TBD how this
-    // is derived per-station or per-trip; confirm with Tom/team on exact contract)
-    // const routing = await WeatherAwareRoutingService.getPrediction({...});
+    // Step 4/5: Weather-aware routing — call once per candidate station,
+    // using the user's current location as origin and each station as destination
+    const routingResults = await Promise.all(
+      stations.map(async (station: any) => {
+        try {
+          const result = await WeatherAwareRoutingService.getPrediction({
+            origin: `${latitude},${longitude}`,
+            destination: `${station.latitude},${station.longitude}`,
+            ac_on: true, // TODO: confirm default / where this comes from (user preference?)
+          });
+          return { stationId: station._id.toString(), routing: result };
+        } catch (error: any) {
+          // Don't let one failed routing call break the whole recommendation batch
+          console.error(`Weather routing failed for station ${station._id}:`, error.message);
+          return { stationId: station._id.toString(), routing: null };
+        }
+      })
+    );
 
     // Step 14: Assemble payload for the Recommendation ML API
     const candidatePayload = {
@@ -52,7 +67,7 @@ export default class ChargerRecommendationService {
       vehicle,
       stations,
       congestionLevels,
-      // routing,
+      routingResults,
       // history,
     };
 
