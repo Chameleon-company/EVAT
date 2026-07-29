@@ -21,7 +21,7 @@ import EVChatBubble from "./components/EVChatBubble";
 import Dashboard from "./pages/Dashboard";
 import EnvironmentalImpact from "./pages/EnvironmentalImpact";
 import DemandForecasting from "./pages/DemandForecasting";
-import WeatherRouting from "./pages/WeatherAwareRouting";
+import WeatherRouting from "./pages/WeatherRouting";
 import Chatbot from "./pages/Chatbot";
 import PersonalisedInsightsForm from "./pages/PersonalisedInsightsForm";
 import PersonalisedInsights from "./pages/PersonalisedInsights";
@@ -46,6 +46,7 @@ function App() {
             <Route path="/voice-query" element={<VoiceQueryPage />} />
             <Route path="/achievements" element={<Achievements />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/weather-routing" element={<WeatherRouting />} />
             <Route path="/weather-aware-routing" element={<WeatherRouting />} />
             <Route path="/environmental-impact" element={<EnvironmentalImpact />} />
             <Route path="/insights-form" element={<PersonalisedInsightsForm />} />
