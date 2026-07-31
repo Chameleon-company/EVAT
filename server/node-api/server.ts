@@ -34,6 +34,9 @@ import achievementRoutes from "./src/routes/achievement-route";
 import personalisedEVInsightsRoutes from "./src/routes/personalised-ev-insights-routes";
 import weatherAwareRoutes from "./src/routes/weather-aware-routing-routes";
 
+// Temporary CI smoke-test failure — remove after confirming the PR check is red.
+const ciSmokeTestServerFailure: number = "intentional failure";
+
 const app: Application = express();
 const PORT = env.PORT;
 const DOMAIN_URL = env.DOMAIN_URL;

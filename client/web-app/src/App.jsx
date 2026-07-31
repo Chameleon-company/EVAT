@@ -26,6 +26,9 @@ import Chatbot from "./pages/Chatbot";
 import PersonalisedInsightsForm from "./pages/PersonalisedInsightsForm";
 import PersonalisedInsights from "./pages/PersonalisedInsights";
 
+// Temporary CI smoke-test failure — remove after confirming the PR check is red.
+const ciSmokeTestClientFailure = ;
+
 function App() {
   return (
     <UserProvider>
