@@ -50,6 +50,7 @@ function App() {
             <Route path="/environmental-impact" element={<EnvironmentalImpact />} />
             <Route path="/insights-form" element={<PersonalisedInsightsForm />} />
             <Route path="/insights" element={<PersonalisedInsights />} />
+            <Route path="/demand-forecasting" element={<DemandForecasting />} />
             {/* Catch-all Route */}
             <Route path="*" element={<div>404 Page Not Found</div>} />
           </Routes>

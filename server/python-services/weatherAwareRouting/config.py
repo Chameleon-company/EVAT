@@ -1,7 +1,13 @@
 import os
 from dotenv import load_dotenv, find_dotenv
+from pathlib import Path
 
-load_dotenv(find_dotenv())
+current = Path(__file__).resolve()
+server = current.parents[2]
+env_path = server/"node-api"/".env"
+
+#load_dotenv(find_dotenv())
+load_dotenv(dotenv_path=env_path)
 
 GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
 # OPEN_CHARGE_MAP_API_KEY = "d4bafc4f-bc9b-4f7f-aaec-f6729f37906a"

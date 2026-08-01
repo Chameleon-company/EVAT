@@ -2,17 +2,16 @@ import os
 import pickle
 import numpy as np
 import pandas as pd
-from flask import Flask, request, jsonify
+from typing import Union, List
+from fastapi import HTTPException
 
 # Load the bundle (model + metadata)
-with open("insights_api/kproto_bundle.pkl", "rb") as f:
+with open("personalisedEVInsights/kproto_bundle.pkl", "rb") as f:
     bundle = pickle.load(f)
 
 kproto = bundle["model"]
 FEATURE_COLS = bundle["feature_cols"]
 CAT_COLS = bundle["cat_cols"]  # indices relative to FEATURE_COLS
-
-app = Flask(__name__)
 
 def coerce_types(df: pd.DataFrame) -> pd.DataFrame:
     """
@@ -40,27 +39,28 @@ def coerce_types(df: pd.DataFrame) -> pd.DataFrame:
     df = df[FEATURE_COLS]
     return df
 
-@app.route("/healthz", methods=["GET"])
-def health():
-    return jsonify({"status": "ok"}), 200
+# @app.route("/healthz", methods=["GET"])
+# def health():
+#     return jsonify({"status": "ok"}), 200
 
-@app.route("/predict", methods=["POST"])
-def predict():
+#@app.route("/predict", methods=["POST"])
+def predict(payload: Union[dict, List[dict]]):
     """
     Expect JSON body containing at least the fields in FEATURE_COLS.
     Extra fields are ignored.
     Returns: {"cluster": <int>}
     """
     try:
-        payload = request.get_json(force=True, silent=False)
 
         # Accept single object or list of objects; standardise to list
         if isinstance(payload, dict):
             records = [payload]
+            single = True
         elif isinstance(payload, list):
             records = payload
+            single = False
         else:
-            return jsonify({"error": "Invalid JSON payload"}), 400
+            raise HTTPException(status_code=400, detail="Invalid JSON payload")
 
         df = pd.DataFrame(records)
         df = coerce_types(df)
@@ -71,15 +71,12 @@ def predict():
         # Predict
         clusters = kproto.predict(X, categorical=CAT_COLS)
         # Return single prediction if input was a single object
-        if len(records) == 1:
-            return jsonify({"cluster": int(clusters[0])}), 200
+        if single:
+            return {"cluster": int(clusters[0])}
         else:
-            return jsonify({"clusters": [int(c) for c in clusters]}), 200
+            return {"clusters": [int(c) for c in clusters]}
 
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-if __name__ == "__main__":
-    # Flask dev server (Render will run via gunicorn)
-    port = int(os.environ.get("PORT", "8000"))
-    app.run(host="0.0.0.0", port=port)
+    except HTTPException:
+        raise
+    except HTTPException as e:
+        raise HTTPException(status_code=500, detail=str(e))

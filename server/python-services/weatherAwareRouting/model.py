@@ -1,5 +1,5 @@
 import math
-from config import VEHICLE, DEFAULT_SOC_PCT
+from weatherAwareRouting.config import VEHICLE, DEFAULT_SOC_PCT
 
 def rolling_resistance_adjusted(base_fr, temp_c):
     temp_factor = 1.0 + max(0, (20 - temp_c)) * 0.010

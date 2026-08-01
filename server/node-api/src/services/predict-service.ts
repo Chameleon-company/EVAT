@@ -3,6 +3,8 @@ import Congestion, { ICongestion } from "../models/congestion-model";
 import mongoose from "mongoose";
 import fetch from "node-fetch";
 
+const PYTHON_API = process.env.PYTHON_API_URL;
+
 
 export default class PredictService {
     /**
@@ -250,7 +252,7 @@ async getIceEfficiency(make: string, model: string, variant?: string): Promise<a
 
 async getDemandForecast(postcode: string, date: string): Promise<any> {
     try {
-        const response = await fetch("http://localhost:5001/predict", {
+        const response = await fetch(`${PYTHON_API}/demandForecasting/predict`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ postcode, date }),
@@ -267,7 +269,7 @@ async getDemandForecast(postcode: string, date: string): Promise<any> {
 
 async getDemandPostcodes(): Promise<any> {
     try {
-        const response = await fetch("http://localhost:5001/postcodes");
+        const response = await fetch(`${PYTHON_API}/demandForecasting/postcodes`);
         if (!response.ok) throw new Error(`ML service error: ${response.status}`);
         return await response.json();
     } catch (error: any) {
@@ -277,7 +279,7 @@ async getDemandPostcodes(): Promise<any> {
 
 async getDemandCoords(postcode: string): Promise<any> {
     try {
-        const response = await fetch(`http://localhost:5001/coords/${postcode}`);
+        const response = await fetch(`${PYTHON_API}/demandForecasting/coords/${postcode}`);
         if (!response.ok) throw new Error(`ML service error: ${response.status}`);
         return await response.json();
     } catch (error: any) {

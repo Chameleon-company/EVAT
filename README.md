@@ -110,8 +110,10 @@ Because we use NPM workspaces, you do not need to navigate into individual folde
 2. Under 'API & Services', enable:
    - Places API (New),
    - Places API,
-   - Distance Matrix API, and
-   - Directions API.
+   - Distance Matrix API,
+   - Directions API,
+   - Maps Javascript API, and
+   - Geocoding API.
 3. Under 'Credentials', click Create Credentials -> API key. Copy this into GOOGLE_MAPS_API_KEY.
 4. Click Create Credentials -> Service account. Name it, assign the Viewer role, and click 'Done'.
 5. Click your new service account -> Keys -> Add key -> Create new key -> JSON.
