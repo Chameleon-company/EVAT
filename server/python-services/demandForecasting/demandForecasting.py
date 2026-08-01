@@ -22,12 +22,12 @@ print("Loading application assets...")
 try:
     # Load the trained LightGBM model
     model = joblib.load("demandForecasting/ev_demand_model.pkl")
-    print("✓ Model loaded")
+    print("Model loaded")
 
     # Load the postcode baseline data
     postcode_baseline = pd.read_csv("demandForecasting/postcode_baseline.csv")
     postcode_baseline['Postcode'] = postcode_baseline['Postcode'].astype(str)
-    print("✓ Postcode baseline loaded")
+    print("Postcode baseline loaded")
 
     # Load the postcode coordinates as a dictionary
     coords_df = pd.read_csv("demandForecasting/postcode_coords.csv")
@@ -36,16 +36,16 @@ try:
         row['Postcode']: (row['lat'], row['lon']) 
         for _, row in coords_df.iterrows()
     }
-    print("✓ Postcode coordinates loaded")
+    print("Postcode coordinates loaded")
 
     # Load the feature columns
     with open("demandForecasting/feature_columns.txt", "r") as f:
         feature_columns = f.read().strip().split(",")
-    print(f"✓ Feature columns loaded: {feature_columns}")
+    print(f"Feature columns loaded: {feature_columns}")
 
     # Initialize the Australian holidays checker
     au_holidays = holidays.AU()
-    print("✓ Holiday calendar initialized")
+    print("Holiday calendar initialized")
 
     print("All assets loaded successfully!\n")
 
