@@ -137,7 +137,7 @@ async getCostComparison(
     ice_variant?: string,
 ): Promise<any> {
     try {
-        const response = await fetch("http://localhost:5000/predict", {
+        const response = await fetch(`${PYTHON_API}/costComparison/predict`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -175,7 +175,7 @@ async getCostCharts(
     petrol_price_per_l: number
 ): Promise<any> {
     try {
-        const response = await fetch("http://localhost:5000/charts", {
+        const response = await fetch(`${PYTHON_API}/costComparison/charts`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -204,7 +204,7 @@ async getCostCharts(
 
 async getEvVehicles(): Promise<any> {
     try {
-        const response = await fetch("http://localhost:5000/vehicles/ev");
+        const response = await fetch(`${PYTHON_API}/costComparison/vehicles/ev`);
         if (!response.ok) throw new Error(`ML service error: ${response.status}`);
         return await response.json();
     } catch (error: any) {
@@ -214,7 +214,7 @@ async getEvVehicles(): Promise<any> {
 
 async getIceVehicles(): Promise<any> {
     try {
-        const response = await fetch("http://localhost:5000/vehicles/ice");
+        const response = await fetch(`${PYTHON_API}/costComparison/vehicles/ice`);
         if (!response.ok) throw new Error(`ML service error: ${response.status}`);
         return await response.json();
     } catch (error: any) {
@@ -224,7 +224,7 @@ async getIceVehicles(): Promise<any> {
 
 async getEvEfficiency(make: string, model: string, variant?: string): Promise<any> {
     try {
-        const response = await fetch("http://localhost:5000/vehicles/ev/efficiency", {
+        const response = await fetch(`${PYTHON_API}/costComparison/vehicles/ev/efficiency`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ make, model, variant }),
@@ -238,7 +238,7 @@ async getEvEfficiency(make: string, model: string, variant?: string): Promise<an
 
 async getIceEfficiency(make: string, model: string, variant?: string): Promise<any> {
     try {
-        const response = await fetch("http://localhost:5000/vehicles/ice/efficiency", {
+        const response = await fetch(`${PYTHON_API}/costComparison/vehicles/ice/efficiency`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ make, model, variant }),

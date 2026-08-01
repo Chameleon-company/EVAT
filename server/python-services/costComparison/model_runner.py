@@ -22,7 +22,8 @@ _model_name = None
 _trained_data = None
 
 
-def load_and_train(data_path: str = "data/dummy_data.csv"):
+def load_and_train(data_path: str = "costComparison/data/dummy_data.csv"):
+    print("Training")
     global _model, _model_name, _trained_data
 
     df = pd.read_csv(data_path)
@@ -49,6 +50,8 @@ def load_and_train(data_path: str = "data/dummy_data.csv"):
         remainder="drop",
     )
 
+    print("Up to here")
+
     candidates = {
         "GradientBoosting": Pipeline([
             ("pre", "passthrough"),
@@ -69,6 +72,8 @@ def load_and_train(data_path: str = "data/dummy_data.csv"):
             ("reg", Ridge(alpha=1.0)),
         ]),
     }
+
+    print("pretty much done")
 
     best, best_score, best_name = None, -999, ""
     for name, pipe in candidates.items():
@@ -232,7 +237,7 @@ def get_chart_data(
 
 def get_ev_vehicles() -> dict:
     """Returns nested dict of EV makes -> models -> variants from CSV"""
-    df = pd.read_csv("data/test.ev_vehicles.csv")
+    df = pd.read_csv("costComparison/data/test.ev_vehicles.csv")
     df = df.drop_duplicates()
 
     make_col = next((c for c in df.columns if c.lower() in ["make", "brand", "manufacturer"]), None)
@@ -257,7 +262,7 @@ def get_ev_vehicles() -> dict:
 
 def get_ice_vehicles() -> dict:
     """Returns nested dict of ICE makes -> models -> variants from CSV"""
-    df = pd.read_csv("data/ice_vehicles.csv")
+    df = pd.read_csv("costComparison/data/ice_vehicles.csv")
     df = df.drop_duplicates()
 
     result = {}
@@ -273,7 +278,7 @@ def get_ice_vehicles() -> dict:
 
 def get_ev_efficiency(make: str, model: str, variant: str = None) -> float:
     """Looks up EV efficiency from CSV, returns kWh/km"""
-    df = pd.read_csv("data/test.ev_vehicles.csv")
+    df = pd.read_csv("costComparison/data/test.ev_vehicles.csv")
     df = df.drop_duplicates()
 
     make_col = next((c for c in df.columns if c.lower() in ["make", "brand", "manufacturer"]), None)
@@ -333,7 +338,7 @@ def get_ev_efficiency(make: str, model: str, variant: str = None) -> float:
 
 def get_ice_efficiency(make: str, model: str, variant: str = None) -> float:
     """Looks up ICE fuel efficiency from CSV, returns L/100km"""
-    df = pd.read_csv("data/ice_vehicles.csv")
+    df = pd.read_csv("costComparison/data/ice_vehicles.csv")
     df = df.drop_duplicates()
 
     mask = df["make"].astype(str).str.lower() == make.lower()
