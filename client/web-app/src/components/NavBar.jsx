@@ -105,6 +105,9 @@ function NavBar() {
                                             <button className='dropdown-item' onClick={() => navigate('/demand-forecasting')}>
                                                 Demand Forecasting
                                             </button>
+                                            <button className='dropdown-item' onClick={() => navigate('/price-prediction')}>
+                                                Price Prediction
+                                            </button>
                                             <button className='dropdown-item' onClick={() => navigate('/congestion-prediction')}>
                                                 Congestion Prediction
                                             </button>
