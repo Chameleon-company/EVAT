@@ -8,7 +8,10 @@ from typing import Dict
 
 from fastapi import FastAPI
 
-from models import RankChargingStationsRequest, RankChargingStationsResponse
+from models.request import RankChargingStationsRequest
+from models.response import RankChargingStationsResponse
+from services.candidate_filters import filter_eligible_candidates
+from services.ranking_service import rank_candidates
 
 
 app = FastAPI(
@@ -32,5 +35,10 @@ def rank_charging_stations(
 ) -> RankChargingStationsResponse:
     """Return ranked stations once filtering and scoring are implemented."""
 
-    # TODO: Apply hard filters, score eligible candidates, and return rankings.
-    return RankChargingStationsResponse(recommendations=[])
+    eligible_candidates = filter_eligible_candidates(request.candidates)
+
+    recommendations = rank_candidates(
+        eligible_candidates,
+        request.userProfile.favouriteStationIds,
+    )
+    return RankChargingStationsResponse(recommendations=recommendations)

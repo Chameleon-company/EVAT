@@ -1,4 +1,4 @@
-"""Pydantic models for the Charging Station Recommendation API contract."""
+"""Pydantic models accepted by the recommendation API."""
 
 from datetime import datetime
 from typing import List, Literal, Optional
@@ -82,14 +82,3 @@ class RankChargingStationsRequest(BaseModel):
     userLocation: UserLocation
     userProfile: UserProfile
     candidates: List[ChargingStationCandidate] = Field(min_length=1, max_length=10)
-
-
-class ChargingStationRecommendation(BaseModel):
-    stationId: str
-    rank: int
-    score: float
-    reasons: List[str]
-
-
-class RankChargingStationsResponse(BaseModel):
-    recommendations: List[ChargingStationRecommendation]
