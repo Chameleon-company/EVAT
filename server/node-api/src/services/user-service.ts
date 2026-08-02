@@ -59,7 +59,7 @@ export default class UserService {
       if (existingUser) {
         if (bcrypt.compareSync(password, existingUser.password)) {
           // Generate tokens
-          const accessToken = generateToken(existingUser, "1d");
+          const accessToken = generateToken(existingUser, "1h");
           const refreshToken = generateToken(existingUser, "1d");
 
           // Save refresh token to database
@@ -127,7 +127,7 @@ export default class UserService {
       }
 
       // Generate new tokens
-      const newAccessToken = generateToken(user, "1d");
+      const newAccessToken = generateToken(user, "1h");
       const newRefreshToken = generateToken(user, "1d");
 
       // Update refresh token in database
