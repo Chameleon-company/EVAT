@@ -69,6 +69,7 @@ GOOGLE_APPLICATION_CREDENTIALS="./google-credentials.json"
 EMAIL_USER = "sender@example.com"
 EMAIL_PASS = "See Nodemailer section"
 ADMIN_EMAIL = "receiver@example.com"
+PYTHON_API_URL = "http://127.0.0.1:5000"
 ```
 ### IMPORTANT: Ensure .env and your .json credential files are never committed to version control!
 
@@ -86,10 +87,10 @@ Because we use NPM workspaces, you do not need to navigate into individual folde
 
 2. Install necessary Python packages:
    There are two ways of doing this, creating a Python virtual environment or installing packages globally.
-   **Virtual Environment (Recommended)**
-   If you aren't using VS Code instructions on how to create a Python virtual environment can be found [here](https://www.w3schools.com/python/python_virtualenv.asp).
+   **Virtual Environment Setup (Recommended)**
+   If you *aren't* using VS Code instructions on how to create a Python virtual environment can be found [here](https://www.w3schools.com/python/python_virtualenv.asp).
    If you are using VS Code install the official Python extension, then access the Python Logo button on the left sidebar. Use any environment manager of your choice, for this walkthrough venv will be used. Create a new virtual environment by pressing the +.
-   **Package Installation**
+   **Package installation for Global and Virtual Environment**
    Launch a new terminal in the root directory of the project and installing the packages by running:
    ```sh
    pip install -r python-requirements.txt

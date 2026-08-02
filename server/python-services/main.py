@@ -1,8 +1,8 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, field_validator
-from typing import Union, List, Optional
-from datetime import date
+from pydantic import BaseModel, field_validator, Field
+from typing import Union, List, Optional, Dict, Any
+from datetime import date, datetime
 from contextlib import asynccontextmanager
 
 import weatherAwareRouting.weatherAwareRouting
@@ -10,12 +10,17 @@ import personalisedEVInsights.personalisedEVInsights
 import demandForecasting.demandForecasting
 import costComparison.costComparison
 import costComparison.model_runner
+import pricePrediction.price_prediction_api
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("[startup] Training model...")
     costComparison.model_runner.load_and_train("costComparison/data/dummy_data.csv")
-    print("[startup] Model ready.")
+
+    print("[startup] Loading price prediction model...")
+    await pricePrediction.price_prediction_api.startup_event()
+
+    print("[startup] Models ready.")
     yield
 
 
@@ -34,13 +39,13 @@ def root():
 
 # =============================================================
 # Weather Aware Routing Use Case
-class TripRequest(BaseModel):
+class WARTripRequest(BaseModel):
     origin: str
     destination: str
     ac_on: bool = True
 
 @app.post("/weatherAwareRouting/predict")
-def weatherAwareRoutingPredict(req: TripRequest):
+def weatherAwareRoutingPredict(req: WARTripRequest):
     return weatherAwareRouting.weatherAwareRouting.predict(req)
 
 # =============================================================
@@ -51,7 +56,7 @@ def personalisedEVInsightsPredict(payload: Union[dict, List[dict]]):
 
 # =============================================================
 # Demand Forecasting Use Case
-class PredictionRequest(BaseModel):
+class DFPredictionRequest(BaseModel):
     postcode: str
     date: date  # Expects "YYYY-MM-DD" format
 
@@ -61,7 +66,7 @@ class PredictionRequest(BaseModel):
         # Remove any whitespace and ensure it's a string
         return str(v).strip()
     
-class PredictionResponse(BaseModel):
+class DFPredictionResponse(BaseModel):
     postcode: str
     date: str
     predicted_demand_kwh: float
@@ -71,8 +76,8 @@ class PredictionResponse(BaseModel):
 def demandForecasting_get_postcode_coords(postcode: str):
     return demandForecasting.demandForecasting.get_postcode_coords(postcode)
 
-@app.post("/demandForecasting/predict", response_model=PredictionResponse)
-def demandForecastingPredict(request: PredictionRequest):
+@app.post("/demandForecasting/predict", response_model=DFPredictionResponse)
+def demandForecastingPredict(request: DFPredictionRequest):
     return demandForecasting.demandForecasting.handle_prediction(request)
 
 @app.get("/demandForecasting/postcodes")
@@ -81,7 +86,7 @@ def demandForecasting_list_postcodes():
 
 # =============================================================
 # Cost Comparison Use Case
-class PredictRequest(BaseModel):
+class CCPredictRequest(BaseModel):
     distance_km: float
     electricity_price_per_kwh: float
     petrol_price_per_l: float
@@ -92,17 +97,17 @@ class PredictRequest(BaseModel):
     ice_model: Optional[str] = None
     ice_variant: Optional[str] = None
 
-class VehicleEfficiencyRequest(BaseModel):
+class CCVehicleEfficiencyRequest(BaseModel):
     make: str
     model: str
     variant: Optional[str] = None
 
 @app.post("/costComparison/predict")
-def costComparisonPredict(req: PredictRequest):
+def costComparisonPredict(req: CCPredictRequest):
     return costComparison.costComparison.predict(req)
 
 @app.post("/costComparison/charts")
-def costComparisonCharts(req: PredictRequest):
+def costComparisonCharts(req: CCPredictRequest):
     return costComparison.costComparison.charts(req)
 
 @app.get("/costComparison/vehicles/ev")
@@ -114,10 +119,80 @@ def costComparisonIce_vehicles():
     return costComparison.costComparison.ice_vehicles()
 
 @app.post("/costComparison/vehicles/ev/efficiency")
-def costComparisonEv_efficiency(req: VehicleEfficiencyRequest):
+def costComparisonEv_efficiency(req: CCVehicleEfficiencyRequest):
     return costComparison.costComparison.ev_efficiency(req)
 
 @app.post("/costComparison/vehicles/ice/efficiency")
-def costComparisonIce_efficiency(req: VehicleEfficiencyRequest):
+def costComparisonIce_efficiency(req: CCVehicleEfficiencyRequest):
     return costComparison.costComparison.ice_efficiency(req)
 
+# =============================================================
+# Price Prediction Use Case
+class PPSchemaResponse(BaseModel):
+    feature_columns: List[str]
+    numeric_columns: List[str]
+    categorical_columns: List[str]
+    feature_descriptions: Dict[str, str]
+    schema_source: Optional[str]
+
+class PPModelInfoResponse(BaseModel):
+    model_type: str
+    pipeline_steps: List[str]
+    n_features_in: Optional[int]
+    schema_source: Optional[str]
+
+class PPPredictionRequest(BaseModel):
+    row_id: Optional[Union[str, int]] = Field(default=None)
+    features: Dict[str, Any] = Field(..., description="Raw feature inputs")
+    auto_derive: bool = Field(
+        default=True,
+        description="Derive engineered features and fill enrichment defaults when missing",
+    )
+
+class PPPredictionResponse(BaseModel):
+    row_id: Optional[Union[str, int]]
+    predicted_log_price: float
+    predicted_price: float
+    missing_features: List[str]
+    extra_features: List[str]
+    derived_features: List[str] = Field(default_factory=list)
+
+class PPPredictionRecord(BaseModel):
+    row_id: Optional[Union[str, int]] = Field(default=None)
+    features: Dict[str, Any] = Field(..., description="Raw feature inputs")
+    auto_derive: bool = Field(default=True)
+
+class PPBatchPredictionRequest(BaseModel):
+    records: List[PPPredictionRecord]
+
+class PPBatchPredictionResponse(BaseModel):
+    predictions: List[PPPredictionResponse]
+    count: int
+    timestamp: datetime
+
+class PPHealthResponse(BaseModel):
+    status: str
+    model_loaded: bool
+    timestamp: datetime
+    feature_count: int
+
+@app.get("/pricePrediction/health", response_model=PPHealthResponse)
+async def health() -> PPHealthResponse:
+    return await pricePrediction.price_prediction_api.health()
+
+@app.get("/pricePrediction/schema", response_model=PPSchemaResponse)
+async def pricePredictionSchema() -> PPSchemaResponse:
+    return await pricePrediction.price_prediction_api.schema()
+
+@app.get("/pricePrediction/model/info", response_model=PPModelInfoResponse)
+async def pricePredictionModel_info() -> PPModelInfoResponse:
+    return await pricePrediction.price_prediction_api.model_info()
+
+@app.post("/pricePrediction/predict", response_model=PPPredictionResponse)
+async def pricePredictionPredict(request: PPPredictionRequest) -> PPPredictionResponse:
+    print(request)
+    return await pricePrediction.price_prediction_api.predict(request)
+
+@app.post("/pricePrediction/predict/batch", response_model=PPBatchPredictionResponse)
+async def pricePrediction_predict_batch(request: PPBatchPredictionRequest) -> PPBatchPredictionResponse:
+    return await pricePrediction.price_prediction_api.predict_batch(request)
