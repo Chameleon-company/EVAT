@@ -84,7 +84,19 @@ Because we use NPM workspaces, you do not need to navigate into individual folde
    npm install
    ```
 
-2. Start the dev stack:
+2. Install necessary Python packages:
+   There are two ways of doing this, creating a Python virtual environment or installing packages globally.
+   **Virtual Environment (Recommended)**
+   If you aren't using VS Code instructions on how to create a Python virtual environment can be found [here](https://www.w3schools.com/python/python_virtualenv.asp).
+   If you are using VS Code install the official Python extension, then access the Python Logo button on the left sidebar. Use any environment manager of your choice, for this walkthrough venv will be used. Create a new virtual environment by pressing the +.
+   **Package Installation**
+   Launch a new terminal in the root directory of the project and installing the packages by running:
+   ```sh
+   pip install -r python-requirements.txt
+   ```
+
+
+3. Start the dev stack:
    From the root of the repository, run:
    ```sh
    npm run dev
@@ -99,6 +111,10 @@ Because we use NPM workspaces, you do not need to navigate into individual folde
    - Start the Frontend Web App:
       ```sh
       npm run dev:client
+      ```
+   - Start the Python ML services:
+      ```sh
+      npm run dev:python
       ```
 
 ---
