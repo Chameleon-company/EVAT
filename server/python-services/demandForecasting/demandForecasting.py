@@ -63,7 +63,7 @@ def get_weather_forecast(lat: float, lon: float, target_date: date) -> float | N
     Fetches the forecasted mean temperature from Open-Meteo API.
     Returns None if the forecast cannot be retrieved.
     """
-    days_ahead = (target_date - date.today()).days + 1
+    days_ahead = (target_date - date.today()).days
     
     if days_ahead < 1:
         raise ValueError("Cannot fetch forecast for past dates.")
@@ -91,10 +91,10 @@ def get_weather_forecast(lat: float, lon: float, target_date: date) -> float | N
         return float(temp)
 
     except requests.exceptions.RequestException as e:
-        print(f"⚠ Weather API request failed: {e}")
+        print(f"WARNING: Weather API request failed: {e}")
         return None
     except (KeyError, IndexError) as e:
-        print(f"⚠ Failed to parse weather data: {e}")
+        print(f"WARNING: Failed to parse weather data: {e}")
         return None
 
 
@@ -119,7 +119,7 @@ def create_prediction_features(postcode: str, target_date: date) -> pd.DataFrame
     temperature = get_weather_forecast(lat, lon, target_date)
     if temperature is None:
         temperature = 20.0  # Default fallback temperature
-        print(f"  ⚠ Using default temperature of {temperature}°C for postcode {postcode}")
+        print(f"  WARNING: Using default temperature of {temperature}°C for postcode {postcode}")
 
     # Create date-based features
     target_datetime = datetime.combine(target_date, datetime.min.time())
