@@ -21,6 +21,7 @@ import EVChatBubble from "./components/EVChatBubble";
 import Dashboard from "./pages/Dashboard";
 import EnvironmentalImpact from "./pages/EnvironmentalImpact";
 import DemandForecasting from "./pages/DemandForecasting";
+import PricePrediction from "./pages/PricePrediction";
 import WeatherRouting from "./pages/WeatherAwareRouting";
 import Chatbot from "./pages/Chatbot";
 import PersonalisedInsightsForm from "./pages/PersonalisedInsightsForm";
@@ -51,6 +52,7 @@ function App() {
             <Route path="/insights-form" element={<PersonalisedInsightsForm />} />
             <Route path="/insights" element={<PersonalisedInsights />} />
             <Route path="/demand-forecasting" element={<DemandForecasting />} />
+            <Route path="/price-prediction" element={<PricePrediction />} />
             {/* Catch-all Route */}
             <Route path="*" element={<div>404 Page Not Found</div>} />
           </Routes>

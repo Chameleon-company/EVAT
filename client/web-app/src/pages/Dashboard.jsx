@@ -28,6 +28,14 @@ const useCases = [
     status: "live",
   },
   {
+    id: "price-prediction",
+    title: "Price Prediction",
+    description: "Estimate vehicle purchase price from brand, model, mileage, and condition.",
+    icon: "💵",
+    route: "/price-prediction",
+    status: "live",
+  },
+  {
   id: "personalised-insights",
   title: "Personalised EV Insights",
   description: "Get personalised recommendations based on your driving habits and lifestyle.",

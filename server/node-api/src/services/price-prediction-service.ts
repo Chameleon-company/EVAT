@@ -14,6 +14,40 @@ export default class PricePredictionService {
     return (process.env.PRICE_API_URL || "http://localhost:8001").replace(/\/$/, "");
   }
 
+  private unreachableMessage(): string {
+    const baseUrl = this.getBaseUrl();
+    return (
+      `Price prediction ML service is not reachable at ${baseUrl}. ` +
+      `Start it with: npm run dev:price`
+    );
+  }
+
+  private isUnreachableError(error: any): boolean {
+    const code = error?.code || error?.cause?.code;
+    const message = String(error?.message || "");
+    return (
+      code === "ECONNREFUSED" ||
+      code === "ENOTFOUND" ||
+      code === "ECONNRESET" ||
+      code === "ETIMEDOUT" ||
+      message.includes("ECONNREFUSED") ||
+      message.includes("fetch failed") ||
+      /request to .+ failed, reason:\s*$/i.test(message) ||
+      /request to .+ failed/i.test(message)
+    );
+  }
+
+  private wrapProxyError(error: any): Error {
+    if (error?.status) return error;
+    if (this.isUnreachableError(error)) {
+      return Object.assign(new Error(this.unreachableMessage()), { status: 503 });
+    }
+    return Object.assign(
+      new Error(error?.message || "Unexpected price prediction proxy error"),
+      { status: 500 }
+    );
+  }
+
   private async parseError(response: { status: number; json: () => Promise<any> }): Promise<string> {
     try {
       const body = await response.json();
@@ -28,27 +62,35 @@ export default class PricePredictionService {
   }
 
   private async proxyGet(path: string): Promise<any> {
-    const response = await fetch(`${this.getBaseUrl()}${path}`);
-    if (!response.ok) {
-      throw Object.assign(new Error(await this.parseError(response)), {
-        status: response.status,
-      });
+    try {
+      const response = await fetch(`${this.getBaseUrl()}${path}`);
+      if (!response.ok) {
+        throw Object.assign(new Error(await this.parseError(response)), {
+          status: response.status,
+        });
+      }
+      return response.json();
+    } catch (error: any) {
+      throw this.wrapProxyError(error);
     }
-    return response.json();
   }
 
   private async proxyPost(path: string, body: unknown): Promise<any> {
-    const response = await fetch(`${this.getBaseUrl()}${path}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    if (!response.ok) {
-      throw Object.assign(new Error(await this.parseError(response)), {
-        status: response.status,
+    try {
+      const response = await fetch(`${this.getBaseUrl()}${path}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
       });
+      if (!response.ok) {
+        throw Object.assign(new Error(await this.parseError(response)), {
+          status: response.status,
+        });
+      }
+      return response.json();
+    } catch (error: any) {
+      throw this.wrapProxyError(error);
     }
-    return response.json();
   }
 
   /** GET {PRICE_API_URL}/health */
