@@ -50,6 +50,40 @@ export default class PricePredictionService {
     );
   }
 
+  private unreachableMessage(): string {
+    const baseUrl = this.getBaseUrl();
+    return (
+      `Price prediction ML service is not reachable at ${baseUrl}. ` +
+      `Start it with: npm run dev:price`
+    );
+  }
+
+  private isUnreachableError(error: any): boolean {
+    const code = error?.code || error?.cause?.code;
+    const message = String(error?.message || "");
+    return (
+      code === "ECONNREFUSED" ||
+      code === "ENOTFOUND" ||
+      code === "ECONNRESET" ||
+      code === "ETIMEDOUT" ||
+      message.includes("ECONNREFUSED") ||
+      message.includes("fetch failed") ||
+      /request to .+ failed, reason:\s*$/i.test(message) ||
+      /request to .+ failed/i.test(message)
+    );
+  }
+
+  private wrapProxyError(error: any): Error {
+    if (error?.status) return error;
+    if (this.isUnreachableError(error)) {
+      return Object.assign(new Error(this.unreachableMessage()), { status: 503 });
+    }
+    return Object.assign(
+      new Error(error?.message || "Unexpected price prediction proxy error"),
+      { status: 500 }
+    );
+  }
+
   private async parseError(response: { status: number; json: () => Promise<any> }): Promise<string> {
     try {
       const body = await response.json();
