@@ -1,16 +1,25 @@
 import PredictRepository from "../repositories/predict-repository";
 import Congestion, { ICongestion } from "../models/congestion-model";
 import mongoose from "mongoose";
-import fetch from "node-fetch";
+// import fetch from "node-fetch";
+// Replaced fetch/node-fetch with axios for timeout and error handling
+import axios from 'axios';
+// Format response
+import { PredictionRequestPayload, PythonPredictionResponse, FormattedPredictionResponse } from '../types/predict';
 
 
 export default class PredictService {
+    // Timeout and URL for Python environment
+    private readonly PYTHON_API_URL = process.env.PYTHON_API_URL || "http://localhost:5000";
+    private readonly TIMEOUT_MS = 2000;
+
+
     /**
- * Get a congestion levels for multiple chargers
- * 
- * @param chargerIDs Array of one or more charger ID strings
- * @returns Object containing charger ID's and their respective congestion levels
- */
+     * Get a congestion levels for multiple chargers
+     * 
+     * @param chargerIDs Array of one or more charger ID strings
+     * @returns Object containing charger ID's and their respective congestion levels
+     */
     async getCongestionLevels(
         chargerIDs: string[]
     ): Promise<{
@@ -113,176 +122,225 @@ export default class PredictService {
     }
 
 
-     /**
- * Calls the Python ML microservice to calculate EV vs ICE cost comparison
- *
- * @param distance_km Trip distance in kilometres
- * @param electricity_price_per_kwh Electricity rate in $/kWh
- * @param ice_eff_l_per_100km ICE fuel efficiency in L/100km
- * @param petrol_price_per_l Petrol price in $/L
- * @returns Predicted savings, costs, emissions from the ML model
- */
-async getCostComparison(
-    distance_km: number,
-    electricity_price_per_kwh: number,
-    ice_eff_l_per_100km: number,
-    petrol_price_per_l: number,
-    ev_make?: string,
-    ev_model?: string,
-    ev_variant?: string,
-    ice_make?: string,
-    ice_model?: string,
-    ice_variant?: string,
-): Promise<any> {
-    try {
-        const response = await fetch("http://localhost:5000/predict", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                distance_km,
-                electricity_price_per_kwh,
-                petrol_price_per_l,
-                ev_make,
-                ev_model,
-                ev_variant,
-                ice_make,
-                ice_model,
-                ice_variant,
-            }),
-        });
-
-        if (!response.ok) {
-            const error = await response.json() as any;
-            throw new Error(error.detail || `ML service error: ${response.status}`);
-        }
-
-        return await response.json();
-
-    } catch (error: any) {
-        if (error instanceof Error) {
-            throw new Error("Error calling ML service: " + error.message);
-        } else {
-            throw new Error("Unknown error calling ML service");
+    /**
+     * Calls the Python ML microservice to calculate EV vs ICE cost comparison
+     *
+     * @param distance_km Trip distance in kilometres
+     * @param electricity_price_per_kwh Electricity rate in $/kWh
+     * @param ice_eff_l_per_100km ICE fuel efficiency in L/100km
+     * @param petrol_price_per_l Petrol price in $/L
+     * @returns Predicted savings, costs, emissions from the ML model
+     */
+    async getCostComparison(
+        distance_km: number,
+        electricity_price_per_kwh: number,
+        ice_eff_l_per_100km: number,
+        petrol_price_per_l: number,
+        ev_make?: string,
+        ev_model?: string,
+        ev_variant?: string,
+        ice_make?: string,
+        ice_model?: string,
+        ice_variant?: string,
+    ): Promise<any> {
+        try {
+            const response = await axios.post(
+                `${this.PYTHON_API_URL}/predict`,
+                {
+                    distance_km,
+                    electricity_price_per_kwh,
+                    petrol_price_per_l,
+                    ev_make,
+                    ev_model,
+                    ev_variant,
+                    ice_make,
+                    ice_model,
+                    ice_variant,
+                },
+                { timeout: this.TIMEOUT_MS }
+            );
+            return response.data;
+        } catch (error: any) {
+            const errorMsg = error.response?.data?.detail || error.message;
+            throw new Error("Error calling ML service: " + errorMsg);
         }
     }
-}
-async getCostCharts(
-    distance_km: number,
-    electricity_price_per_kwh: number,
-    ice_eff_l_per_100km: number,
-    petrol_price_per_l: number
-): Promise<any> {
-    try {
-        const response = await fetch("http://localhost:5000/charts", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                distance_km,
-                electricity_price_per_kwh,
-                ice_eff_l_per_100km,
-                petrol_price_per_l,
-            }),
-        });
 
-        if (!response.ok) {
-            const error = await response.json() as any;
-            throw new Error(error.detail || `ML service error: ${response.status}`);
-        }
-
-        return await response.json();
-
-    } catch (error: any) {
-        if (error instanceof Error) {
-            throw new Error("Error fetching chart data: " + error.message);
-        } else {
-            throw new Error("Unknown error fetching chart data");
+    /**
+     * Get the chart comparison from the Python ML service
+     * 
+     * @param distance_km - Trip distance in kilometres
+     * @param electricity_price_per_kwh - Electricity rate in $/kWh
+     * @param ice_eff_l_per_100km - ICE fuel efficiency in L/100km
+     * @param petrol_price_per_l - Petrol price in $/L
+     * @returns Chart payload dataset
+     */
+    async getCostCharts(
+        distance_km: number,
+        electricity_price_per_kwh: number,
+        ice_eff_l_per_100km: number,
+        petrol_price_per_l: number
+    ): Promise<any> {
+        try {
+            const response = await axios.post(
+                `${this.PYTHON_API_URL}/charts`,
+                { distance_km, electricity_price_per_kwh, ice_eff_l_per_100km, petrol_price_per_l },
+                { timeout: this.TIMEOUT_MS }
+            );
+            return response.data;
+        } catch (error: any) {
+            const errorMsg = error.response?.data?.detail || error.message;
+            throw new Error("Error fetching chart data: " + errorMsg);
         }
     }
-}
 
-async getEvVehicles(): Promise<any> {
-    try {
-        const response = await fetch("http://localhost:5000/vehicles/ev");
-        if (!response.ok) throw new Error(`ML service error: ${response.status}`);
-        return await response.json();
-    } catch (error: any) {
-        throw new Error("Error fetching EV vehicles: " + error.message);
-    }
-}
-
-async getIceVehicles(): Promise<any> {
-    try {
-        const response = await fetch("http://localhost:5000/vehicles/ice");
-        if (!response.ok) throw new Error(`ML service error: ${response.status}`);
-        return await response.json();
-    } catch (error: any) {
-        throw new Error("Error fetching ICE vehicles: " + error.message);
-    }
-}
-
-async getEvEfficiency(make: string, model: string, variant?: string): Promise<any> {
-    try {
-        const response = await fetch("http://localhost:5000/vehicles/ev/efficiency", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ make, model, variant }),
-        });
-        if (!response.ok) throw new Error(`ML service error: ${response.status}`);
-        return await response.json();
-    } catch (error: any) {
-        throw new Error("Error fetching EV efficiency: " + error.message);
-    }
-}
-
-async getIceEfficiency(make: string, model: string, variant?: string): Promise<any> {
-    try {
-        const response = await fetch("http://localhost:5000/vehicles/ice/efficiency", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ make, model, variant }),
-        });
-        if (!response.ok) throw new Error(`ML service error: ${response.status}`);
-        return await response.json();
-    } catch (error: any) {
-        throw new Error("Error fetching ICE efficiency: " + error.message);
-    }
-}
-
-async getDemandForecast(postcode: string, date: string): Promise<any> {
-    try {
-        const response = await fetch("http://localhost:5001/predict", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ postcode, date }),
-        });
-        if (!response.ok) {
-            const error = await response.json() as any;
-            throw new Error(error.detail || `ML service error: ${response.status}`);
+    /**
+     * Get supported electric vehicles list
+     * 
+     * @returns List of supported Electric vehicles
+     */
+    async getEvVehicles(): Promise<any> {
+        try {
+            const response = await axios.get(`${this.PYTHON_API_URL}/vehicles/ev`, { timeout: this.TIMEOUT_MS });
+            return response.data;
+        } catch (error: any) {
+            throw new Error("Error fetching EV vehicles: " + error.message);
         }
-        return await response.json();
-    } catch (error: any) {
-        throw new Error("Error calling demand forecast ML service: " + error.message);
     }
-}
 
-async getDemandPostcodes(): Promise<any> {
-    try {
-        const response = await fetch("http://localhost:5001/postcodes");
-        if (!response.ok) throw new Error(`ML service error: ${response.status}`);
-        return await response.json();
-    } catch (error: any) {
-        throw new Error("Error fetching demand postcodes: " + error.message);
+    /**
+     * Get supported ICE vehicles list
+     * 
+     * @returns List of supported ICE vehicles
+     */
+    async getIceVehicles(): Promise<any> {
+        try {
+            const response = await axios.get(`${this.PYTHON_API_URL}/vehicles/ice`, { timeout: this.TIMEOUT_MS });
+            return response.data;
+        } catch (error: any) {
+            throw new Error("Error fetching ICE vehicles: " + error.message);
+        }
     }
-}
 
-async getDemandCoords(postcode: string): Promise<any> {
-    try {
-        const response = await fetch(`http://localhost:5001/coords/${postcode}`);
-        if (!response.ok) throw new Error(`ML service error: ${response.status}`);
-        return await response.json();
-    } catch (error: any) {
-        throw new Error("Error fetching postcode coordinates: " + error.message);
+    /**
+     * Get efficiency specifications for a specific EV vehicle
+     * 
+     * @param make - The manufacturer of the electric vehicle
+     * @param model - The model of the electric vehicle
+     * @param variant - Optional specific variant or trim of the vehicle
+     * @returns EV efficiency data from the ML model
+     */
+    async getEvEfficiency(make: string, model: string, variant?: string): Promise<any> {
+        try {
+            const response = await axios.post(
+                `${this.PYTHON_API_URL}/vehicles/ev/efficiency`,
+                { make, model, variant },
+                { timeout: this.TIMEOUT_MS }
+            );
+            return response.data;
+        } catch (error: any) {
+            throw new Error("Error fetching EV efficiency: " + error.message);
+        }
     }
-}
 
+    /**
+     * Get efficiency specifications for a specific ICE vehicle
+     * Fetches efficiency specifications for a specific ICE vehicle
+     * 
+     * @param make - The manufacturer of the ICE vehicle
+     * @param model - The model of the ICE vehicle
+     * @param variant - Optional specific variant or trim of the vehicle
+     * @returns ICE efficiency/fuel consumption data from the ML model
+     */
+    async getIceEfficiency(make: string, model: string, variant?: string): Promise<any> {
+        try {
+            const response = await axios.post(
+                `${this.PYTHON_API_URL}/vehicles/ice/efficiency`,
+                { make, model, variant },
+                { timeout: this.TIMEOUT_MS }
+            );
+            return response.data;
+        } catch (error: any) {
+            throw new Error("Error fetching ICE efficiency: " + error.message);
+        }
+    }
+
+    /**
+     * Grab the demand forecast from the Python Machine Learning service
+     * Implements a timeout and fallback to prevent Node.js from crashing
+     * due to external weather API latency issue
+     *
+     * @param postcode - 4-digit Australian postcode (sanitised)
+     * @param date - The validated date string in YYYY-MM-DD format
+     * @returns - FormattedPredictionResponse with the exact forecast or a safe fallback
+     */
+    async getDemandForecast(postcode: string, date: string): Promise<FormattedPredictionResponse> {
+    
+        const payload: PredictionRequestPayload = { postcode, date };
+
+        try {
+            // Send request to Python backend with timeout
+            const response = await axios.post<PythonPredictionResponse>(
+                `${this.PYTHON_API_URL}/predict`,
+                payload,
+                { timeout: this.TIMEOUT_MS }
+            );
+            return {
+                postcode: response.data.postcode,
+                date: response.data.date,
+                predictedDemandKwh: response.data.predicted_demand_kwh,
+                isFallback: false,
+                message: "Prediction successfully generated by ML service."
+            };
+        } catch (error: any) {
+            console.warn("[PredictService] Python API failed or timed out for postcode ${postcode}. Applying baseline fallback.", error.message);
+        
+            // Fallback: return a 'safe' average baseline if Python/Open-Meteo hangs for some reason
+            return {
+                postcode,
+                date,
+                predictedDemandKwh: 50.0, // 'safe' average baseline
+                isFallback: true,
+                message: "External weather API lag detected. Using baseline fallback."
+            };
+        }
+    }
+
+    /**
+     * Get a list of available postcodes for demand forecasting.
+     * 
+     * @returns Array of supported 4-digit postcode strings
+     */
+    async getDemandPostcodes(): Promise<string[]> {
+        try {
+            const response = await axios.get<{ postcodes: string[] }>(
+                `${this.PYTHON_API_URL}/postcodes`, 
+                { timeout: this.TIMEOUT_MS }
+            );
+            return response.data.postcodes;
+        } catch (error: any) {
+            // Temp fallback: if API is down, return Melbourne defaults
+            console.error("[PredictService] Could not fetch postcodes from Python service.");
+            return ["3000", "3001", "3002"];
+        }
+    }
+
+    /**
+     * Get geographic coordinates (latitude and longitude) for a given postcode.
+     *
+     * @param postcode - The 4-digit Australian postcode
+     * @returns Coordinate containing lat and lng
+     */
+    async getDemandCoords(postcode: string): Promise<{ lat: number; lng: number }> {
+        try {
+            const response = await axios.get<{ lat: number, lon: number }>(
+                `${this.PYTHON_API_URL}/coords/${postcode}`,
+                { timeout: this.TIMEOUT_MS }
+            );
+            return { lat: response.data.lat, lng: response.data.lon };
+        } catch (error: any) {
+            // Temp fallback: return Melbourne CBD coordinates if the lookup fails
+            return { lat: -37.8136, lng: 144.9631 };
+        }
+    }
 }
