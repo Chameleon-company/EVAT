@@ -104,20 +104,31 @@ export default function EnvironmentalImpact({
   // Fetch comparison result whenever selected EV or ICE changes
   useEffect(() => {
   const fetchComparison = async () => {
-    if (!selectedEv?.id || !selectedIce?.id) return;
+    if (!selectedEv?.id || !selectedIce?.id) {
+  setComparisonResult(null);
+  setErrorCompare(null);
+  return;
+}
 
     try {
       setLoadingCompare(true);
       setErrorCompare(null);
+      setComparisonResult(null);
 
-      const res = await fetch(
-        `${API_URL}/environmental-impact/compare?evVehicleId=${selectedEv.id}&iceVehicleId=${selectedIce.id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        }
-      );
+  const res = await fetch(
+    `${API_URL}/env-impact-analysis/compare`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${user.token}`,
+      },
+      body: JSON.stringify({
+        evVehicleId: selectedEv.id,
+        iceVehicleId: selectedIce.id,
+      }),
+    }
+  );
 
       if (!res.ok) {
         throw new Error("Failed to fetch comparison");
@@ -126,7 +137,7 @@ export default function EnvironmentalImpact({
       const data = await res.json();
       console.log("COMPARE RESULT:", data);
 
-      setComparisonResult(data);
+      setComparisonResult(data.data);
     } catch (err) {
       console.error(err);
       setErrorCompare(err.message);
@@ -438,15 +449,27 @@ export default function EnvironmentalImpact({
         </tbody>
       </table>
 
-      {/* result summary */}
-      <div>
-        {selectedIce && selectedEv && (
-          <>
-            <h4>Results</h4>
-            <p className="center">The {selectedEv.make} {selectedEv.model} emits {selectedIce.co2_emissions_combined - selectedEv.co2_emissions_combined} g/km less CO2 than {selectedIce.make} {selectedIce.model}</p>
-          </>
-        )}
-      </div>
+{/* Result summary returned by the backend */}
+<div>
+  {loadingCompare && <p className="center">Calculating environmental impact...</p>}
+
+  {errorCompare && (
+    <p className="center">
+      Unable to calculate the environmental impact: {errorCompare}
+    </p>
+  )}
+
+  {comparisonResult?.comparison && !loadingCompare && (
+    <>
+      <h4>Results</h4>
+      <p className="center">
+        The {comparisonResult.ev.make} {comparisonResult.ev.model} emits{" "}
+        {comparisonResult.comparison.co2SavedPerKm} g/km less CO₂ than the{" "}
+        {comparisonResult.ice.make} {comparisonResult.ice.model}.
+      </p>
+    </>
+  )}
+</div>
     </div>
   );
 }
