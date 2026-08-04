@@ -1,4 +1,5 @@
-import { Request, Response } from "express";
+import { Response } from "express";
+import { AuthRequest } from "../middlewares/auth-middleware";
 import ChargerRecommendationService from "../services/charger-recommendation-service";
 
 export default class ChargerRecommendationController {
@@ -6,12 +7,13 @@ export default class ChargerRecommendationController {
     private readonly chargerRecommendationService: ChargerRecommendationService
   ) {}
 
-  async getRecommendations(req: Request, res: Response): Promise<Response> {
-    const { userId, latitude, longitude, radiusKm } = req.body;
+  async getRecommendations(req: AuthRequest, res: Response): Promise<Response> {
+    const { latitude, longitude, radiusKm } = req.body;
+    const userId = req.user.id;
 
-    if (userId === undefined || latitude === undefined || longitude === undefined) {
+    if (latitude === undefined || longitude === undefined) {
       return res.status(400).json({
-        message: "userId, latitude, and longitude are required.",
+        message: "latitude and longitude are required.",
       });
     }
 
@@ -32,16 +34,17 @@ export default class ChargerRecommendationController {
     }
   }
 
-  async saveSelection(req: Request, res: Response): Promise<Response> {
+  async saveSelection(req: AuthRequest, res: Response): Promise<Response> {
     const { sessionId } = req.params;
     const { stationId } = req.body;
+    const userId = req.user.id;
 
     if (!stationId) {
       return res.status(400).json({ message: "stationId is required." });
     }
 
     try {
-      await this.chargerRecommendationService.saveSelection(sessionId, stationId);
+      await this.chargerRecommendationService.saveSelection(sessionId, stationId, userId);
 
       return res.status(200).json({
         message: "Station selection saved successfully",
