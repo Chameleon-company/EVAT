@@ -2,7 +2,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 // Recommendatation candidate interface. Not exported, as candidates are only intended to exist within the candidates attribute of the recommendation session.
-interface IRecommendationCandidate {
+export interface IRecommendationCandidate {
     stationId: mongoose.Types.ObjectId;
 
     latitude: number;
@@ -80,7 +80,8 @@ const RecommendationCandidateSchema: Schema = new Schema<IRecommendationCandidat
         reasons: { type: [String], default: [] }
     },
     {
-        _id: false // My guess is that we don't want to save each candidate as a separate document, but rather as an embedded document within the recommendation session. Hence, we set _id to false to avoid creating a separate _id for each candidate.
+        // Don't generate a separate ID for each candidate, as they are embedded subdocuments of the a session's candidates array.
+        _id: false
     }
 );
 

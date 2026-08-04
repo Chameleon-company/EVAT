@@ -28,14 +28,16 @@ export default class RecommendationHistoryRepository {
         return await RecommendationSession.findById(sessionId).exec();
     }
 
-    // Find a user's recommendation sessions, newest first.
-    async findByUser(
+    // Find a user's recent recommendation sessions
+    async findRecentByUser(
         userId: string,
+        limit: number,
     ): Promise<IRecommendationSessionDocument[]> {
         return await RecommendationSession.find({
             userId: new Types.ObjectId(userId),
         })
             .sort({ createdAt: -1 })
+            .limit(limit)
             .exec();
     }
 
