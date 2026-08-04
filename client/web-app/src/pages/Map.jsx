@@ -11,6 +11,7 @@ import SmartFilter from '../components/SmartFilter';
 import ChatBubble from "../components/ChatBubble";
 import ChargerSideBar from '../components/ChargerSideBar';
 import FloatingVoiceAssistant from '../components/FloatingVoiceAssistant';
+import ChargingRecommendations from '../components/ChargingRecommendations';
 // styles
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
@@ -593,6 +594,9 @@ export default function Map() {
           favourites={favourites}
           toggleFavourite={toggleFavourite}
         />
+
+        <ChargingRecommendations />
+        
         {/* Voice Assistant floating button - opens popup with VoiceQuery */}
         <FloatingVoiceAssistant onQueryResult={handleVoiceResult} />
 
