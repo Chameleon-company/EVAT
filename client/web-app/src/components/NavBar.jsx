@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import { UserContext } from "../context/user";
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -21,7 +20,7 @@ function NavBar() {
     };
 
     // Highlight active button
-    const isActive = (path) => location.pathname === path;
+    const isActive = (path) => location.pathname === path; 
 
     const toggleMainMenu = () => {
         setMainMenuOpen(!mainMenu);
@@ -32,6 +31,13 @@ function NavBar() {
         setDevMenuOpen(!devMenu);
         setMainMenuOpen(false);
     }
+
+    const handleNavigate = (path) => {
+    navigate(path);
+    setMainMenuOpen(false);
+    setDevMenuOpen(false);
+    };
+
 
     return (
         <nav className="navbar">
@@ -48,25 +54,33 @@ function NavBar() {
                         {/* Main Menu Options */}
                         {mainMenu && (
                             <div className={`dropdown-list ${mainMenu ? 'show' : ''}`}>
-                                <button className='dropdown-item' onClick={() => navigate('/profile')}>
+                                <button className={`dropdown-item ${isActive('/profile') ? 'dropdown-item-active' : ''}`} 
+                                onClick={() => handleNavigate('/profile')}
+                                >
                                     Profile
                                 </button>
-                                <button className='dropdown-item' onClick={() => navigate('/map')}>
+                                <button className={`dropdown-item ${isActive('/map') ? 'dropdown-item-active' : ''}`} 
+                                onClick={() => handleNavigate('/map')}>
                                     Map
                                 </button>
-                                <button className='dropdown-item' onClick={() => navigate('/dashboard')}>
+                                <button className={`dropdown-item ${isActive('/dashboard') ? 'dropdown-item-active' : ''}`} 
+                                onClick={() => handleNavigate('/use-cases')}>
                                     Dashboard
                                 </button>
-                                <button className='dropdown-item' onClick={() => navigate('/favourites')}>
+                                <button className={`dropdown-item ${isActive('/favourites') ? 'dropdown-item-active' : ''}`} 
+                                onClick={() => handleNavigate('/favourites')}>
                                     Favourite Chargers
                                 </button>
-                                <button className='dropdown-item' onClick={() => navigate('/game')}>
+                                <button className={`dropdown-item ${isActive('/game') ? 'dropdown-item-active' : ''}`} 
+                                onClick={() => handleNavigate('/game')}>
                                     Rewards
                                 </button>
-                                <button className='dropdown-item' onClick={() => navigate('/feedback')}>
+                                <button className={`dropdown-item ${isActive('/feedback') ? 'dropdown-item-active' : ''}`} 
+                                onClick={() => handleNavigate('/feedback')}>
                                     Feedback
                                 </button>
-                                <button className='dropdown-item' onClick={() => navigate('/support')}>
+                                <button className={`dropdown-item ${isActive('/support') ? 'dropdown-item-active' : ''}`} 
+                                onClick={() => handleNavigate('/support')}>
                                     Support
                                 </button>
                             </div>
@@ -87,34 +101,44 @@ function NavBar() {
                                     {/* Developer Menu Options */}
                                     {devMenu && (
                                         <div className={`dropdown-list ${devMenu ? 'show' : ''}`}>
-                                            <button className='dropdown-item' onClick={() => navigate('/use-cases')}>
+                                            <button className= {`dropdown-item ${isActive('/use-case') ? 'dropdown-item-active' : ''}`}
+                                            onClick={() => handleNavigate('/use-cases')}>
                                                 Use Case Dashboard
                                             </button>
-                                            <button className='dropdown-item' onClick={() => navigate('/apitester')}>
+                                            <button className={`dropdown-item ${isActive('/apitester') ? 'dropdown-item-active' : ''}`} 
+                                            onClick={() => handleNavigate('/apitester')}>
                                                 API Tester
                                             </button>
-                                            <button className='dropdown-item' onClick={() => navigate('/voice-query')}>
+                                            <button className={`dropdown-item ${isActive('/voice-query') ? 'dropdown-item-active' : ''}`} 
+                                            onClick={() => handleNavigate('/voice-query')}>
                                                 Voice Query
                                             </button>
-                                            <button className='dropdown-item' onClick={() => navigate('/cost-comparison')}>
+                                            <button className={`dropdown-item ${isActive('/cost-comparison') ? 'dropdown-item-active' : ''}`}
+                                            onClick={() => handleNavigate('/cost-comparison')}>
                                                 Cost Comparison
                                             </button>
-                                            <button className='dropdown-item' onClick={() => navigate('/environmental-impact')}>
+                                            <button className={`dropdown-item ${isActive('/environmental-impact') ? 'dropdown-item-active' : ''}`}
+                                            onClick={() => handleNavigate('/environmental-impact')}>
                                                 Environmental Impact
                                             </button>
-                                            <button className='dropdown-item' onClick={() => navigate('/demand-forecasting')}>
+                                            <button className={`dropdown-item ${isActive('/demand-forecasting') ? 'dropdown-item-active' : ''}`}
+                                            onClick={() => handleNavigate('/demand-forecasting')}>
                                                 Demand Forecasting
                                             </button>
-                                            <button className='dropdown-item' onClick={() => navigate('/price-prediction')}>
-                                                Price Prediction
-                                            </button>
-                                            <button className='dropdown-item' onClick={() => navigate('/congestion-prediction')}>
+                                            <button className={`dropdown-item $ {isActive('/price-prediction') ? 'dropdown-item-active' : ''}`}
+                                            onClick={() => handleNavigate('/price-prediction')}>
+                                              Price Prediction
+                                              </button>
+                                              <button className={`dropdown-item $ {isActive('/congestion-prediction') ? 'dropdown-item-active' : ''}`}
+                                              onClick={() => handleNavigate('/congestion-prediction')}>
                                                 Congestion Prediction
-                                            </button>
-                                            <button className='dropdown-item' onClick={() => navigate('/weather-routing')}>
+                                                </button>
+                                            <button className={`dropdown-item ${isActive('/weather-routing') ? 'dropdown-item-active' : ''}`}
+                                            onClick={() => handleNavigate('/weather-routing')}>
                                                 Weather Routing
                                             </button>
-                                            <button className='dropdown-item' onClick={() => navigate('/chatbot')}>
+                                            <button className={`dropdown-item ${isActive('/chatbot') ? 'dropdown-item-active' : ''}`}
+                                            onClick={() => handleNavigate('/chatbot')}>
                                                 Chatbot
                                             </button>
                                         </div>
@@ -135,7 +159,7 @@ function NavBar() {
                 <button 
                     // Change this navigation to /map when complete
                     className={`btn-navbar `} 
-                    onClick={() => navigate('/map')}
+                    onClick={() => handleNavigate('/map')}
                 >
                     <img src={logo} alt="Logo" className="logo-navbar"/>
                     <h5 className='title-navbar'>Electric Vehicle Adoption Tool</h5>
