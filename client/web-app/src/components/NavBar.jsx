@@ -20,8 +20,7 @@ function NavBar() {
     };
 
     // Highlight active button
-    const isActive = (path) => location.pathname === path; // It is not being used anywhere it is just said isActive and forgot to use it 
-    //I made it used in the menu dropdown 
+    const isActive = (path) => location.pathname === path; 
 
     const toggleMainMenu = () => {
         setMainMenuOpen(!mainMenu);
@@ -126,10 +125,14 @@ function NavBar() {
                                             onClick={() => handleNavigate('/demand-forecasting')}>
                                                 Demand Forecasting
                                             </button>
-                                            <button className={`dropdown-item ${isActive('/congestion-prediction') ? 'dropdown-item-active' : ''}`}
-                                            onClick={() => handleNavigate('/congestion-prediction')}>
+                                            <button className={`dropdown-item $ {isActive('/price-prediction') ? 'dropdown-item-active' : ''}`}
+                                            onClick={() => handleNavigate('/price-prediction')}>
+                                              Price Prediction
+                                              </button>
+                                              <button className={`dropdown-item $ {isActive('/congestion-prediction') ? 'dropdown-item-active' : ''}`}
+                                              onClick={() => handleNavigate('/congestion-prediction')}>
                                                 Congestion Prediction
-                                            </button>
+                                                </button>
                                             <button className={`dropdown-item ${isActive('/weather-routing') ? 'dropdown-item-active' : ''}`}
                                             onClick={() => handleNavigate('/weather-routing')}>
                                                 Weather Routing
