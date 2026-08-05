@@ -169,17 +169,13 @@ export default function EnvironmentalImpact({
     setSelectedIce(found || null);
   }, [selectedIceMake, selectedIceModel, selectedIceVariant, selectedIceYear, allIceVehicles]);
   
-    const displayValue = (value) => {
+      const hasValue = (value) =>
+        value !== null && value !== undefined && value !== "";
 
-      if (value === null || value === undefined || value === "") {
+      const displayValue = (value) => {
+        return hasValue(value) ? value : "N/A";
+      };
 
-        return "N/A";
-
-      }
-
-      return value;
-
-};
   // Loading ICE data
   if (loadingIce) return <div className="horizontal center">Loading petrol/diesel vehicles...</div>;
   // Error while loading ICE data
@@ -457,10 +453,10 @@ export default function EnvironmentalImpact({
             <p className="center">
               The {selectedEv.make} {selectedEv.model} emits{" "}
               {displayValue(
-                selectedIce.co2_emissions_combined != null &&
-                selectedEv.co2_emissions_combined != null
-                  ? selectedIce.co2_emissions_combined -
-                      selectedEv.co2_emissions_combined
+                hasValue(selectedIce.co2_emissions_combined) &&
+                hasValue(selectedEv.co2_emissions_combined)
+                  ? Number(selectedIce.co2_emissions_combined) -
+                      Number(selectedEv.co2_emissions_combined)
                   : null
               )}{" "}
               g/km less CO2 than {selectedIce.make} {selectedIce.model}
