@@ -7,22 +7,26 @@ export interface IRecommendationCandidate {
 
     latitude: number;
     longitude: number;
-    operator: string;
-    chargingPoints: number;
-    cost: string;
-    payAtLocation: string;
+    operator: string | null;
+    connectionType: string | null;
+    currentType: string | null;
+    chargingPoints: number | null;
+    cost: string | null;
+    payAtLocation: string | null;
     isOperational: boolean;
+    membershipRequired: string | null;
+    accessKeyRequired: string | null;
 
-    distanceKm: number;
-    durationMin: number;
-    durationInTrafficMin: number;
-    roadTrafficCondition: string;
-    energyNominalKwh: number;
-    energyNeededKwh: number;
-    socWithContingencyPct: number;
-    temperatureC: number;
-    windSpeedMs: number;
-    windDirectionDeg: number;
+    distanceKm: number | null;
+    durationMin: number | null;
+    durationInTrafficMin: number | null;
+    roadTrafficCondition: string | null;
+    energyNominalKwh: number | null;
+    energyNeededKwh: number | null;
+    socWithContingencyPct: number | null;
+    temperatureC: number | null;
+    windSpeedMs: number | null;
+    windDirectionDeg: number | null;
     congestionLevel: string;
 
     rank: number;
@@ -58,21 +62,25 @@ const RecommendationCandidateSchema: Schema = new Schema<IRecommendationCandidat
         },
         latitude: { type: Number, required: true },
         longitude: { type: Number, required: true },
-        operator: { type: String, required: true },
-        chargingPoints: { type: Number, required: true },
-        cost: { type: String, required: true },
-        payAtLocation: { type: String, required: true }, // This is listed as yes/no in the system flow diagram rather than true/false, hence implemented as a string.
+        operator: { type: String, default: null },
+        connectionType: { type: String, default: null },
+        currentType: { type: String, default: null },
+        chargingPoints: { type: Number, default: null },
+        cost: { type: String, default: null },
+        payAtLocation: { type: String, default: null }, // This is listed as yes/no in the system flow diagram rather than true/false, hence implemented as a string.
         isOperational: { type: Boolean, required: true },
-        distanceKm: { type: Number, required: true },
-        durationMin: { type: Number, required: true },
-        durationInTrafficMin: { type: Number, required: true },
-        roadTrafficCondition: { type: String, required: true },
-        energyNominalKwh: { type: Number, required: true },
-        energyNeededKwh: { type: Number, required: true },
-        socWithContingencyPct: { type: Number, required: true },
-        temperatureC: { type: Number, required: true },
-        windSpeedMs: { type: Number, required: true },
-        windDirectionDeg: { type: Number, required: true },
+        membershipRequired: { type: String, default: null },
+        accessKeyRequired: { type: String, default: null },
+        distanceKm: { type: Number, default: null },
+        durationMin: { type: Number, default: null },
+        durationInTrafficMin: { type: Number, default: null },
+        roadTrafficCondition: { type: String, default: null },
+        energyNominalKwh: { type: Number, default: null },
+        energyNeededKwh: { type: Number, default: null },
+        socWithContingencyPct: { type: Number, default: null },
+        temperatureC: { type: Number, default: null },
+        windSpeedMs: { type: Number, default: null },
+        windDirectionDeg: { type: Number, default: null },
         congestionLevel: { type: String, required: true },
 
         rank: { type: Number, required: true },
