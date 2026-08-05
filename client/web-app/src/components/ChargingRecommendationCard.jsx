@@ -8,7 +8,9 @@ function ChargingRecommendationCard({ station, onSelect }) {
         #{station.rank} {station.operator}
       </h3>
 
-      <p>Distance: {station.distanceKm} km</p>
+      <p>
+        Distance: {station.distanceKm != null ? `${station.distanceKm} km` : "Unavailable"}
+      </p>
       <p>Cost: {station.cost}</p>
       <p>Connection: {station.connectionType}</p>
       <p>Current: {station.currentType}</p>
