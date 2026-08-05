@@ -32,6 +32,7 @@ The right side holds the navigation buttons and the profile icon is on the far r
     vertical-align: middle;
     width: 250px;
     height: inherit;
+
 }
 
 .center-navbar {
@@ -94,31 +95,33 @@ The right side holds the navigation buttons and the profile icon is on the far r
 
 /* The dropdown container holding the items */
 .dropdown-list {
-    display: none;
-    position: absolute;
-    top: calc(var(--navbar-height) - 2px);
-    left: relative;
-    padding: var(--dropdown-menu-item-padding);
-    box-shadow: var(--dropdown-menu-shadow);
-    opacity: 0;
-    transform: translateY(-10px);
-    transition: opacity 150ms ease-in-out, transform 150ms ease-in-out;
-    visibility: hidden;
-    pointer-events: none;
-    z-index: 5000;
-    display: flex;
-    flex-direction: column;
-    width: fit-content;
-    background: var(--dropdown-menu-background-color);
-    border: var(--dropdown-menu-border);
-    border-radius: var(--element-radius);
-    border-top-left-radius: 0;
-}
+        display: none;
+        position: absolute;
+        top: calc(var(--navbar-height) - 2px);
+        left: relative;
+        padding: 9px;
+        box-shadow: 0 10px 25px rgba(0,0,0,.35);
+        opacity: 0;
+        transform: translateY(-6px) scale(0.98);
+        transition: opacity 150ms ease-in-out, transform 150ms ease-in-out;
+        visibility: hidden;
+        pointer-events: none;
+        z-index: 5000;
+        display: flex;
+        flex-direction: column;
+        width: 300px;
+        background: var(--dropdown-menu-background-color);
+        border: 1px solid rgba(255,255,255,.08);
+        border-radius: 10px;
+        border-top-left-radius: 10px;
+        gap: 6px;
+    }
+
 
 .dropdown-list.show,
 .dropdown-container > .navbar-menu-option:focus + .dropdown-list {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
     visibility: visible;
     pointer-events: auto;
     z-index: 5000;
@@ -126,20 +129,31 @@ The right side holds the navigation buttons and the profile icon is on the far r
 
 /* Items in the dropdown */
 .dropdown-item {
-    padding: var(--dropdown-menu-item-padding);
+    padding: 12px 18px;
     border: none;
-    width:max-content;
+    width: 100%;
     text-align: left;
-    background: none;
-    box-shadow: none;
-    font-size: var(--navbar-font-size);
+    background: transparent;
     color: var(--text-color-white);
+    font-size: var(--navbar-font-size);
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.dropdown-item-active {
+    background: rgba(51,209,122,0.25);
+    border-left: 4px solid #33d17a;
+    color: #33d17a;
+    font-weight: 700;
+    border-radius: 8px;
 }
 
 /* Item hover in the dropdown */
 .dropdown-item:hover {
-    background-color: var(--primary-color-base);
-    color: var(--text-color-black);
+    background: rgba(51,209,122,0.18);
+    color: white;
+    transform: translateX(6px);
 }
 
 /* Responsive NavBar updates */
