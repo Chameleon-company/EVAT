@@ -15,10 +15,6 @@ interface RecommendationRequest {
 }
 
 function toBoolean(value: string | undefined): boolean {
-  // Real station data frequently has "Unknown" for is_operational due to
-  // incomplete source data. Treating it as operational (rather than
-  // excluding it) avoids filtering out most/all candidates. Only explicit
-  // negative values are treated as non-operational.
   if (!value) return true;
   const normalized = value.toLowerCase();
   return !["no", "false", "closed", "unavailable", "out of service"].includes(normalized);
@@ -40,8 +36,23 @@ export default class ChargerRecommendationService {
       location: { latitude, longitude, radiusKm },
     });
 
-    // ML API only accepts up to 10 candidates — stations are already
-    // nearest-first from the $near query, so take the closest 10
+    // Review fix: if there are no nearby stations, short-circuit here with an
+    // empty result rather than calling the congestion API with an empty
+    // array (which throws) and turning a valid no-results case into a 500.
+    if (stations.length === 0) {
+      const profile = await this.profileService.getUserProfile(userId);
+      const sessionId = await this.recommendationHistoryService.createSession({
+        userId,
+        userLocation: { latitude, longitude },
+        candidates: [],
+      });
+      return {
+        sessionId: sessionId.toString(),
+        recommendations: [],
+        generatedAt: new Date().toISOString(),
+      };
+    }
+
     const limitedStations = stations.slice(0, 10);
 
     const profile = await this.profileService.getUserProfile(userId);
@@ -79,6 +90,7 @@ export default class ChargerRecommendationService {
       const stationId = station._id.toString();
       const routing: any = routingByStation.get(stationId);
       const congestionLevel = congestionByStation.get(stationId) ?? "unknown";
+      const routingAvailable = routing !== null;
 
       return {
         stationId,
@@ -93,20 +105,17 @@ export default class ChargerRecommendationService {
         membershipRequired: station.membership_required,
         accessKeyRequired: station.access_key_required,
         isOperational: toBoolean(station.is_operational),
-        // TODO: GOOGLE_MAPS_API_KEY not yet configured, so Weather-Aware
-        // Routing calls currently fail for every station. Falling back to
-        // safe defaults so the pipeline completes end-to-end; revisit once
-        // the key is set up.
-        distanceKm: routing?.distance_km ?? 0,
-        durationMin: routing?.duration_min ?? 0,
-        durationInTrafficMin: routing?.duration_in_traffic_min ?? 0,
-        roadTrafficCondition: routing?.traffic_condition ?? "unknown",
-        energyNominalKwh: routing?.energy_nominal_kwh ?? 0,
-        energyNeededKwh: routing?.energy_with_ac_kwh ?? 0,
-        socWithContingencyPct: routing?.soc_with_contingency_pct ?? 0,
-        temperatureC: routing?.weather?.temp_c ?? 0,
-        windSpeedMs: routing?.weather?.wind_speed_ms ?? 0,
-        windDirectionDeg: routing?.weather?.wind_deg ?? 0,
+        routingAvailable,
+        distanceKm: routingAvailable ? routing.distance_km : null,
+        durationMin: routingAvailable ? routing.duration_min : null,
+        durationInTrafficMin: routingAvailable ? routing.duration_in_traffic_min : null,
+        roadTrafficCondition: routingAvailable ? routing.traffic_condition : null,
+        energyNominalKwh: routingAvailable ? routing.energy_nominal_kwh : null,
+        energyNeededKwh: routingAvailable ? routing.energy_with_ac_kwh : null,
+        socWithContingencyPct: routingAvailable ? routing.soc_with_contingency_pct : null,
+        temperatureC: routingAvailable ? routing.weather?.temp_c : null,
+        windSpeedMs: routingAvailable ? routing.weather?.wind_speed_ms : null,
+        windDirectionDeg: routingAvailable ? routing.weather?.wind_deg : null,
         congestionLevel,
       };
     });
@@ -148,7 +157,8 @@ export default class ChargerRecommendationService {
         rank: rankByStation.get(c.stationId)!.rank,
         score: rankByStation.get(c.stationId)!.score,
         reasons: rankByStation.get(c.stationId)!.reasons,
-      }));
+      }))
+      .sort((a, b) => a.rank - b.rank);
 
     const sessionId = await this.recommendationHistoryService.createSession({
       userId,
@@ -157,7 +167,7 @@ export default class ChargerRecommendationService {
     });
 
     return {
-      recommendationId: sessionId.toString(),
+      sessionId: sessionId.toString(),
       recommendations: candidatesWithRank,
       generatedAt: new Date().toISOString(),
     };
