@@ -28,3 +28,15 @@ def test_filters_out_closed_zero_point_and_unreachable_stations():
     result = filter_eligible_candidates(candidates)
 
     assert [station.stationId for station in result] == ["eligible"]
+
+
+def test_keeps_station_when_routing_data_is_unknown():
+    unknown_route = candidate(
+        stationId="unknown-route",
+        distanceKm=None,
+        socWithContingencyPct=None,
+    )
+
+    result = filter_eligible_candidates([unknown_route])
+
+    assert [station.stationId for station in result] == ["unknown-route"]
