@@ -11,6 +11,9 @@ import demandForecasting.demandForecasting
 import costComparison.costComparison
 import costComparison.model_runner
 import pricePrediction.price_prediction_api
+import charging_station_recommendation_api.main
+from charging_station_recommendation_api.models.request import RankChargingStationsRequest
+from charging_station_recommendation_api.models.response import RankChargingStationsResponse
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -196,3 +199,9 @@ async def pricePredictionPredict(request: PPPredictionRequest) -> PPPredictionRe
 @app.post("/pricePrediction/predict/batch", response_model=PPBatchPredictionResponse)
 async def pricePrediction_predict_batch(request: PPBatchPredictionRequest) -> PPBatchPredictionResponse:
     return await pricePrediction.price_prediction_api.predict_batch(request)
+
+# =============================================================
+# Charging Station Recommendation Use Case
+@app.post("/charging-station-recommendations/rank", response_model=RankChargingStationsResponse,)
+def stationRecommendation_rank_charging_stations(request: RankChargingStationsRequest) -> RankChargingStationsResponse:
+    return charging_station_recommendation_api.main.rank_charging_stations(request)

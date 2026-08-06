@@ -6,30 +6,30 @@ will be added incrementally after the request contract is agreed by the team.
 
 from typing import Dict
 
-from fastapi import FastAPI
+#from fastapi import FastAPI
 
-from models.request import RankChargingStationsRequest
-from models.response import RankChargingStationsResponse
-from services.candidate_filters import filter_eligible_candidates
-from services.ranking_service import rank_candidates
-
-
-app = FastAPI(
-    title="EV Charging Station Recommendation API",
-    description="Ranks enriched EV charging-station candidates.",
-    version="0.1.0",
-)
+from charging_station_recommendation_api.models.request import RankChargingStationsRequest
+from charging_station_recommendation_api.models.response import RankChargingStationsResponse
+from charging_station_recommendation_api.services.candidate_filters import filter_eligible_candidates
+from charging_station_recommendation_api.services.ranking_service import rank_candidates
 
 
-@app.get("/health")
-def health() -> Dict[str, str]:
-    return {"status": "ok"}
+# app = FastAPI(
+#     title="EV Charging Station Recommendation API",
+#     description="Ranks enriched EV charging-station candidates.",
+#     version="0.1.0",
+# )
 
 
-@app.post(
-    "/charging-station-recommendations/rank",
-    response_model=RankChargingStationsResponse,
-)
+# @app.get("/health")
+# def health() -> Dict[str, str]:
+#     return {"status": "ok"}
+
+
+# @app.post(
+#     "/charging-station-recommendations/rank",
+#     response_model=RankChargingStationsResponse,
+# )
 def rank_charging_stations(
     request: RankChargingStationsRequest,
 ) -> RankChargingStationsResponse:
