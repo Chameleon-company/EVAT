@@ -1,21 +1,27 @@
-FROM node:18-alpine
+FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files
+# Install all dependencies for build
 COPY package*.json ./
+RUN npm ci
 
-# Install dependencies
-RUN npm install --production
-
-# Copy source code and TypeScript config
+# Copy source and build output
 COPY . .
+RUN npm run build
 
-# Build TypeScript code
-RUN npm run build && ls -la
+FROM node:18-alpine AS runtime
 
-# Expose the port the app runs on
+WORKDIR /app
+
+# Install only production dependencies
+COPY package*.json ./
+RUN npm ci --only=production
+
+# Copy compiled application artifacts from builder
+COPY --from=builder /app/server.js ./
+COPY --from=builder /app/src ./src
+
 EXPOSE 8080
-
-# Command to run the application
+ENV NODE_ENV=production
 CMD ["node", "server.js"]
