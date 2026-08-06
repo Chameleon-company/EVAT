@@ -41,6 +41,7 @@ def predict(req: PredictRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
 def charts(req: PredictRequest):
     try:
         # Get ICE efficiency from CSV if vehicle selected
@@ -64,6 +65,7 @@ def charts(req: PredictRequest):
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
     
 def ev_vehicles():
     try:
@@ -84,12 +86,14 @@ class VehicleEfficiencyRequest(BaseModel):
     model: str
     variant: Optional[str] = None
 
+
 def ev_efficiency(req: VehicleEfficiencyRequest):
     try:
         eff = costComparison.model_runner.get_ev_efficiency(req.make, req.model, req.variant)
         return {"efficiency_kwh_per_km": eff}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 def ice_efficiency(req: VehicleEfficiencyRequest):
     try:

@@ -39,11 +39,6 @@ def coerce_types(df: pd.DataFrame) -> pd.DataFrame:
     df = df[FEATURE_COLS]
     return df
 
-# @app.route("/healthz", methods=["GET"])
-# def health():
-#     return jsonify({"status": "ok"}), 200
-
-#@app.route("/predict", methods=["POST"])
 def predict(payload: Union[dict, List[dict]]):
     """
     Expect JSON body containing at least the fields in FEATURE_COLS.

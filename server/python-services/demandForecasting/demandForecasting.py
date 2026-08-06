@@ -186,12 +186,6 @@ def predict_demand(postcode: str, target_date: date) -> dict:
 # SECTION 4: FASTAPI APPLICATION
 # ------------------------------------------------------------------------------
 
-# app = FastAPI(
-#     title="EV Charging Demand Prediction API",
-#     description="Predicts daily EV charging demand (kWh) for Australian postcodes.",
-#     version="1.0.0"
-# )
-
 # Define the request body schema
 class PredictionRequest(BaseModel):
     postcode: str
@@ -227,13 +221,6 @@ def get_postcode_coords(postcode: str):
         raise HTTPException(status_code=404, detail=f"Postcode '{postcode}' not found.")
     lat, lon = postcode_coords[postcode]
     return {"postcode": postcode, "lat": lat, "lon": lon}
-
-def root():
-    """Health check endpoint."""
-    return {
-        "message": "EV Charging Demand Prediction API is running!",
-        "docs": "Visit /docs for interactive API documentation"
-    }
 
 
 def handle_prediction(request: PredictionRequest):

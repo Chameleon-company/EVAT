@@ -25,19 +25,6 @@ from pricePrediction.price_app_config import (
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# app = FastAPI(
-#     title="EV Price Prediction API",
-#     description="Predicts car prices from enriched feature inputs",
-#     version="1.0.0",
-# )
-
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=["*"],
-#     allow_credentials=True,
-#     allow_methods=["*"],
-#     allow_headers=["*"],
-# )
 
 MODEL = None
 FEATURE_COLUMNS: List[str] = []
@@ -532,7 +519,6 @@ async def startup_event() -> None:
     logger.info("Feature schema loaded: %d features", len(FEATURE_COLUMNS))
 
 
-# @app.get("/health", response_model=HealthResponse)
 async def health() -> HealthResponse:
     return HealthResponse(
         status="ok",
@@ -542,7 +528,6 @@ async def health() -> HealthResponse:
     )
 
 
-#@app.get("/schema", response_model=SchemaResponse)
 async def schema() -> SchemaResponse:
     if not FEATURE_COLUMNS:
         raise HTTPException(status_code=503, detail="Schema not loaded yet.")
@@ -555,7 +540,6 @@ async def schema() -> SchemaResponse:
     )
 
 
-#@app.get("/model/info", response_model=ModelInfoResponse)
 async def model_info() -> ModelInfoResponse:
     if MODEL is None:
         raise HTTPException(status_code=503, detail="Model not loaded.")
@@ -610,7 +594,6 @@ def _predict(records: List[PredictionRecord]) -> List[PredictionResponse]:
     return responses
 
 
-#@app.post("/predict", response_model=PredictionResponse)
 async def predict(request: PredictionRequest) -> PredictionResponse:
     record = PredictionRecord(
         row_id=request.row_id,
@@ -621,7 +604,6 @@ async def predict(request: PredictionRequest) -> PredictionResponse:
     return responses[0]
 
 
-#@app.post("/predict/batch", response_model=BatchPredictionResponse)
 async def predict_batch(request: BatchPredictionRequest) -> BatchPredictionResponse:
     predictions = _predict(request.records)
     return BatchPredictionResponse(

@@ -1,25 +1,16 @@
 from fastapi import HTTPException
-#from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from weatherAwareRouting.services import get_route, get_weather, get_charging_stations
 from weatherAwareRouting.model import predict_trip, needs_charging, traffic_energy_factor, traffic_condition_label
 from weatherAwareRouting.config import DEFAULT_SOC_PCT
 
-#app = FastAPI()
-
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=["*"],
-#     allow_methods=["*"],
-#     allow_headers=["*"],
-# )
 
 class TripRequest(BaseModel):
     origin: str
     destination: str
     ac_on: bool = True
 
-#@app.post("/predict")
+
 def predict(req: TripRequest):
     route = get_route(req.origin, req.destination)
     if not route:

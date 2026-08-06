@@ -6,7 +6,6 @@ current = Path(__file__).resolve()
 server = current.parents[2]
 env_path = server/"node-api"/".env"
 
-#load_dotenv(find_dotenv())
 load_dotenv(dotenv_path=env_path)
 
 GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
