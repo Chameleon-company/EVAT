@@ -14,12 +14,15 @@ def filter_eligible_candidates(
     candidates: List[ChargingStationCandidate],
     usable_soc_pct: float = DEFAULT_USABLE_SOC_PCT,
 ) -> List[ChargingStationCandidate]:
-    """Keep only operational, usable, and reachable stations."""
+    """Keep operational stations, excluding only known unreachable SOC values."""
 
     return [
         candidate
         for candidate in candidates
         if candidate.isOperational
         and (candidate.chargingPoints is None or candidate.chargingPoints > 0)
-        and candidate.socWithContingencyPct <= usable_soc_pct
+        and (
+            candidate.socWithContingencyPct is None
+            or candidate.socWithContingencyPct <= usable_soc_pct
+        )
     ]
