@@ -9,9 +9,10 @@
   ],
   "scripts": {
     "install:all": "npm install",
-    "dev": "npx concurrently -c \"#93c5fd,#c4b5fd\" \"npm run dev:client\" \"npm run dev:server\" --names=client,server --kill-others",
+    "dev": "npx concurrently -c \"#93c5fd,#c4b5fd\" \"npm run dev:client\" \"npm run dev:server\" \"npm run dev:python\"  --names=client,server,python --kill-others",
     "dev:client": "npm run dev --workspace=client",
     "dev:server": "npm run server --workspace=server",
+    "dev:python": "cd \"server/python-services\" && uvicorn main:app --host 127.0.0.1 --port 5000 --reload",
     "dev:price": "cd \"server/python-services/price_api\" && uvicorn price_prediction_api:app --reload --host 127.0.0.1 --port 8001",
     "dev:charging-recommendation": "cd \"server/python-services/charging_station_recommendation_api\" && uvicorn main:app --reload --host 127.0.0.1 --port 8002",
     "build:client": "npm run build --workspace=client",
