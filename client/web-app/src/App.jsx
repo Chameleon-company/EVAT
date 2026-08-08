@@ -56,6 +56,8 @@ function App() {
             <Route path="/chatbot" element={<Chatbot />} />
             <Route path="/insights-form" element={<PersonalisedInsightsForm />} />
             <Route path="/insights" element={<PersonalisedInsights />} />
+            <Route path="/demand-forecasting" element={<DemandForecasting />} />
+            <Route path="/price-prediction" element={<PricePrediction />} />
             {/* Catch-all Route */}
             <Route path="*" element={<div>404 Page Not Found</div>} />
           </Routes>
