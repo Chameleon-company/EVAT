@@ -1,4 +1,3 @@
-import fetch from "node-fetch";
 
 /**
  * Node proxy for the Reliability Scoring FastAPI service.
