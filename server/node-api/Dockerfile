@@ -1,12 +1,12 @@
-FROM node:18-alpine AS builder
+FROM node:18-alpine AS build
 
 WORKDIR /app
 
-# Install all dependencies for build
+# Copy package manifests and install build deps predictably
 COPY package*.json ./
-RUN npm install
+RUN npm ci
 
-# Copy source and build output
+# Copy source and build
 COPY . .
 RUN npm run build
 
@@ -14,14 +14,17 @@ FROM node:18-alpine AS runtime
 
 WORKDIR /app
 
-# Install only production dependencies
-COPY package*.json ./
-RUN npm install --omit=dev
+ENV NODE_ENV=production
+ENV PORT=8080
+ENV DOMAIN_URL=http://0.0.0.0
 
-# Copy compiled application artifacts from builder
-COPY --from=builder /app/server.js ./
-COPY --from=builder /app/src ./src
+# Install only production deps
+COPY package*.json ./
+RUN npm ci --omit=dev && npm cache clean --force
+
+# Copy compiled artifacts from build stage
+COPY --from=build /app/server.js ./
+COPY --from=build /app/src ./src
 
 EXPOSE 8080
-ENV NODE_ENV=production
 CMD ["node", "server.js"]
