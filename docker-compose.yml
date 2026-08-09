@@ -1,0 +1,32 @@
+services:
+  backend:
+    build: ./server/node-api
+    image: evat-node-api
+    env_file:
+      - ./server/node-api/.env
+    ports:
+      - "8080:8080"
+    depends_on:
+      - pythonsvc
+    restart: unless-stopped
+
+  pythonsvc:
+    build: ./server/python-services
+    image: evat-python-services
+    ports:
+      - "5000:5000"
+    restart: unless-stopped
+  
+  frontend:
+    build:
+      context: ./client/web-app
+      args:
+        VITE_API_URL: ${VITE_API_URL}
+    image: evat-frontend
+    env_file:
+      - ./client/web-app/.env
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
