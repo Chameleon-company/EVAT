@@ -1,0 +1,387 @@
+/* =========================================
+   Charging Recommendations - Map Panel
+   ========================================= */
+
+.charging-recommendations {
+  position: absolute;
+  top: 80px;
+  left: 24px;
+  z-index: 2000;
+
+  width: 380px;
+  max-width: calc(100vw - 48px);
+  max-height: calc(100vh - 130px);
+
+  padding: 22px;
+
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 18px;
+
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.16),
+    0 2px 8px rgba(0, 0, 0, 0.08);
+
+  overflow-y: auto;
+
+  font-family: inherit;
+
+  animation: recommendationPanelEnter 0.25s ease-out;
+}
+
+
+/* =========================================
+   Heading
+   ========================================= */
+
+.charging-recommendations h2 {
+  margin: 0 0 6px;
+
+  font-size: 23px;
+  font-weight: 700;
+  line-height: 1.25;
+
+  color: #1f2937;
+}
+
+
+/* =========================================
+   Find Stations Button
+   ========================================= */
+
+.find-stations-btn {
+  width: 100%;
+
+  margin-top: 14px;
+  padding: 12px 18px;
+
+  border: none;
+  border-radius: 10px;
+
+  background: #4f7fc4;
+  color: #ffffff;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    transform 0.15s ease,
+    box-shadow 0.2s ease;
+}
+
+.find-stations-btn:hover:not(:disabled) {
+  background: #3f6fae;
+
+  transform: translateY(-1px);
+
+  box-shadow: 0 5px 14px rgba(79, 127, 196, 0.3);
+}
+
+.find-stations-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.find-stations-btn:focus-visible {
+  outline: 3px solid rgba(79, 127, 196, 0.3);
+  outline-offset: 2px;
+}
+
+.find-stations-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+
+/* =========================================
+   Recommendation Cards
+   ========================================= */
+
+.recommendation-card {
+  margin-top: 16px;
+  padding: 16px;
+
+  background: #f8fafc;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.recommendation-card:hover {
+  transform: translateY(-2px);
+
+  border-color: #b8ccec;
+
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.recommendation-card h3 {
+  margin: 0 0 12px;
+
+  color: #1f2937;
+
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.recommendation-card p {
+  margin: 6px 0;
+
+  color: #4b5563;
+
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+
+/* =========================================
+   Card Buttons
+   ========================================= */
+
+.recommendation-card button {
+  margin-top: 10px;
+  margin-right: 8px;
+
+  padding: 8px 12px;
+
+  background: #ffffff;
+  color: #3f6fae;
+
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.15s ease;
+}
+
+.recommendation-card button:hover {
+  background: #eef4fc;
+  border-color: #4f7fc4;
+
+  transform: translateY(-1px);
+}
+
+
+/* Recommendation reasons */
+
+.recommendation-card ul {
+  margin: 12px 0 4px;
+  padding: 12px 14px;
+
+  list-style: none;
+
+  background: #eef4fc;
+  border-left: 3px solid #4f7fc4;
+  border-radius: 8px;
+}
+
+.recommendation-card li {
+  position: relative;
+
+  margin: 7px 0;
+  padding-left: 18px;
+
+  color: #475569;
+
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.recommendation-card li::before {
+  content: "✓";
+
+  position: absolute;
+  left: 0;
+
+  color: #4f7fc4;
+  font-weight: 700;
+}
+
+/* =========================================
+   Errors
+   ========================================= */
+
+.recommendations-error {
+  margin: 14px 0 0;
+  padding: 10px 12px;
+
+  background: #fff1f2;
+  color: #b42318;
+
+  border: 1px solid #fecdd3;
+  border-radius: 8px;
+
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+
+/* =========================================
+   Scrollbar
+   ========================================= */
+
+.charging-recommendations::-webkit-scrollbar {
+  width: 6px;
+}
+
+.charging-recommendations::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.charging-recommendations::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+
+/* =========================================
+   Entry Animation
+   ========================================= */
+
+@keyframes recommendationPanelEnter {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* =========================================
+   Responsive
+   ========================================= */
+
+@media (max-width: 768px) {
+  .charging-recommendations {
+    top: 70px;
+    left: 12px;
+    right: 12px;
+
+    width: auto;
+    max-width: none;
+    max-height: 65vh;
+
+    padding: 18px;
+
+    border-radius: 14px;
+  }
+
+  .charging-recommendations h2 {
+    font-size: 20px;
+  }
+}
+
+/* Panel header */
+
+.recommendations-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.recommendations-header h2 {
+  margin: 0;
+}
+
+.recommendations-subtitle {
+  margin: 6px 0 4px;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+
+/* Minimize / expand button */
+
+.recommendations-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+
+  padding: 0;
+
+  background: #f1f5f9;
+  color: #475569;
+
+  border: none;
+  border-radius: 8px;
+
+  font-size: 20px;
+  line-height: 1;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.recommendations-toggle:hover {
+  background: #e2e8f0;
+  transform: scale(1.05);
+}
+
+
+/* Recommendation list */
+
+.recommendations-list {
+  margin-top: 4px;
+}
+
+
+/* Minimized panel */
+
+.charging-recommendations--minimized {
+  width: 330px;
+  padding: 15px 18px;
+}
+
+.charging-recommendations--minimized .recommendations-header {
+  align-items: center;
+}
+
+.charging-recommendations--minimized h2 {
+  font-size: 16px;
+}
+
+/* No recommendation results */
+
+.recommendations-empty {
+  margin: 12px 0 4px;
+  padding: 14px;
+
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: center;
+}

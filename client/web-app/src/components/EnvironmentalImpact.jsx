@@ -2,13 +2,13 @@ import React, { useState, useEffect } from "react";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-export default function EnvironmentalImpact({ 
+export default function EnvironmentalImpact({
   // This data is given from the Profile.jsx when the Environmental Impact button is pressed
-  user, 
+  user,
   allElectricVehicles,
   makes
 }) {
-  
+
   // Local state for EV dropdowns
   const [selectedEvMake, setSelectedEvMake] = useState("Select");
   const [selectedEvModel, setSelectedEvModel] = useState("Select");
@@ -91,7 +91,7 @@ export default function EnvironmentalImpact({
       return;
     }
 
-    const found = allElectricVehicles.find(v => 
+    const found = allElectricVehicles.find(v =>
       v.make === selectedEvMake &&
       v.model === selectedEvModel &&
       v.variant === selectedEvVariant &&
@@ -170,7 +170,7 @@ export default function EnvironmentalImpact({
       return;
     }
 
-    const found = allIceVehicles.find(v => 
+    const found = allIceVehicles.find(v =>
       v.make === selectedIceMake &&
       v.model === selectedIceModel &&
       v.variant === selectedIceVariant &&
@@ -179,6 +179,13 @@ export default function EnvironmentalImpact({
 
     setSelectedIce(found || null);
   }, [selectedIceMake, selectedIceModel, selectedIceVariant, selectedIceYear, allIceVehicles]);
+
+      const hasValue = (value) =>
+        value !== null && value !== undefined && value !== "";
+
+      const displayValue = (value) => {
+        return hasValue(value) ? value : "N/A";
+      };
 
   // Loading ICE data
   if (loadingIce) return <div className="horizontal center">Loading petrol/diesel vehicles...</div>;
@@ -354,8 +361,8 @@ export default function EnvironmentalImpact({
                 <>
                   <div className="text-xlarge font-bold">{selectedEv.make} {selectedEv.model} </div>
                   <div className="text-small">
-                    {selectedEv.variant}<br /> 
-                    {selectedEv.fuel_type} - {selectedEv.year} 
+                    {selectedEv.variant}<br />
+                    {selectedEv.fuel_type} - {selectedEv.year}
                   </div>
                 </>
               )}
@@ -367,8 +374,8 @@ export default function EnvironmentalImpact({
                 <>
                   <div className="text-xlarge font-bold">{selectedIce.make} {selectedIce.model} </div>
                   <div className="text-small">
-                    {selectedIce.variant}<br /> 
-                    {selectedIce.fuel_type} - {selectedIce.year} 
+                    {selectedIce.variant}<br />
+                    {selectedIce.fuel_type} - {selectedIce.year}
                   </div>
                 </>
               )}
@@ -379,7 +386,7 @@ export default function EnvironmentalImpact({
             <td className="table-col-center ev-cell">
               {selectedEv != null && (
                 <>
-                  {selectedEv.co2_emissions_combined}
+                  {displayValue(selectedEv.co2_emissions_combined)}
                 </>
               )}
             </td>
@@ -387,7 +394,7 @@ export default function EnvironmentalImpact({
             <td className="table-col-center ice-cell">
               {selectedIce != null && (
                 <>
-                  {selectedIce.co2_emissions_combined}
+                  {displayValue(selectedIce.co2_emissions_combined)}
                 </>
               )}
             </td>
@@ -397,7 +404,7 @@ export default function EnvironmentalImpact({
             <td className="table-col-center ev-cell">
               {selectedEv != null && (
                 <>
-                  {selectedEv.fuel_consumption_combined}
+                  {displayValue(selectedEv.fuel_consumption_combined)}
                 </>
               )}
             </td>
@@ -405,7 +412,7 @@ export default function EnvironmentalImpact({
             <td className="table-col-center ice-cell">
               {selectedIce != null && (
                 <>
-                  {selectedIce.fuel_consumption_combined}
+                  {displayValue(selectedIce.fuel_consumption_combined)}
                 </>
               )}
             </td>
@@ -415,7 +422,7 @@ export default function EnvironmentalImpact({
             <td className="table-col-center ev-cell">
               {selectedEv != null && (
                 <>
-                  {selectedEv.fuel_life_cycle_co2}
+                  {displayValue(selectedEv.fuel_life_cycle_co2)}
                 </>
               )}
             </td>
@@ -423,7 +430,7 @@ export default function EnvironmentalImpact({
             <td className="table-col-center ice-cell">
               {selectedIce != null && (
                 <>
-                  {selectedIce.fuel_life_cycle_co2}
+                  {displayValue(selectedIce.fuel_life_cycle_co2)}
                 </>
               )}
             </td>
@@ -433,7 +440,7 @@ export default function EnvironmentalImpact({
             <td className="table-col-center ev-cell">
               {selectedEv != null && (
                 <>
-                  {selectedEv.annual_tailpipe_co2}
+                  {displayValue(selectedEv.annual_tailpipe_co2)}
                 </>
               )}
             </td>
@@ -441,7 +448,7 @@ export default function EnvironmentalImpact({
             <td className="table-col-center ice-cell">
               {selectedIce != null && (
                 <>
-                  {selectedIce.annual_tailpipe_co2}
+                  {displayValue(selectedIce.annual_tailpipe_co2)}
                 </>
               )}
             </td>
@@ -459,12 +466,12 @@ export default function EnvironmentalImpact({
     </p>
   )}
 
-  {comparisonResult?.comparison && !loadingCompare && (
+  {comparisonResult?.comparison && !loadingCompare && !errorCompare && (
     <>
       <h4>Results</h4>
       <p className="center">
         The {comparisonResult.ev.make} {comparisonResult.ev.model} emits{" "}
-        {comparisonResult.comparison.co2SavedPerKm} g/km less CO₂ than the{" "}
+        {displayValue(comparisonResult.comparison.co2SavedPerKm)} g/km less CO₂ than the{" "}
         {comparisonResult.ice.make} {comparisonResult.ice.model}.
       </p>
     </>
