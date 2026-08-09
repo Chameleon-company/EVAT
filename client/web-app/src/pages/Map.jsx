@@ -391,7 +391,7 @@ useEffect(() => {
             mapRef.current?.flyTo([lat, lng], 16);
         }
     }
-}, [location.pathname, stations, selectedStation]);
+}, [location.pathname, stations]);
 
 useEffect(() => {
     if (location.pathname !== '/congestion-prediction') {

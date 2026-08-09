@@ -64,7 +64,7 @@ function NavBar() {
                                     Map
                                 </button>
                                 <button className={`dropdown-item ${isActive('/dashboard') ? 'dropdown-item-active' : ''}`} 
-                                onClick={() => handleNavigate('/use-cases')}>
+                                onClick={() => handleNavigate('/dashboard')}>
                                     Dashboard
                                 </button>
                                 <button className={`dropdown-item ${isActive('/favourites') ? 'dropdown-item-active' : ''}`} 
