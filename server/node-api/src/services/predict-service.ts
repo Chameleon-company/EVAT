@@ -3,6 +3,8 @@ import Congestion, { ICongestion } from "../models/congestion-model";
 import mongoose from "mongoose";
 import fetch from "node-fetch";
 
+const PYTHON_API = process.env.PYTHON_API_URL;
+
 
 export default class PredictService {
     /**
@@ -135,7 +137,7 @@ async getCostComparison(
     ice_variant?: string,
 ): Promise<any> {
     try {
-        const response = await fetch("http://localhost:5000/predict", {
+        const response = await fetch(`${PYTHON_API}/costComparison/predict`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -173,7 +175,7 @@ async getCostCharts(
     petrol_price_per_l: number
 ): Promise<any> {
     try {
-        const response = await fetch("http://localhost:5000/charts", {
+        const response = await fetch(`${PYTHON_API}/costComparison/charts`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -202,7 +204,7 @@ async getCostCharts(
 
 async getEvVehicles(): Promise<any> {
     try {
-        const response = await fetch("http://localhost:5000/vehicles/ev");
+        const response = await fetch(`${PYTHON_API}/costComparison/vehicles/ev`);
         if (!response.ok) throw new Error(`ML service error: ${response.status}`);
         return await response.json();
     } catch (error: any) {
@@ -212,7 +214,7 @@ async getEvVehicles(): Promise<any> {
 
 async getIceVehicles(): Promise<any> {
     try {
-        const response = await fetch("http://localhost:5000/vehicles/ice");
+        const response = await fetch(`${PYTHON_API}/costComparison/vehicles/ice`);
         if (!response.ok) throw new Error(`ML service error: ${response.status}`);
         return await response.json();
     } catch (error: any) {
@@ -222,7 +224,7 @@ async getIceVehicles(): Promise<any> {
 
 async getEvEfficiency(make: string, model: string, variant?: string): Promise<any> {
     try {
-        const response = await fetch("http://localhost:5000/vehicles/ev/efficiency", {
+        const response = await fetch(`${PYTHON_API}/costComparison/vehicles/ev/efficiency`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ make, model, variant }),
@@ -236,7 +238,7 @@ async getEvEfficiency(make: string, model: string, variant?: string): Promise<an
 
 async getIceEfficiency(make: string, model: string, variant?: string): Promise<any> {
     try {
-        const response = await fetch("http://localhost:5000/vehicles/ice/efficiency", {
+        const response = await fetch(`${PYTHON_API}/costComparison/vehicles/ice/efficiency`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ make, model, variant }),
@@ -250,7 +252,7 @@ async getIceEfficiency(make: string, model: string, variant?: string): Promise<a
 
 async getDemandForecast(postcode: string, date: string): Promise<any> {
     try {
-        const response = await fetch("http://localhost:5001/predict", {
+        const response = await fetch(`${PYTHON_API}/demandForecasting/predict`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ postcode, date }),
@@ -267,7 +269,7 @@ async getDemandForecast(postcode: string, date: string): Promise<any> {
 
 async getDemandPostcodes(): Promise<any> {
     try {
-        const response = await fetch("http://localhost:5001/postcodes");
+        const response = await fetch(`${PYTHON_API}/demandForecasting/postcodes`);
         if (!response.ok) throw new Error(`ML service error: ${response.status}`);
         return await response.json();
     } catch (error: any) {
@@ -277,7 +279,7 @@ async getDemandPostcodes(): Promise<any> {
 
 async getDemandCoords(postcode: string): Promise<any> {
     try {
-        const response = await fetch(`http://localhost:5001/coords/${postcode}`);
+        const response = await fetch(`${PYTHON_API}/demandForecasting/coords/${postcode}`);
         if (!response.ok) throw new Error(`ML service error: ${response.status}`);
         return await response.json();
     } catch (error: any) {

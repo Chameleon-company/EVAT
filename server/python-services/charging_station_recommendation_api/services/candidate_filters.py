@@ -2,7 +2,7 @@
 
 from typing import List
 
-from models.request import ChargingStationCandidate
+from charging_station_recommendation_api.models.request import ChargingStationCandidate
 
 
 # Current fallback usable SOC. When EVAT supports live battery data, Node

@@ -4,6 +4,8 @@ import PersonalisedEVInsightsRepository, {
 } from "../repositories/personalised-ev-insights-repository";
 import { IPersonalisedEVInsights } from "../models/personalisedEVInsightsModel";
 
+const PYTHON_API = process.env.PYTHON_API_URL;
+
 export default class PersonalisedEVInsightsService {
   async submitInsights(
     userId: string,
@@ -67,13 +69,13 @@ export default class PersonalisedEVInsightsService {
   private async getClusterPrediction(
     payload: PersonalisedEVInsightsPayload
   ): Promise<number> {
-    const flaskResponse = await axios.post("http://127.0.0.1:8000/predict", payload);
+    const response = await axios.post(`${PYTHON_API}/personalisedEVInsights/predict`, payload);
 
-    if (flaskResponse.data?.cluster === undefined || flaskResponse.data?.cluster === null) {
+    if (response.data?.cluster === undefined || response.data?.cluster === null) {
       throw new Error("Invalid cluster response from Flask API");
     }
 
-    return flaskResponse.data.cluster;
+    return response.data.cluster;
   }
 
   private buildProcessedResult(

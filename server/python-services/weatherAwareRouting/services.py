@@ -1,7 +1,7 @@
 import requests
 import googlemaps
 from datetime import datetime
-from config import GOOGLE_MAPS_API_KEY
+from weatherAwareRouting.config import GOOGLE_MAPS_API_KEY
 
 gmaps = googlemaps.Client(key=GOOGLE_MAPS_API_KEY)
 

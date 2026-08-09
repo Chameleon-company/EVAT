@@ -6,15 +6,13 @@
 # SECTION 1: IMPORTS
 # ------------------------------------------------------------------------------
 import pandas as pd
-import numpy as np
 import joblib
 import requests
-from datetime import datetime, date, timedelta
+from datetime import datetime, date
 import holidays
 
-from fastapi import FastAPI, HTTPException
+from fastapi import HTTPException
 from pydantic import BaseModel, field_validator
-import uvicorn
 
 # ------------------------------------------------------------------------------
 # SECTION 2: LOAD ASSETS AT STARTUP
@@ -23,31 +21,31 @@ print("Loading application assets...")
 
 try:
     # Load the trained LightGBM model
-    model = joblib.load("ev_demand_model.pkl")
-    print("✓ Model loaded")
+    model = joblib.load("demandForecasting/ev_demand_model.pkl")
+    print("Model loaded")
 
     # Load the postcode baseline data
-    postcode_baseline = pd.read_csv("postcode_baseline.csv")
+    postcode_baseline = pd.read_csv("demandForecasting/postcode_baseline.csv")
     postcode_baseline['Postcode'] = postcode_baseline['Postcode'].astype(str)
-    print("✓ Postcode baseline loaded")
+    print("Postcode baseline loaded")
 
     # Load the postcode coordinates as a dictionary
-    coords_df = pd.read_csv("postcode_coords.csv")
+    coords_df = pd.read_csv("demandForecasting/postcode_coords.csv")
     coords_df['Postcode'] = coords_df['Postcode'].astype(str)
     postcode_coords = {
         row['Postcode']: (row['lat'], row['lon']) 
         for _, row in coords_df.iterrows()
     }
-    print("✓ Postcode coordinates loaded")
+    print("Postcode coordinates loaded")
 
     # Load the feature columns
-    with open("feature_columns.txt", "r") as f:
+    with open("demandForecasting/feature_columns.txt", "r") as f:
         feature_columns = f.read().strip().split(",")
-    print(f"✓ Feature columns loaded: {feature_columns}")
+    print(f"Feature columns loaded: {feature_columns}")
 
     # Initialize the Australian holidays checker
     au_holidays = holidays.AU()
-    print("✓ Holiday calendar initialized")
+    print("Holiday calendar initialized")
 
     print("All assets loaded successfully!\n")
 
@@ -65,7 +63,7 @@ def get_weather_forecast(lat: float, lon: float, target_date: date) -> float | N
     Fetches the forecasted mean temperature from Open-Meteo API.
     Returns None if the forecast cannot be retrieved.
     """
-    days_ahead = (target_date - date.today()).days + 1
+    days_ahead = (target_date - date.today()).days
     
     if days_ahead < 1:
         raise ValueError("Cannot fetch forecast for past dates.")
@@ -93,10 +91,10 @@ def get_weather_forecast(lat: float, lon: float, target_date: date) -> float | N
         return float(temp)
 
     except requests.exceptions.RequestException as e:
-        print(f"⚠ Weather API request failed: {e}")
+        print(f"WARNING: Weather API request failed: {e}")
         return None
     except (KeyError, IndexError) as e:
-        print(f"⚠ Failed to parse weather data: {e}")
+        print(f"WARNING: Failed to parse weather data: {e}")
         return None
 
 
@@ -121,7 +119,7 @@ def create_prediction_features(postcode: str, target_date: date) -> pd.DataFrame
     temperature = get_weather_forecast(lat, lon, target_date)
     if temperature is None:
         temperature = 20.0  # Default fallback temperature
-        print(f"  ⚠ Using default temperature of {temperature}°C for postcode {postcode}")
+        print(f"  WARNING: Using default temperature of {temperature}°C for postcode {postcode}")
 
     # Create date-based features
     target_datetime = datetime.combine(target_date, datetime.min.time())
@@ -188,12 +186,6 @@ def predict_demand(postcode: str, target_date: date) -> dict:
 # SECTION 4: FASTAPI APPLICATION
 # ------------------------------------------------------------------------------
 
-app = FastAPI(
-    title="EV Charging Demand Prediction API",
-    description="Predicts daily EV charging demand (kWh) for Australian postcodes.",
-    version="1.0.0"
-)
-
 # Define the request body schema
 class PredictionRequest(BaseModel):
     postcode: str
@@ -222,7 +214,6 @@ class ErrorResponse(BaseModel):
 # --- API Endpoints ---
 
 
-@app.get("/coords/{postcode}")
 def get_postcode_coords(postcode: str):
     """Returns lat/lon coordinates for a given postcode."""
     postcode = str(postcode).strip()
@@ -231,16 +222,7 @@ def get_postcode_coords(postcode: str):
     lat, lon = postcode_coords[postcode]
     return {"postcode": postcode, "lat": lat, "lon": lon}
 
-@app.get("/")
-def root():
-    """Health check endpoint."""
-    return {
-        "message": "EV Charging Demand Prediction API is running!",
-        "docs": "Visit /docs for interactive API documentation"
-    }
 
-
-@app.post("/predict", response_model=PredictionResponse)
 def handle_prediction(request: PredictionRequest):
     """
     Predict EV charging demand for a given postcode and date.
@@ -256,7 +238,6 @@ def handle_prediction(request: PredictionRequest):
     return result
 
 
-@app.get("/postcodes")
 def list_postcodes():
     """Returns a list of all valid postcodes the API can predict for."""
     valid_postcodes = postcode_baseline['Postcode'].tolist()
@@ -264,12 +245,3 @@ def list_postcodes():
         "count": len(valid_postcodes),
         "postcodes": valid_postcodes
     }
-
-
-# ------------------------------------------------------------------------------
-# SECTION 5: RUN THE SERVER
-# ------------------------------------------------------------------------------
-
-if __name__ == "__main__":
-    print("Starting the EV Demand Prediction API server...")
-    uvicorn.run("api:app", host="127.0.0.1", port=8000, reload=True)
