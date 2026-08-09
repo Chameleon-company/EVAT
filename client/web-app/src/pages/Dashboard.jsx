@@ -47,7 +47,7 @@ const useCases = [
   id: "congestion-prediction",
   title: "Congestion Prediction",
   icon: "🚦",
-  route: "/map",
+  route: "/congestion-prediction",
   description: "Forecast charging station congestion to optimise your travel planning.",
   status: "live",
   },

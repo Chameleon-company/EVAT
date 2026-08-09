@@ -48,6 +48,7 @@ function App() {
             <Route path="/achievements" element={<Achievements />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/use-cases" element={<Dashboard />} />
+            <Route path="/congestion-prediction" element={<Map />} />
             <Route path="/weather-aware-routing" element={<WeatherRouting />} />
             <Route path="/weather-routing" element={<WeatherRouting />} />
             <Route path="/environmental-impact" element={<EnvironmentalImpact />} />
@@ -56,6 +57,7 @@ function App() {
             <Route path="/chatbot" element={<Chatbot />} />
             <Route path="/insights-form" element={<PersonalisedInsightsForm />} />
             <Route path="/insights" element={<PersonalisedInsights />} />
+            <Route path="/cost-comparison" element={<Cost />} />
             <Route path="/demand-forecasting" element={<DemandForecasting />} />
             <Route path="/price-prediction" element={<PricePrediction />} />
             {/* Catch-all Route */}
