@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo, useContext, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { MapContainer, TileLayer, useMapEvents, Marker } from 'react-leaflet';
 import L from 'leaflet';
 import { UserContext } from '../context/user';
@@ -125,6 +126,7 @@ function BoundsWatcher({ onChange }) {
 
 export default function Map() {
   const { user } = useContext(UserContext);
+  const location = useLocation();
 
   // define the minimum price of a charger and maximum here
   const priceMin = 0;
@@ -363,6 +365,39 @@ export default function Map() {
       clearInterval(id);
     };
   }, [bbox, user?.token]);
+
+  // Automatically select a station for Congestion Prediction
+useEffect(() => {
+    if (
+        location.pathname === '/congestion-prediction' &&
+        stations.length > 0 &&
+        !selectedStation
+    ) {
+        const station =
+            stations.find((st) => st.is_operational === 'true') ||
+            stations[0];
+
+        setSelectedStation(station);
+
+        const lat = Number(
+            station.latitude ?? station.location?.coordinates?.[1]
+        );
+
+        const lng = Number(
+            station.longitude ?? station.location?.coordinates?.[0]
+        );
+
+        if (!Number.isNaN(lat) && !Number.isNaN(lng)) {
+            mapRef.current?.flyTo([lat, lng], 16);
+        }
+    }
+}, [location.pathname, stations, selectedStation]);
+
+useEffect(() => {
+    if (location.pathname !== '/congestion-prediction') {
+        setSelectedStation(null);
+    }
+}, [location.pathname]);
 
   // fetching connector and operator types
   useEffect(() => {

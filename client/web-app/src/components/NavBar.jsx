@@ -125,11 +125,11 @@ function NavBar() {
                                             onClick={() => handleNavigate('/demand-forecasting')}>
                                                 Demand Forecasting
                                             </button>
-                                            <button className={`dropdown-item $ {isActive('/price-prediction') ? 'dropdown-item-active' : ''}`}
+                                            <button className={`dropdown-item ${isActive('/price-prediction') ? 'dropdown-item-active' : ''}`}
                                             onClick={() => handleNavigate('/price-prediction')}>
                                               Price Prediction
                                               </button>
-                                              <button className={`dropdown-item $ {isActive('/congestion-prediction') ? 'dropdown-item-active' : ''}`}
+                                              <button className={`dropdown-item ${isActive('/congestion-prediction') ? 'dropdown-item-active' : ''}`}
                                               onClick={() => handleNavigate('/congestion-prediction')}>
                                                 Congestion Prediction
                                                 </button>
