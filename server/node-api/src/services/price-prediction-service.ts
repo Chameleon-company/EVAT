@@ -1,5 +1,7 @@
 import fetch from "node-fetch";
 
+const PYTHON_API = process.env.PYTHON_API_URL;
+
 /**
  * Node proxy for the Price Prediction FastAPI service.
  * Mirrors the README contract at PRICE_API_URL (default http://localhost:8001):
@@ -11,7 +13,7 @@ import fetch from "node-fetch";
  */
 export default class PricePredictionService {
   private getBaseUrl(): string {
-    return (process.env.PRICE_API_URL || "http://localhost:8001").replace(/\/$/, "");
+    return (`${PYTHON_API}/pricePrediction`).replace(/\/$/, "");
   }
 
   private unreachableMessage(): string {

@@ -97,10 +97,11 @@ function ChargingRecommendations() {
             try {
                 const { latitude, longitude } = position.coords;
 
-                const data = await getChargingRecommendations(latitude, longitude);
+                const response = await getChargingRecommendations(latitude, longitude);
+                const data = response.data || {};
 
                 setRecommendations(data.recommendations || []);
-                setSessionId(data.sessionId);
+                setSessionId(data.sessionId || null);
                 setHasSearched(true);
             } catch (err) {
                 setError("Unable to get charging recommendations.");

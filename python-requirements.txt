@@ -1,0 +1,14 @@
+fastapi
+googlemaps
+pandas
+shapely
+geopandas
+joblib
+dotenv
+holidays
+uvicorn
+scikit-learn
+kmodes
+lightgbm
+xgboost
+httpx
