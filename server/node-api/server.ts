@@ -43,7 +43,6 @@ const DOMAIN_URL = env.DOMAIN_URL;
 // Mongoose deprecation warning for 'strictQuery'
 mongoose.set('strictQuery', true);
 
-connectDB();
 
 import Admin from './src/models/admin';
 
@@ -54,9 +53,6 @@ const createDefaultAdmin = async () => {
     console.log('✅ Default admin created');
   }
 };
-
-createDefaultAdmin();
-
 
 app.use(cors());
 app.use(express.json());
@@ -146,7 +142,19 @@ app.get("*", (req, res) => {
 app.use(notFound);
 app.use(errorHandler);
 
+const startServer = async () => {
+try {
+await connectDB();
+await createDefaultAdmin();
+
 app.listen(PORT, () => {
-  console.log(`Server is running on ${DOMAIN_URL}:${PORT}`);
-  console.log(`Swagger UI is available on ${DOMAIN_URL}:${PORT}/api/docs`);
+console.log(`Server is running on ${DOMAIN_URL}:${PORT}`);
+console.log(`Swagger UI is available on ${DOMAIN_URL}:${PORT}/api/docs`);
 });
+} catch (error) {
+console.error("Server startup error:", error);
+process.exit(1);
+}
+};
+
+startServer();

@@ -1,4 +1,3 @@
-import fetch from "node-fetch";
 
 const PYTHON_API = process.env.PYTHON_API_URL;
 
