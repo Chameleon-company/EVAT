@@ -1,7 +1,7 @@
-/* =========================================================
+/* .
    CHARGING RECOMMENDATIONS
    Right-side floating map panel
-   ========================================================= */
+   */
 
 .charging-recommendations {
     position: absolute;
@@ -41,9 +41,9 @@
 }
 
 
-/* =========================================================
+/* .
    PANEL SCROLLBAR
-   ========================================================= */
+   */
 
 .charging-recommendations::-webkit-scrollbar {
     width: 6px;
@@ -64,9 +64,9 @@
 }
 
 
-/* =========================================================
+/* .
    PANEL HEADER
-   ========================================================= */
+   */
 
 .recommendations-header {
     display: flex;
@@ -90,9 +90,9 @@
 }
 
 
-/* =========================================================
+/* .
    SUBTITLE
-   ========================================================= */
+   */
 
 .recommendations-subtitle {
     margin: 6px 0 10px;
@@ -104,9 +104,9 @@
 }
 
 
-/* =========================================================
+/* .
    MINIMIZE BUTTON
-   ========================================================= */
+   */
 
 .recommendations-toggle {
     display: flex;
@@ -145,9 +145,9 @@
 }
 
 
-/* =========================================================
+/* .
    FIND CHARGING STATIONS BUTTON
-   ========================================================= */
+   */
 
 .find-stations-btn {
     width: 100%;
@@ -196,18 +196,18 @@
 }
 
 
-/* =========================================================
+/* .
    RECOMMENDATION LIST
-   ========================================================= */
+   */
 
 .recommendations-list {
     margin-top: 10px;
 }
 
 
-/* =========================================================
+/* .
    RECOMMENDATION CARD
-   ========================================================= */
+   */
 
 .recommendation-card {
     margin-top: 10px;
@@ -234,9 +234,9 @@
 }
 
 
-/* =========================================================
+/* .
    CARD HEADING
-   ========================================================= */
+   */
 
 .recommendation-card h3 {
     margin: 0 0 9px;
@@ -249,9 +249,9 @@
 }
 
 
-/* =========================================================
+/* .
    CARD INFORMATION
-   ========================================================= */
+   */
 
 .recommendation-card p {
     margin: 5px 0;
@@ -263,9 +263,9 @@
 }
 
 
-/* =========================================================
+/* .
    CARD BUTTONS
-   ========================================================= */
+   */
 
 .recommendation-card button {
     margin-top: 9px;
@@ -301,9 +301,9 @@
 }
 
 
-/* =========================================================
+/* .
    RECOMMENDATION REASONS
-   ========================================================= */
+   */
 
 .recommendation-card ul {
     margin: 10px 0 2px;
@@ -342,9 +342,9 @@
 }
 
 
-/* =========================================================
+/* .
    ERROR MESSAGE
-   ========================================================= */
+   */
 
 .recommendations-error {
     margin: 10px 0 0;
@@ -361,9 +361,7 @@
 }
 
 
-/* =========================================================
-   EMPTY STATE
-   ========================================================= */
+/*  EMPTY STATE*/
 
 .recommendations-empty {
     margin: 10px 0 3px;
@@ -383,9 +381,7 @@
 }
 
 
-/* =========================================================
-   MINIMIZED PANEL
-   ========================================================= */
+/*  MINIMIZED PANEL */
 
 .charging-recommendations--minimized {
     width: 300px;
@@ -403,9 +399,7 @@
 }
 
 
-/* =========================================================
-   PANEL ENTRY ANIMATION
-   ========================================================= */
+/* PANEL ENTRY ANIMATION */
 
 @keyframes recommendationPanelEnter {
     from {
@@ -420,11 +414,10 @@
 }
 
 
-/* =========================================================
+/*
    LARGE SCREENS
    Keeps the panel inside the right side without
-   touching the map controls.
-   ========================================================= */
+   touching the map controls. */
 
 @media (min-width: 1400px) {
     .charging-recommendations {
@@ -434,9 +427,7 @@
 }
 
 
-/* =========================================================
-   MEDIUM SCREENS
-   ========================================================= */
+/*  MEDIUM SCREENS*/
 
 @media (min-width: 769px) and (max-width: 1399px) {
     .charging-recommendations {
@@ -449,9 +440,7 @@
 }
 
 
-/* =========================================================
-   TABLET
-   ========================================================= */
+/* TABLET */
 
 @media (max-width: 768px) {
     .charging-recommendations {
@@ -476,40 +465,43 @@
 }
 
 
-/* =========================================================
-   MOBILE
-   ========================================================= */
+/*  Responsive */
+
+@media (max-width: 768px) {
+  .charging-recommendations {
+    top: 65px;
+    left: 10px;
+    right: 75px;
+
+    width: auto;
+    max-width: none;
+    max-height: 65vh;
+
+    padding: 18px;
+    border-radius: 14px;
+  }
+
+  .charging-recommendations h2 {
+    font-size: 20px;
+  }
+}
+
+
+/* Small Mobile Screen */
 
 @media (max-width: 480px) {
-    .charging-recommendations {
-        top: 65px;
+  .charging-recommendations {
+    top: 65px;
+    left: 10px;
+    right: 75px;
 
-        left: 10px;
-        right: 10px;
+    width: auto;
+    max-width: none;
+    max-height: 65vh;
+  }
 
-        width: auto;
-        max-width: none;
-
-        max-height: calc(100vh - 85px);
-
-        padding: 14px;
-
-        border-radius: 12px;
-    }
-
-    .charging-recommendations h2 {
-        font-size: 17px;
-    }
-
-    .recommendation-card {
-        padding: 12px;
-    }
-
-    .recommendation-card h3 {
-        font-size: 14px;
-    }
-
-    .recommendation-card p {
-        font-size: 11px;
-    }
+  .charging-recommendations--minimized {
+    width: 330px;
+    max-width: calc(100vw - 85px);
+  }
 }
