@@ -423,7 +423,7 @@ export default function ReliabilityScoring() {
                   <div className="rs-card">
                     <SentimentBadge label={sentimentResult.sentiment_label} />
                     <div className="rs-card-value" style={{ marginTop: 8 }}>
-                      Compound {formatNumber(sentimentResult.sentiment_score, 4)}
+                      Compound {formatNumber(sentimentResult.sentiment_score, 2)}
                     </div>
                   </div>
                 </div>
