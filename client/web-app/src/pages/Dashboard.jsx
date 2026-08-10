@@ -36,6 +36,14 @@ const useCases = [
     status: "live",
   },
   {
+    id: "reliability-scoring",
+    title: "Reliability Scoring",
+    description: "Explore charger reliability, uptime, and sentiment for Melbourne stations.",
+    icon: "⚡",
+    route: "/reliability-scoring",
+    status: "live",
+  },
+  {
   id: "personalised-insights",
   title: "Personalised EV Insights",
   description: "Get personalised recommendations based on your driving habits and lifestyle.",

@@ -22,6 +22,7 @@ import Dashboard from "./pages/Dashboard";
 import EnvironmentalImpact from "./pages/EnvironmentalImpact";
 import DemandForecasting from "./pages/DemandForecasting";
 import PricePrediction from "./pages/PricePrediction";
+import ReliabilityScoring from "./pages/ReliabilityScoring";
 import WeatherRouting from "./pages/WeatherRouting";
 import Chatbot from "./pages/Chatbot";
 import PersonalisedInsightsForm from "./pages/PersonalisedInsightsForm";
@@ -54,6 +55,7 @@ function App() {
             <Route path="/environmental-impact" element={<EnvironmentalImpact />} />
             <Route path="/demand-forecasting" element={<DemandForecasting />} />
             <Route path="/price-prediction" element={<PricePrediction />} />
+            <Route path="/reliability-scoring" element={<ReliabilityScoring />} />
             <Route path="/chatbot" element={<Chatbot />} />
             <Route path="/insights-form" element={<PersonalisedInsightsForm />} />
             <Route path="/insights" element={<PersonalisedInsights />} />
