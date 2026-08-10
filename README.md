@@ -163,7 +163,12 @@ npm run test:server
 
 ---
 
+## 📚 Machine Learning Deployment
+
+For local Python setup, model training support, service deployment, Docker usage, verification, and troubleshooting, see the [Machine Learning Deployment Guide](docs/MACHINE_LEARNING_DEPLOYMENT_GUIDE.md).
+
+---
+
 ## 🚧 Known Issues / Fixes Required
 
 Invalid Token Error: An invalid token error is currently occurring when performing GET /api/vehicle, even though the Bearer token appears correct when checked in the code. Needs investigation.
-
