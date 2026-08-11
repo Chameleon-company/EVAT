@@ -14,6 +14,7 @@ import pricePrediction.price_prediction_api
 import charging_station_recommendation_api.main
 from charging_station_recommendation_api.models.request import RankChargingStationsRequest
 from charging_station_recommendation_api.models.response import RankChargingStationsResponse
+from environmental_impact_analysis.predict import predict_savings
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -56,6 +57,24 @@ def weatherAwareRoutingPredict(req: WARTripRequest):
 @app.post("/personalisedEVInsights/predict")
 def personalisedEVInsightsPredict(payload: Union[dict, List[dict]]):
     return personalisedEVInsights.personalisedEVInsights.predict(payload)
+
+# =============================================================
+
+# Environmental Impact Analysis Use Case
+
+class EnvironmentalImpactPredictionRequest(BaseModel):
+    Make_EV: str
+    Make_ICE: str
+    BodyStyle_EV: str
+    BodyStyle_ICE: str
+    FuelType_ICE: str
+    YearDiff: int
+    ICE_CO2_Baseline: float
+
+
+@app.post("/environmentalImpact/predict")
+def environmentalImpactPredict(req: EnvironmentalImpactPredictionRequest):
+    return predict_savings(req.model_dump())
 
 # =============================================================
 # Demand Forecasting Use Case
