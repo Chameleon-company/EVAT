@@ -467,15 +467,14 @@ export default function EnvironmentalImpact({
   )}
 
   {comparisonResult?.comparison && !loadingCompare && !errorCompare && (
-    <>
-      <h4>Results</h4>
-      <p className="center">
-        The {comparisonResult.ev.make} {comparisonResult.ev.model} emits{" "}
-        {displayValue(comparisonResult.comparison.co2SavedPerKm)} g/km less CO₂ than the{" "}
-        {comparisonResult.ice.make} {comparisonResult.ice.model}.
-      </p>
-    </>
+  <>
+    <h4>Results</h4>
+    <p className="center">
+      {comparisonResult.comparison.summary}
+    </p>
+  </>
   )}
+
 </div>
     </div>
   );
