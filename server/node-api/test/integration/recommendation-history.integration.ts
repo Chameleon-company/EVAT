@@ -1,5 +1,8 @@
-// Smoke test for model, repository and service.
-// This script allows isolated testing without Jest, and without routes (and therefore API endpoints) having been implemented.
+// Integration test for the recommendation-history model, repository, and service.
+// Uses an in-memory MongoDB instance and does not require API routes.
+//
+// Run from server/node-api with:
+// npm run test:integration:recommendation-history
 
 import mongoose, { Types } from "mongoose";
 import { MongoMemoryServer } from "mongodb-memory-server";
@@ -180,7 +183,7 @@ async function main() {
         console.log("   Sessions found:", recent.length);
 
         // Print test pass if we got to here.
-        console.log("\n✅ Recommendation-history smoke test passed");
+        console.log("\n✅ Recommendation-history integration test passed");
     } finally {
         if (mongoose.connection.readyState !== 0) {
             await mongoose.disconnect();
@@ -194,7 +197,7 @@ async function main() {
 
 // If any assert() function above threw an error, the test failed.
 main().catch((error) => {
-    console.error("\n❌ Recommendation-history smoke test failed");
+    console.error("\n❌ Recommendation-history integration test failed");
     console.error(error);
     process.exitCode = 1;
 });
