@@ -69,7 +69,7 @@ GOOGLE_APPLICATION_CREDENTIALS="./google-credentials.json"
 EMAIL_USER = "sender@example.com"
 EMAIL_PASS = "See Nodemailer section"
 ADMIN_EMAIL = "receiver@example.com"
-PYTHON_API_URL = "http://127.0.0.1:5000"
+PYTHON_API_URL = "http://127.0.0.1:8000"
 ```
 ### IMPORTANT: Ensure .env and your .json credential files are never committed to version control!
 
@@ -93,7 +93,7 @@ Because we use NPM workspaces, you do not need to navigate into individual folde
    **Package installation for Global and Virtual Environment**
    Launch a new terminal in the root directory of the project and installing the packages by running:
    ```sh
-   pip install -r python-requirements.txt
+   pip install -r server/python-services/requirements.txt
    ```
 
 
