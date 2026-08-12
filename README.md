@@ -69,7 +69,7 @@ GOOGLE_APPLICATION_CREDENTIALS="./google-credentials.json"
 EMAIL_USER = "sender@example.com"
 EMAIL_PASS = "See Nodemailer section"
 ADMIN_EMAIL = "receiver@example.com"
-PYTHON_API_URL = "http://127.0.0.1:8000"
+PYTHON_API_URL = "http://127.0.0.1:5000"
 ```
 ### IMPORTANT: Ensure .env and your .json credential files are never committed to version control!
 

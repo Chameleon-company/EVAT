@@ -29,10 +29,10 @@ The main Python entry point is `server/python-services/main.py`. It exposes most
 | Cost comparison | `costComparison/` | Trains and selects a model during API startup | 5000 | Yes |
 | Vehicle price prediction | `pricePrediction/` | Loads `price_best_model_latest.joblib` | 5000 | No |
 | Charging-station recommendation | `charging_station_recommendation_api/` | Deterministic filtering and weighted scoring | 5000 through the combined API | No model training required |
-| Reliability scoring | `reliability_scoring_api/` | Deterministic reliability and sentiment scoring | 8000 under `/reliability` | No model training required |
+| Reliability scoring | `reliability_scoring_api/` | Deterministic reliability and sentiment scoring | 5000 under `/reliability` | No model training required |
 | Environmental impact model | `environmental_impact_analysis/` | Offline notebook and prediction utility | No API port | Yes, through the notebook |
 
-The Node API calls the combined Python service through `PYTHON_API_URL`. Reliability scoring is also served by that process through `RELIABILITY_API_URL=http://127.0.0.1:8000/reliability`.
+The Node API calls the combined Python service through `PYTHON_API_URL`. Reliability scoring is also served by that process through `RELIABILITY_API_URL=http://127.0.0.1:5000/reliability`.
 
 ### Important current behaviour
 
@@ -150,8 +150,8 @@ VITE_API_URL=http://localhost:8080/api
 MONGODB_URI=mongodb://127.0.0.1:27017/EVAT
 JWT_SECRET=replace-with-a-long-random-development-secret
 
-PYTHON_API_URL=http://127.0.0.1:8000
-RELIABILITY_API_URL=http://127.0.0.1:8000/reliability
+PYTHON_API_URL=http://127.0.0.1:5000
+RELIABILITY_API_URL=http://127.0.0.1:5000/reliability
 ```
 
 ### 5.2 Backend environment and Google Maps
@@ -168,8 +168,8 @@ At minimum, configure:
 MONGODB_URI=mongodb://127.0.0.1:27017/EVAT
 JWT_SECRET=replace-with-a-long-random-development-secret
 GOOGLE_MAPS_API_KEY=replace-with-a-valid-google-maps-key
-PYTHON_API_URL=http://127.0.0.1:8000
-RELIABILITY_API_URL=http://127.0.0.1:8000/reliability
+PYTHON_API_URL=http://127.0.0.1:5000
+RELIABILITY_API_URL=http://127.0.0.1:5000/reliability
 ```
 
 `weatherAwareRouting/config.py` explicitly reads `server/node-api/.env`. A Google key placed only in another file may therefore not be found by the combined Python service.
@@ -229,7 +229,7 @@ Equivalent direct command:
 
 ```bash
 cd server/python-services
-python -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload
+python -m uvicorn main:app --host 127.0.0.1 --port 5000 --reload
 ```
 
 Wait for the following startup stages:
@@ -242,16 +242,16 @@ Wait for the following startup stages:
 
 Open:
 
-- API root: `http://127.0.0.1:8000/`
-- Swagger UI: `http://127.0.0.1:8000/docs`
-- OpenAPI JSON: `http://127.0.0.1:8000/openapi.json`
+- API root: `http://127.0.0.1:5000/`
+- Swagger UI: `http://127.0.0.1:5000/docs`
+- OpenAPI JSON: `http://127.0.0.1:5000/openapi.json`
 
 ### 6.2 Charging-station recommendation service
 
 The recommendation endpoint is mounted in the combined service:
 
 ```bash
-curl http://127.0.0.1:8000/docs
+curl http://127.0.0.1:5000/docs
 ```
 
 Use `POST /charging-station-recommendations/rank`. Although an npm script and service README describe a standalone process on port 8002, the current module does not define a FastAPI `app`, `/health`, or standalone route. Do not use the standalone command until that application wrapper is implemented.
@@ -264,8 +264,8 @@ Reliability scoring is included in the combined Python service:
 npm run dev:python
 ```
 
-Open `http://127.0.0.1:8000/reliability/health` and
-`http://127.0.0.1:8000/docs`.
+Open `http://127.0.0.1:5000/reliability/health` and
+`http://127.0.0.1:5000/docs`.
 
 ### 6.4 Full EVAT stack
 
@@ -283,13 +283,13 @@ The usual local addresses are:
 - React client: the URL printed by Vite, commonly `http://localhost:3000` or `http://localhost:5173`;
 - Node API: `http://localhost:8080`;
 - Node Swagger UI: `http://localhost:8080/api/docs`;
-- combined Python API: `http://127.0.0.1:8000` (including reliability under `/reliability`).
+- combined Python API: `http://127.0.0.1:5000` (including reliability under `/reliability`).
 
 For a non-reloading local deployment, remove `--reload`:
 
 ```bash
 cd server/python-services
-python -m uvicorn main:app --host 127.0.0.1 --port 8000 --workers 1
+python -m uvicorn main:app --host 127.0.0.1 --port 5000 --workers 1
 ```
 
 Use one worker for the current combined application because each worker independently trains and stores the cost-comparison model in memory.
@@ -372,9 +372,9 @@ Charging recommendations and reliability scoring use explicit formulas and rules
 ### 8.1 Basic service checks
 
 ```bash
-curl --fail http://127.0.0.1:8000/
-curl --fail http://127.0.0.1:8000/pricePrediction/health
-curl --fail http://127.0.0.1:8000/reliability/health
+curl --fail http://127.0.0.1:5000/
+curl --fail http://127.0.0.1:5000/pricePrediction/health
+curl --fail http://127.0.0.1:5000/reliability/health
 ```
 
 Only run checks for services that were started.
@@ -382,7 +382,7 @@ Only run checks for services that were started.
 ### 8.2 Cost comparison smoke test
 
 ```bash
-curl --fail -X POST http://127.0.0.1:8000/costComparison/predict \
+curl --fail -X POST http://127.0.0.1:5000/costComparison/predict \
   -H "Content-Type: application/json" \
   -d '{
     "distance_km": 100,
@@ -396,13 +396,13 @@ curl --fail -X POST http://127.0.0.1:8000/costComparison/predict \
 First list supported postcodes:
 
 ```bash
-curl --fail http://127.0.0.1:8000/demandForecasting/postcodes
+curl --fail http://127.0.0.1:5000/demandForecasting/postcodes
 ```
 
 Then submit a supported postcode and a date between tomorrow and 16 days from today:
 
 ```bash
-curl --fail -X POST http://127.0.0.1:8000/demandForecasting/predict \
+curl --fail -X POST http://127.0.0.1:5000/demandForecasting/predict \
   -H "Content-Type: application/json" \
   -d '{"postcode":"3000","date":"YYYY-MM-DD"}'
 ```
@@ -410,7 +410,7 @@ curl --fail -X POST http://127.0.0.1:8000/demandForecasting/predict \
 ### 8.4 Reliability scoring smoke test
 
 ```bash
-curl --fail -X POST http://127.0.0.1:8000/reliability/score \
+curl --fail -X POST http://127.0.0.1:5000/reliability/score \
   -H "Content-Type: application/json" \
   -d '{"station_id":"test-1","status":"Operational","power_kw":150,"max_power_kw":350}'
 ```
@@ -452,7 +452,7 @@ docker run --rm -it \
   -v "$PWD:/workspace" \
   -w /workspace/server/python-services \
   python:3.11-slim \
-  sh -lc "apt-get update && apt-get install -y --no-install-recommends libgomp1 && rm -rf /var/lib/apt/lists/* && pip install --no-cache-dir -r /workspace/server/python-services/requirements.txt && uvicorn main:app --host 0.0.0.0 --port 8000"
+  sh -lc "apt-get update && apt-get install -y --no-install-recommends libgomp1 && rm -rf /var/lib/apt/lists/* && pip install --no-cache-dir -r /workspace/server/python-services/requirements.txt && uvicorn main:app --host 0.0.0.0 --port 5000"
 ```
 
 Windows PowerShell:
@@ -465,13 +465,13 @@ docker run --rm -it `
   -v "${PWD}:/workspace" `
   -w /workspace/server/python-services `
   python:3.11-slim `
-  sh -lc "apt-get update && apt-get install -y --no-install-recommends libgomp1 && rm -rf /var/lib/apt/lists/* && pip install --no-cache-dir -r /workspace/server/python-services/requirements.txt && uvicorn main:app --host 0.0.0.0 --port 8000"
+  sh -lc "apt-get update && apt-get install -y --no-install-recommends libgomp1 && rm -rf /var/lib/apt/lists/* && pip install --no-cache-dir -r /workspace/server/python-services/requirements.txt && uvicorn main:app --host 0.0.0.0 --port 5000"
 ```
 
 Verify from the host:
 
 ```bash
-curl --fail http://127.0.0.1:8000/
+curl --fail http://127.0.0.1:5000/
 ```
 
 Notes:
@@ -479,7 +479,7 @@ Notes:
 - This command installs packages every time. Create a reviewed Python Dockerfile before using containers routinely or in production.
 - Do not bake `.env` files or credentials into an image.
 - Mounting the repository is appropriate for local development, not production.
-- If the Node API runs on the host, `PYTHON_API_URL=http://127.0.0.1:8000` works. If Node runs in another container, both containers need a shared Docker network and the URL must use the Python container's service name.
+- If the Node API runs on the host, `PYTHON_API_URL=http://127.0.0.1:5000` works. If Node runs in another container, both containers need a shared Docker network and the URL must use the Python container's service name.
 - A production image should pin dependency versions, copy only required source and artifacts, run as a non-root user, include a health check, and use a controlled artifact release process.
 
 ## 10. Troubleshooting
@@ -495,31 +495,31 @@ Fix:
 3. restart the Python process; and
 4. confirm the required Google APIs are enabled for the key.
 
-### Port 8000 is already in use
+### Port 5000 is already in use
 
-If port 8000 is already in use, run Python on another port:
+If port 5000 is already in use, run Python on another port:
 
 ```bash
 cd server/python-services
-python -m uvicorn main:app --host 127.0.0.1 --port 8001 --reload
+python -m uvicorn main:app --host 127.0.0.1 --port 5001 --reload
 ```
 
 Set the Node API to the same address:
 
 ```dotenv
-PYTHON_API_URL=http://127.0.0.1:8001
+PYTHON_API_URL=http://127.0.0.1:5001
 ```
 
-Because `npm run dev:python` hard-codes port 8000, start the client, Node API, and Python service in separate terminals when using port 8001.
+Because `npm run dev:python` hard-codes port 5000, start the client, Node API, and Python service in separate terminals when using port 5001.
 
 Find the process using a port:
 
 ```bash
-lsof -nP -iTCP:8000 -sTCP:LISTEN  # macOS/Linux
+lsof -nP -iTCP:5000 -sTCP:LISTEN  # macOS/Linux
 ```
 
 ```powershell
-Get-NetTCPConnection -LocalPort 8000 -State Listen  # Windows PowerShell
+Get-NetTCPConnection -LocalPort 5000 -State Listen  # Windows PowerShell
 ```
 
 ### `FileNotFoundError` for a model, CSV, or feature file
@@ -533,7 +533,7 @@ Fix: run `npm run dev:python` from the repository root, or change to `server/pyt
 Activate `.venv` and install the appropriate requirements. A more reliable invocation is:
 
 ```bash
-python -m uvicorn main:app --host 127.0.0.1 --port 8000
+python -m uvicorn main:app --host 127.0.0.1 --port 5000
 ```
 
 For `No module named 'vaderSentiment'`, install the reliability requirements. For `field_validator` import errors, reinstall the root requirements so that the current Pydantic version matches FastAPI.
@@ -564,7 +564,7 @@ Confirm that:
 
 - the combined Python service is running;
 - `PYTHON_API_URL` exactly matches its host and port;
-- reliability uses `RELIABILITY_API_URL=http://127.0.0.1:8000/reliability`;
+- reliability uses `RELIABILITY_API_URL=http://127.0.0.1:5000/reliability`;
 - Docker-hosted services publish their ports; and
 - the environment was loaded before the Node process started.
 
@@ -603,9 +603,9 @@ npm run dev:python
 npm run dev
 
 # Verify
-curl --fail http://127.0.0.1:8000/
-curl --fail http://127.0.0.1:8000/pricePrediction/health
-curl --fail http://127.0.0.1:8000/reliability/health
+curl --fail http://127.0.0.1:5000/
+curl --fail http://127.0.0.1:5000/pricePrediction/health
+curl --fail http://127.0.0.1:5000/reliability/health
 
 # Test charging recommendation units (run from repository root)
 PYTHONPATH="$PWD/server/python-services:$PWD/server/python-services/charging_station_recommendation_api" \
