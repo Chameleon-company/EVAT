@@ -1,0 +1,25 @@
+# Shared dependencies for the consolidated FastAPI application
+fastapi
+uvicorn[standard]
+pydantic
+
+# Data science and saved-model loading
+numpy
+pandas
+scikit-learn
+joblib
+xgboost
+kmodes
+holidays
+
+# Weather-aware routing
+googlemaps
+python-dotenv
+requests
+
+# Reliability scoring
+vaderSentiment
+
+# API and service testing
+httpx
+pytest
