@@ -279,7 +279,7 @@ export default class PredictService {
         try {
             // Send request to Python backend with timeout
             const response = await axios.post<PythonPredictionResponse>(
-                `${this.PYTHON_API_URL}/predict`,
+                `${this.PYTHON_API_URL}/demandForecasting/predict`,
                 payload,
                 { timeout: this.TIMEOUT_MS }
             );
