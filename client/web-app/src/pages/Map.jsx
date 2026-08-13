@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo, useContext, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { MapContainer, TileLayer, useMapEvents, Marker } from 'react-leaflet';
 import L from 'leaflet';
 import { UserContext } from '../context/user';
@@ -11,6 +12,7 @@ import SmartFilter from '../components/SmartFilter';
 import ChatBubble from "../components/ChatBubble";
 import ChargerSideBar from '../components/ChargerSideBar';
 import FloatingVoiceAssistant from '../components/FloatingVoiceAssistant';
+import ChargingRecommendations from '../components/ChargingRecommendations';
 // styles
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
@@ -124,6 +126,7 @@ function BoundsWatcher({ onChange }) {
 
 export default function Map() {
   const { user } = useContext(UserContext);
+  const location = useLocation();
 
   // define the minimum price of a charger and maximum here
   const priceMin = 0;
@@ -363,6 +366,39 @@ export default function Map() {
     };
   }, [bbox, user?.token]);
 
+  // Automatically select a station for Congestion Prediction
+useEffect(() => {
+    if (
+        location.pathname === '/congestion-prediction' &&
+        stations.length > 0 &&
+        !selectedStation
+    ) {
+        const station =
+            stations.find((st) => st.is_operational === 'true') ||
+            stations[0];
+
+        setSelectedStation(station);
+
+        const lat = Number(
+            station.latitude ?? station.location?.coordinates?.[1]
+        );
+
+        const lng = Number(
+            station.longitude ?? station.location?.coordinates?.[0]
+        );
+
+        if (!Number.isNaN(lat) && !Number.isNaN(lng)) {
+            mapRef.current?.flyTo([lat, lng], 16);
+        }
+    }
+}, [location.pathname, stations]);
+
+useEffect(() => {
+    if (location.pathname !== '/congestion-prediction') {
+        setSelectedStation(null);
+    }
+}, [location.pathname]);
+
   // fetching connector and operator types
   useEffect(() => {
     if (!user) return;
@@ -593,6 +629,9 @@ export default function Map() {
           favourites={favourites}
           toggleFavourite={toggleFavourite}
         />
+
+        <ChargingRecommendations />
+        
         {/* Voice Assistant floating button - opens popup with VoiceQuery */}
         <FloatingVoiceAssistant onQueryResult={handleVoiceResult} />
 

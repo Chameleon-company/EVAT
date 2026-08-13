@@ -1,5 +1,5 @@
 export async function fetchJson(path, { method='GET', headers={}, body, signal } = {}) {
-  const base = import.meta.env.VITE_API_BASE_URL || '';
+  const base = import.meta.env.VITE_API_URL || '';
   const h = { 'Content-Type': 'application/json', ...headers };
   const controller = new AbortController();
   const t = setTimeout(() => controller.abort(), 15000);
@@ -15,3 +15,4 @@ export async function fetchJson(path, { method='GET', headers={}, body, signal }
     return await res.json();
   } finally { clearTimeout(t); }
 }
+

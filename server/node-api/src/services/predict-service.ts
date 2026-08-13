@@ -13,7 +13,6 @@ export default class PredictService {
     private readonly PYTHON_API_URL = process.env.PYTHON_API_URL || "http://localhost:5000";
     private readonly TIMEOUT_MS = 2000;
 
-
     /**
      * Get a congestion levels for multiple chargers
      * 
@@ -120,7 +119,6 @@ export default class PredictService {
             }
         }
     }
-
 
     /**
      * Calls the Python ML microservice to calculate EV vs ICE cost comparison
