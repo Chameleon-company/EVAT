@@ -53,7 +53,12 @@ export default function PricePrediction() {
   useEffect(() => {
     getPriceHealth()
       .then(setHealth)
-      .catch(() => setHealth({ status: "down", model_loaded: false }));
+      .catch((err) => {
+        // Detailed reason stays in the console; the banner must not claim a model failure
+        // when the service was simply unreachable.
+        console.warn("Price prediction health check failed:", err.message);
+        setHealth({ status: "unavailable", unreachable: true });
+      });
   }, []);
 
   useEffect(() => {
@@ -123,8 +128,13 @@ export default function PricePrediction() {
           </p>
           {health && (
             <p className={`pp-health ${health.model_loaded ? "pp-health--ok" : "pp-health--down"}`}>
-              ML service: {health.status}
-              {health.model_loaded ? ` · model loaded (${health.feature_count} features)` : " · model not loaded"}
+              {health.unreachable
+                ? "ML service unavailable"
+                : `ML service: ${health.status}${
+                    health.model_loaded
+                      ? ` · model loaded (${health.feature_count} features)`
+                      : " · model not loaded"
+                  }`}
             </p>
           )}
         </div>
