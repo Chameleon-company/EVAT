@@ -9,8 +9,9 @@ import { PredictionRequestPayload, PythonPredictionResponse, FormattedPrediction
 
 
 export default class PredictService {
-    // Timeout and URL for Python environment
-    private readonly PYTHON_API_URL = process.env.PYTHON_API_URL || "http://localhost:5000";
+    // Separate Python API backends for cost comparison and demand forecasting
+    private readonly COST_API_URL = process.env.PYTHON_COST_API_URL || "http://localhost:5000";
+    private readonly DEMAND_API_URL = process.env.PYTHON_DEMAND_API_URL || "http://localhost:5000";
     private readonly TIMEOUT_MS = 2000;
 
     /**
@@ -143,7 +144,7 @@ export default class PredictService {
     ): Promise<any> {
         try {
             const response = await axios.post(
-                `${this.PYTHON_API_URL}/predict`,
+                `${this.COST_API_URL}/predict`,
                 {
                     distance_km,
                     electricity_price_per_kwh,
@@ -181,7 +182,7 @@ export default class PredictService {
     ): Promise<any> {
         try {
             const response = await axios.post(
-                `${this.PYTHON_API_URL}/charts`,
+                `${this.COST_API_URL}/charts`,
                 { distance_km, electricity_price_per_kwh, ice_eff_l_per_100km, petrol_price_per_l },
                 { timeout: this.TIMEOUT_MS }
             );
@@ -199,7 +200,7 @@ export default class PredictService {
      */
     async getEvVehicles(): Promise<any> {
         try {
-            const response = await axios.get(`${this.PYTHON_API_URL}/vehicles/ev`, { timeout: this.TIMEOUT_MS });
+            const response = await axios.get(`${this.COST_API_URL}/vehicles/ev`, { timeout: this.TIMEOUT_MS });
             return response.data;
         } catch (error: any) {
             throw new Error("Error fetching EV vehicles: " + error.message);
@@ -213,7 +214,7 @@ export default class PredictService {
      */
     async getIceVehicles(): Promise<any> {
         try {
-            const response = await axios.get(`${this.PYTHON_API_URL}/vehicles/ice`, { timeout: this.TIMEOUT_MS });
+            const response = await axios.get(`${this.COST_API_URL}/vehicles/ice`, { timeout: this.TIMEOUT_MS });
             return response.data;
         } catch (error: any) {
             throw new Error("Error fetching ICE vehicles: " + error.message);
@@ -231,7 +232,7 @@ export default class PredictService {
     async getEvEfficiency(make: string, model: string, variant?: string): Promise<any> {
         try {
             const response = await axios.post(
-                `${this.PYTHON_API_URL}/vehicles/ev/efficiency`,
+                `${this.COST_API_URL}/vehicles/ev/efficiency`,
                 { make, model, variant },
                 { timeout: this.TIMEOUT_MS }
             );
@@ -253,7 +254,7 @@ export default class PredictService {
     async getIceEfficiency(make: string, model: string, variant?: string): Promise<any> {
         try {
             const response = await axios.post(
-                `${this.PYTHON_API_URL}/vehicles/ice/efficiency`,
+                `${this.COST_API_URL}/vehicles/ice/efficiency`,
                 { make, model, variant },
                 { timeout: this.TIMEOUT_MS }
             );
@@ -279,7 +280,7 @@ export default class PredictService {
         try {
             // Send request to Python backend with timeout
             const response = await axios.post<PythonPredictionResponse>(
-                `${this.PYTHON_API_URL}/demandForecasting/predict`,
+                `${this.DEMAND_API_URL}/demandForecasting/predict`,
                 payload,
                 { timeout: this.TIMEOUT_MS }
             );
@@ -316,7 +317,7 @@ export default class PredictService {
     async getDemandPostcodes(): Promise<string[]> {
         try {
             const response = await axios.get<{ postcodes: string[] }>(
-                `${this.PYTHON_API_URL}/postcodes`, 
+                `${this.DEMAND_API_URL}/postcodes`, 
                 { timeout: this.TIMEOUT_MS }
             );
             return response.data.postcodes;
@@ -336,7 +337,7 @@ export default class PredictService {
     async getDemandCoords(postcode: string): Promise<{ lat: number; lon: number }> {
         try {
             const response = await axios.get<{ lat: number, lon: number }>(
-                `${this.PYTHON_API_URL}/coords/${postcode}`,
+                `${this.DEMAND_API_URL}/coords/${postcode}`,
                 { timeout: this.TIMEOUT_MS }
             );
             return { lat: response.data.lat, lon: response.data.lon };
