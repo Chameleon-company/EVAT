@@ -4,6 +4,9 @@ from typing import List
 
 from charging_station_recommendation_api.models.request import ChargingStationCandidate
 from charging_station_recommendation_api.models.response import ChargingStationRecommendation
+from charging_station_recommendation_api.services.preference_model import (
+    predict_selection_probability,
+)
 from charging_station_recommendation_api.services.reasons import build_reasons
 from charging_station_recommendation_api.services.scoring import score_candidates
 
@@ -18,8 +21,20 @@ def rank_candidates(
     if not candidates:
         return []
 
-    # Calculate one total score and factor breakdown for every candidate.
+    # Calculate the fixed-weight heuristic score and factor breakdown for
+    # every candidate. The factor breakdown is always used to build the
+    # human-readable "reasons" below, since the trained model doesn't
+    # produce per-factor explanations on its own.
     scored_candidates = score_candidates(candidates, favourite_station_ids)
+
+    # If a trained personalised-preference model has been exported (see
+    # training/train_preference_model.py), use its predicted selection
+    # probability as the ranking score instead of the fixed weights. Falls
+    # back to the heuristic score automatically if no model is available.
+    probabilities = predict_selection_probability(candidates)
+    if probabilities is not None:
+        for item, probability in zip(scored_candidates, probabilities):
+            item["score"] = probability * 100
 
     # Put the highest score first. stationId makes ties deterministic.
     scored_candidates.sort(

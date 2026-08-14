@@ -56,3 +56,6 @@ __pycache__/
 # Specific App Directories
 # =========================
 **/auth
+.venv/
+
+.venv/
