@@ -278,6 +278,21 @@ export default class PredictController {
                 });
             }
 
+            // Validation for Open-Meteo API date range (1-16 days from today)
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const target = new Date(date);
+            target.setHours(0, 0, 0, 0);
+
+            const diffTime = target.getTime() - today.getTime();
+            const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays < 1 || diffDays > 16) {
+                return res.status(400).json({
+                    message: "AI Limitation: Date must be between 1 and 16 days from today."
+                });
+            }
+
             // Call to predictService method
             const forecast = await this.predictService.getDemandForecast(cleanPostcode, date);
 
@@ -285,6 +300,14 @@ export default class PredictController {
             return res.status(200).json(forecast);
         } catch (error: any) {
             console.error("PredictController error:", error);
+
+            // Client/model errors from Python (e.g., 400 Bad Request)
+            if (error.response) {
+                return res.status(error.response.status || 400).json({
+                    message: error.response.data?.detail || error.message
+                });
+            }
+
             return res.status(500).json({
                 message: "Error retrieving demand forecast",
                 error: error.message
