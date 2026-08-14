@@ -281,10 +281,8 @@ export default class PredictController {
             // Call to predictService method
             const forecast = await this.predictService.getDemandForecast(cleanPostcode, date);
 
-            return res.status(200).json({
-                message: "Demand forecast retrieved successfully",
-                data: forecast
-            });
+            // Return forecast obj for top level (expect keys (postcode, date, predictedDemandKwh))
+            return res.status(200).json(forecast);
         } catch (error: any) {
             console.error("PredictController error:", error);
             return res.status(500).json({
