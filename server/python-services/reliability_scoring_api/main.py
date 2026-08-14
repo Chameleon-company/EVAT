@@ -23,11 +23,15 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 # ---------------------------------------------------------------------------
 
 BASE_DIR = Path(__file__).resolve().parent
-DATA_PATH = Path(
-    os.getenv(
-        "RELIABILITY_DATA_PATH",
-        str(BASE_DIR / "data" / "EVAT-Final-Enriched.csv"),
-    )
+
+
+def _resolve_data_path(raw_path: str) -> Path:
+    path = Path(raw_path)
+    return path if path.is_absolute() else BASE_DIR / path
+
+
+DATA_PATH = _resolve_data_path(
+    os.getenv("RELIABILITY_DATA_PATH", "data/EVAT-Final-Enriched.csv")
 )
 STATUS_WEIGHT = float(os.getenv("RELIABILITY_STATUS_WEIGHT", "0.6"))
 POWER_WEIGHT = float(os.getenv("RELIABILITY_POWER_WEIGHT", "0.4"))

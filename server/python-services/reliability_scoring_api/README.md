@@ -34,9 +34,9 @@ repository root:
 npm run dev:python
 ```
 
-Health: [http://127.0.0.1:8000/reliability/health](http://127.0.0.1:8000/reliability/health)
+Health: [http://127.0.0.1:5000/reliability/health](http://127.0.0.1:5000/reliability/health)
 
-Swagger: [http://127.0.0.1:8000/reliability/docs](http://127.0.0.1:8000/reliability/docs)
+Swagger: [http://127.0.0.1:5000/docs](http://127.0.0.1:5000/docs)
 
 ## Endpoints
 
