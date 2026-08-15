@@ -13,7 +13,8 @@ export default class PredictService {
     // Separate Python API backends for cost comparison and demand forecasting
     private readonly COST_API_URL = env.COST_API_URL;
     private readonly DEMAND_API_URL = env.DEMAND_API_URL;
-    private readonly TIMEOUT_MS = 2000;
+    // Increase timeout to 12 seconds (account for potential latency in Python ML service (10 seconds) and external weather API)
+    private readonly TIMEOUT_MS = 12000;
 
     /**
      * Get a congestion levels for multiple chargers
