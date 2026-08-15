@@ -129,6 +129,27 @@ const templates = {
   "radius": 25
 }`,
 
+  // add a nearby promotion
+  promotionAdd:
+`{
+  "title": "Charge & Sip",
+  "businessName": "Little Collins Roast",
+  "category": "coffee",
+  "discountLabel": "20% off drinks",
+  "description": "Show your charging session and get 20% off any coffee or tea.",
+  "promoCode": "EVAT20",
+  "latitude": -37.8136,
+  "longitude": 144.9652,
+  "isActive": true
+}`,
+
+  // update a nearby promotion
+  promotionUpdate:
+`{
+  "discountLabel": "25% off drinks",
+  "isActive": true
+}`,
+
   // add feedback
   feedbackAdd: 
 `{
@@ -392,6 +413,18 @@ const weatherAwareRoute = [
   { method: 'POST',   endpoint: '/weather-aware-routing/predict',  label: 'Get weather data',  body: templates.weatherAwareRouteBody},
 ]
 
+// Promotions near charging stations
+const promotions = [
+  { method: 'GET',    endpoint: '/promotions/nearby?lat={latValue}&lon={lonValue}', label: 'Get offers near a location' },
+  { method: 'GET',    endpoint: '/promotions/station/{stationId}',                  label: 'Get offers near a charger' },
+  { method: 'GET',    endpoint: '/promotions/{promotionId}',                        label: 'Get promotion by ID' },
+  { method: 'GET',    endpoint: '/promotions',                                      label: '[Admin] List promotions' },
+  { method: 'POST',   endpoint: '/promotions',                                      label: '[Admin] Create promotion', body: templates.promotionAdd },
+  { method: 'PUT',    endpoint: '/promotions/{promotionId}',                        label: '[Admin] Update promotion', body: templates.promotionUpdate },
+  { method: 'DELETE', endpoint: '/promotions/{promotionId}',                        label: '[Admin] Delete promotion' },
+  { method: 'POST',   endpoint: '/promotions/seed',                                 label: '[Admin] Seed sample promotions' },
+];
+
 // export all groups
 export {
   adminAuth,
@@ -410,6 +443,7 @@ export {
   iceVehicle,
   insight,
   weatherAwareRoute,
+  promotions,
 };
 
 // export as one array
@@ -430,6 +464,7 @@ export const allEndpoints = [
   ...iceVehicle,
   ...insight,
   ...weatherAwareRoute,
+  ...promotions,
 ];
 
 //export default apiEndpoints;

@@ -75,6 +75,14 @@ const useCases = [
     route: "/chatbot",
     status: "live",
   },
+  {
+    id: "nearby-promotions",
+    title: "Offers Near Chargers",
+    description: "Find partner coffee, food, and retail deals within walking distance of a charging station.",
+    icon: "🏷️",
+    route: "/map",
+    status: "live",
+  },
 ];
 
 export default function Dashboard() {
