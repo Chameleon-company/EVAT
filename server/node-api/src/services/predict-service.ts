@@ -6,12 +6,13 @@ import mongoose from "mongoose";
 import axios from 'axios';
 // Format response
 import { PredictionRequestPayload, PythonPredictionResponse, FormattedPredictionResponse } from '../types/predict';
-
+// Import environment variables
+import { env } from "../config/env";
 
 export default class PredictService {
     // Separate Python API backends for cost comparison and demand forecasting
-    private readonly COST_API_URL = process.env.PYTHON_COST_API_URL || "http://localhost:5000";
-    private readonly DEMAND_API_URL = process.env.PYTHON_DEMAND_API_URL || "http://localhost:5000";
+    private readonly COST_API_URL = env.COST_API_URL;
+    private readonly DEMAND_API_URL = env.DEMAND_API_URL;
     private readonly TIMEOUT_MS = 2000;
 
     /**
