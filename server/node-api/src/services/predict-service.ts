@@ -144,7 +144,7 @@ export default class PredictService {
     ): Promise<any> {
         try {
             const response = await axios.post(
-                `${this.COST_API_URL}/predict`,
+                `${this.COST_API_URL}/costComparison/predict`,
                 {
                     distance_km,
                     electricity_price_per_kwh,
@@ -182,7 +182,7 @@ export default class PredictService {
     ): Promise<any> {
         try {
             const response = await axios.post(
-                `${this.COST_API_URL}/charts`,
+                `${this.COST_API_URL}/costComparison/charts`,
                 { distance_km, electricity_price_per_kwh, ice_eff_l_per_100km, petrol_price_per_l },
                 { timeout: this.TIMEOUT_MS }
             );
@@ -200,7 +200,7 @@ export default class PredictService {
      */
     async getEvVehicles(): Promise<any> {
         try {
-            const response = await axios.get(`${this.COST_API_URL}/vehicles/ev`, { timeout: this.TIMEOUT_MS });
+            const response = await axios.get(`${this.COST_API_URL}/costComparison/vehicles/ev`, { timeout: this.TIMEOUT_MS });
             return response.data;
         } catch (error: any) {
             throw new Error("Error fetching EV vehicles: " + error.message);
@@ -214,7 +214,7 @@ export default class PredictService {
      */
     async getIceVehicles(): Promise<any> {
         try {
-            const response = await axios.get(`${this.COST_API_URL}/vehicles/ice`, { timeout: this.TIMEOUT_MS });
+            const response = await axios.get(`${this.COST_API_URL}/costComparison/vehicles/ice`, { timeout: this.TIMEOUT_MS });
             return response.data;
         } catch (error: any) {
             throw new Error("Error fetching ICE vehicles: " + error.message);
@@ -232,7 +232,7 @@ export default class PredictService {
     async getEvEfficiency(make: string, model: string, variant?: string): Promise<any> {
         try {
             const response = await axios.post(
-                `${this.COST_API_URL}/vehicles/ev/efficiency`,
+                `${this.COST_API_URL}/costComparison/vehicles/ev/efficiency`,
                 { make, model, variant },
                 { timeout: this.TIMEOUT_MS }
             );
@@ -254,7 +254,7 @@ export default class PredictService {
     async getIceEfficiency(make: string, model: string, variant?: string): Promise<any> {
         try {
             const response = await axios.post(
-                `${this.COST_API_URL}/vehicles/ice/efficiency`,
+                `${this.COST_API_URL}/costComparison/vehicles/ice/efficiency`,
                 { make, model, variant },
                 { timeout: this.TIMEOUT_MS }
             );
@@ -317,7 +317,7 @@ export default class PredictService {
     async getDemandPostcodes(): Promise<string[]> {
         try {
             const response = await axios.get<{ postcodes: string[] }>(
-                `${this.DEMAND_API_URL}/postcodes`, 
+                `${this.DEMAND_API_URL}/demandForecasting/postcodes`, 
                 { timeout: this.TIMEOUT_MS }
             );
             return response.data.postcodes;
@@ -337,7 +337,7 @@ export default class PredictService {
     async getDemandCoords(postcode: string): Promise<{ lat: number; lon: number }> {
         try {
             const response = await axios.get<{ lat: number, lon: number }>(
-                `${this.DEMAND_API_URL}/coords/${postcode}`,
+                `${this.DEMAND_API_URL}/demandForecasting/coords/${postcode}`,
                 { timeout: this.TIMEOUT_MS }
             );
             return { lat: response.data.lat, lon: response.data.lon };
