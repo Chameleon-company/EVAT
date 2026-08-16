@@ -121,8 +121,18 @@ def _map_station_for_ui(station: Dict[str, Any]) -> Dict[str, Any]:
         val = availability.strip().lower()
         if val in {"yes", "no", "busy", "available"}:
             availability_str = val
-        else:
+        elif val in {"operational", "in service", "online"}:
             availability_str = "available"
+        elif val in {
+            "temporarily unavailable", "occupied", "in use", "charging"
+        }:
+            availability_str = "busy"
+        elif val in {
+            "not operational", "unavailable", "offline", "closed"
+        }:
+            availability_str = "no"
+        else:
+            availability_str = "no"
     elif isinstance(availability, bool):
         availability_str = "yes" if availability else "no"
     else:
@@ -386,8 +396,8 @@ class ActionHandleMenuSelection(Action):
                     response += f"📍 **Location:** {selected_station.get('suburb', 'Location available')}\n"
                     response += f"⚡ **Power:** {selected_station.get('power', 'Power info available')} charging\n"
                     response += f"💰 **Cost:** {selected_station.get('cost', 'Cost info available')}\n"
-                    response += f"🔌 **Connector:** {selected_station.get('connector_type', 'Connector info available')}\n"
-                    response += f"📱 **Network:** {selected_station.get('network', 'Network info available')}\n\n"
+                    response += f"🔌 **Connector:** {selected_station.get('connection_types', 'Connector info available')}\n"
+                    response += f"📱 **Network:** {selected_station.get('operator', 'Network info available')}\n\n"
 
                     # Add route context
                     response += f"🗺️ **Route:** {start_location} → {end_location}\n\n"
@@ -473,7 +483,7 @@ class ActionHandleMenuSelection(Action):
                     dispatcher.utter_message(
                         text=f"Found {len(stations)} station{'s' if len(stations) != 1 else ''} along your route "
                              f"from {start_display} to {end_location}. Tap a card or type a station name.")
-                    displayed = [{'name': s.get('name', f'Station {i+1}')} for i, s in enumerate(stations[:10])]
+                    displayed = stations[:10]
 
                     return [
                         SlotSet("start_location", start_location),
@@ -832,7 +842,7 @@ class ActionHandleRouteInfo(Action):
             dispatcher.utter_message(
                 text=f"Found {len(stations)} station{'s' if len(stations) != 1 else ''} along your route "
                      f"from {start_display} to {end_location}. Tap a card or type a station name.")
-            displayed = [{'name': s.get('name', f'Station {i+1}')} for i, s in enumerate(stations[:10])]
+            displayed = stations[:10]
             return [
                 SlotSet("conversation_context",
                         ConversationContexts.ROUTE_PLANNING_RESULTS),

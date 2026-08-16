@@ -799,9 +799,17 @@ nlu:
     - chargers near [Carlton](current_location)
     - nearby stations
     - nearby chargers
+    - where can I charge my car
+    - find EV chargers
+    - nearby EV charging stations
 
 - intent: emergency_station_selection
   examples: |
+    - [Malvern Central](station_name)
+    - choose [Swinburne University - TC Building](station_name)
+    - select [Monash Caulfield](station_name)
+    - I want [RACV Solar Grovedale](station_name)
+    - take me to [Melbourne Central](station_name)
 
 - intent: preference_station_selection
   examples: |
@@ -1151,10 +1159,3 @@ nlu:
     - high occupancy
     - heavy load
     - high usage
-- intent: find_chargers
-  examples: |
-    - find chargers near me
-    - show nearby charging stations
-    - where can I charge my car
-    - find EV chargers
-    - nearby EV charging stations

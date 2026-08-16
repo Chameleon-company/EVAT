@@ -318,7 +318,7 @@ rules:
 - rule: Handle nearby stations
   steps:
   - intent: nearby_stations
-  - action: utter_nearby_stations
+  - action: action_nearby_stations
 
 # Ended conversation: ignore further input
 - rule: Ignore input when ended
@@ -396,12 +396,6 @@ rules:
   steps:
     - intent: restart
     - action: action_restart
-# Find live charging stations using openchargemaps api 
-- rule: Find live chargers
-  steps:
-    - intent: find_chargers
-    - action: action_get_live_chargers
-
 #Trigger location collection
 - rule: Handle typed suburb location
   steps:
