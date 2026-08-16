@@ -2,8 +2,12 @@
 
 from typing import List
 
-from charging_station_recommendation_api.models.request import ChargingStationCandidate
+from charging_station_recommendation_api.models.request import (
+    ChargingStationCandidate,
+    RecommendationHistorySession,
+)
 from charging_station_recommendation_api.models.response import ChargingStationRecommendation
+from charging_station_recommendation_api.services.personalization import apply_personalization
 from charging_station_recommendation_api.services.preference_model import (
     predict_selection_probability,
 )
@@ -14,6 +18,7 @@ from charging_station_recommendation_api.services.scoring import score_candidate
 def rank_candidates(
     candidates: List[ChargingStationCandidate],
     favourite_station_ids: List[str],
+    user_history: List[RecommendationHistorySession] = None,
 ) -> List[ChargingStationRecommendation]:
     """Score eligible candidates and return them in descending rank order."""
 
@@ -35,6 +40,12 @@ def rank_candidates(
     if probabilities is not None:
         for item, probability in zip(scored_candidates, probabilities):
             item["score"] = probability * 100
+
+    # Small, per-user in-memory adjustment on top of the global score above,
+    # using this user's own recent selection history (sent by the Node API
+    # on this request -- nothing is trained or persisted here). No-ops
+    # automatically if the user doesn't have enough history yet.
+    apply_personalization(scored_candidates, user_history or [])
 
     # Put the highest score first. stationId makes ties deterministic.
     scored_candidates.sort(
