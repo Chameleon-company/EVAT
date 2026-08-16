@@ -10,7 +10,16 @@ from typing import Dict, List, Tuple, Optional, Any
 from math import radians, sin, cos, sqrt, atan2
 import logging
 import re
+import sys
 from .config import CHARGING_CONFIG, SEARCH_CONFIG, LOCATION_CONFIG, DATA_CONFIG
+
+PROJECT_ROOT = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "..")
+)
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
+from backend.charging_station_service import get_charging_stations
 
 # Import real-time APIs for enhanced functionality
 try:
@@ -35,6 +44,7 @@ class ChargingStationDataService:
     def __init__(self):
         self.charger_data = None
         self.coordinates_data = None
+        self.latest_stations: List[Dict[str, Any]] = []
         self._load_datasets()
 
     def _load_datasets(self):
@@ -81,48 +91,21 @@ class ChargingStationDataService:
         """Get charging stations within specified radius of location"""
         if radius_km is None:
             radius_km = SEARCH_CONFIG['DEFAULT_RADIUS_KM']
-        if self.charger_data.empty:
+        try:
+            user_lat, user_lon = location
+            stations, source = get_charging_stations(
+                latitude=float(user_lat),
+                longitude=float(user_lon),
+                distance_km=radius_km,
+                limit=SEARCH_CONFIG['MAX_RESULTS']
+            )
+            self.latest_stations = stations
+            logger.info(
+                f"Retrieved {len(stations)} charging stations from {source}")
+            return stations
+        except Exception as e:
+            logger.error(f"Unable to retrieve nearby stations: {e}")
             return []
-
-        user_lat, user_lon = location
-        nearby_stations = []
-
-        for _, station in self.charger_data.iterrows():
-            try:
-                station_lat = float(station.get(
-                    DATA_CONFIG['CSV_COLUMNS']['LATITUDE'], 0))
-                station_lon = float(station.get(
-                    DATA_CONFIG['CSV_COLUMNS']['LONGITUDE'], 0))
-
-                if station_lat == 0 or station_lon == 0:
-                    continue
-
-                distance = self._calculate_distance(
-                    (user_lat, user_lon),
-                    (station_lat, station_lon)
-                )
-
-                if distance <= radius_km:
-                    station_info = {
-                        'name': station.get(DATA_CONFIG['CSV_COLUMNS']['CHARGER_NAME'], 'Unknown'),
-                        'address': station.get(DATA_CONFIG['CSV_COLUMNS']['ADDRESS'], 'Address not available'),
-                        'suburb': station.get(DATA_CONFIG['CSV_COLUMNS']['SUBURB'], 'Unknown'),
-                        'power': station.get(DATA_CONFIG['CSV_COLUMNS']['POWER_KW'], 'Power not available'),
-                        'cost': station.get(DATA_CONFIG['CSV_COLUMNS']['USAGE_COST'], 'Cost not available'),
-                        'points': station.get(DATA_CONFIG['CSV_COLUMNS']['NUMBER_OF_POINTS'], 'Points not available'),
-                        'connection_types': station.get(DATA_CONFIG['CSV_COLUMNS']['CONNECTION_TYPES'], ''),
-                        'latitude': station_lat,
-                        'longitude': station_lon,
-                        'distance_km': round(distance, 2)
-                    }
-                    nearby_stations.append(station_info)
-
-            except (ValueError, TypeError):
-                continue
-
-        # Sort by distance
-        nearby_stations.sort(key=lambda x: x['distance_km'])
-        return nearby_stations
 
     def get_stations_by_preference(self, location: Tuple[float, float], preference: str, limit: int = 5) -> List[Dict[str, Any]]:
         """Get stations based on preference (cheapest, fastest, closest) within preference radius.
@@ -133,9 +116,6 @@ class ChargingStationDataService:
            Fallback to straight-line distance if routing is unavailable.
         3) Sort the filtered set by the selected preference and return top N.
         """
-        if self.charger_data.empty:
-            return []
-
         preference_radius = SEARCH_CONFIG.get('PREFERENCE_RADIUS_KM', 10.0)
         prefilter_radius = SEARCH_CONFIG.get(
             'PREFERENCE_PREFILTER_KM', max(12.0, preference_radius))
@@ -276,26 +256,7 @@ class ChargingStationDataService:
                     route_stations, start_coords, end_coords)
             return route_stations
         else:
-            logger.warning(
-                "No stations found along route corridor; trying destination-nearby fallback")
-            fallback_radius = max(8.0, min(route_distance * 0.5, 20.0))
-            nearby_destination = self.get_nearby_stations(
-                end_coords, radius_km=fallback_radius)
-            if nearby_destination:
-                for station in nearby_destination:
-                    station_coords = (
-                        station.get('latitude'),
-                        station.get('longitude')
-                    )
-                    if isinstance(station_coords[0], (int, float)) and isinstance(station_coords[1], (int, float)):
-                        station['distance_from_start'] = self._calculate_distance(
-                            start_coords, station_coords)
-                        station['distance_from_end'] = self._calculate_distance(
-                            station_coords, end_coords)
-                logger.info(
-                    f"Fallback returned {len(nearby_destination)} stations near destination")
-                return nearby_destination[:SEARCH_CONFIG['MAX_RESULTS']]
-            logger.warning("No stations found in destination-nearby fallback")
+            logger.warning("No stations found along route")
             return []
 
     def _get_stations_along_route(self, start_coords: Tuple[float, float],
@@ -303,9 +264,6 @@ class ChargingStationDataService:
                                   route_distance: float,
                                   route_info: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
         """Get stations strategically placed along the route"""
-        if self.charger_data.empty:
-            return []
-
         # Calculate optimal search radius based on route distance
         # Add a small floor to avoid too-small radius on short routes
         search_radius = max(5.0, min(route_distance * 0.3,
@@ -324,45 +282,57 @@ class ChargingStationDataService:
         except Exception:
             polyline = None
 
-        # If no real-time polyline, fallback to a straight-line corridor so route planning
-        # still works when live routing API is unavailable.
+        # If no polyline available, do not attempt alternative techniques
         if not polyline:
             logger.warning(
-                "No polyline available from real-time route; using straight-line fallback corridor")
-            polyline = [start_coords, end_coords]
+                "No polyline available from real-time route; skipping station search along route")
+            return []
 
-        # Get all stations within the search area
-        all_stations = []
-        for _, station in self.charger_data.iterrows():
+        # Query stations around sampled points along the route
+        candidates: List[Dict[str, Any]] = []
+        seen = set()
+        sample_count = min(5, len(polyline))
+        sample_indexes = sorted({round(i * (len(polyline) - 1) / (sample_count - 1))
+                                 for i in range(sample_count)}) if sample_count > 1 else [0]
+
+        for index in sample_indexes:
             try:
-                station_lat = float(station.get(
-                    DATA_CONFIG['CSV_COLUMNS']['LATITUDE'], 0))
-                station_lon = float(station.get(
-                    DATA_CONFIG['CSV_COLUMNS']['LONGITUDE'], 0))
+                sample_lat, sample_lon = polyline[index]
+                stations, _ = get_charging_stations(
+                    latitude=sample_lat,
+                    longitude=sample_lon,
+                    distance_km=search_radius,
+                    limit=SEARCH_CONFIG['MAX_RESULTS']
+                )
+                for station in stations:
+                    key = (str(station.get('name', '')).strip().lower(),
+                           round(float(station.get('latitude', 0)), 5),
+                           round(float(station.get('longitude', 0)), 5))
+                    if key not in seen:
+                        seen.add(key)
+                        candidates.append(station)
+            except Exception as e:
+                logger.warning(
+                    f"Unable to retrieve stations at route sample: {e}")
 
-                if station_lat != 0 and station_lon != 0:
-                    station_coords = (station_lat, station_lon)
-
-                    # Check if station is within search radius of the route
-                    # Use minimum perpendicular distance to any segment of the polyline
-                    min_perp = self._min_perpendicular_distance_to_polyline(
-                        polyline, station_coords)
-                    if min_perp is not None and min_perp <= search_radius:
-                        station_info = {
-                            'name': station.get(DATA_CONFIG['CSV_COLUMNS']['CHARGER_NAME'], 'Unknown'),
-                            'address': station.get(DATA_CONFIG['CSV_COLUMNS']['ADDRESS'], 'Address not available'),
-                            'suburb': station.get(DATA_CONFIG['CSV_COLUMNS']['SUBURB'], 'Unknown'),
-                            'power': station.get(DATA_CONFIG['CSV_COLUMNS']['POWER_KW'], 'Power not available'),
-                            'cost': station.get(DATA_CONFIG['CSV_COLUMNS']['USAGE_COST'], 'Cost not available'),
-                            'points': station.get(DATA_CONFIG['CSV_COLUMNS']['NUMBER_OF_POINTS'], 'Points not available'),
-                            'latitude': station_lat,
-                            'longitude': station_lon,
-                            'distance_from_start': self._calculate_distance(start_coords, station_coords),
-                            'distance_from_end': self._calculate_distance(station_coords, end_coords)
-                        }
-                        all_stations.append(station_info)
+        all_stations = []
+        for station in candidates:
+            try:
+                station_coords = (float(station.get('latitude')),
+                                  float(station.get('longitude')))
+                min_perp = self._min_perpendicular_distance_to_polyline(
+                    polyline, station_coords)
+                if min_perp is not None and min_perp <= search_radius:
+                    station_info = dict(station)
+                    station_info['distance_from_start'] = self._calculate_distance(
+                        start_coords, station_coords)
+                    station_info['distance_from_end'] = self._calculate_distance(
+                        station_coords, end_coords)
+                    all_stations.append(station_info)
             except (ValueError, TypeError):
                 continue
+
+        self.latest_stations = all_stations
 
         logger.info(
             f"Candidate stations within route corridor: {len(all_stations)}")
@@ -498,6 +468,25 @@ class ChargingStationDataService:
 
     def get_station_details(self, station_name: str) -> Optional[Dict[str, Any]]:
         """Get detailed information about a specific station"""
+        for station in self.latest_stations:
+            if station_name.lower() in str(station.get('name', '')).lower():
+                power_str = str(station.get('power', '22'))
+                numbers = re.findall(r'\d+\.?\d*', power_str)
+                power = float(numbers[0]) if numbers else 22.0
+                charging_time = "Unknown"
+                for _, (min_power, max_power, time_estimate) in CHARGING_CONFIG['CHARGING_TIME_ESTIMATES'].items():
+                    if min_power <= power <= max_power:
+                        charging_time = time_estimate
+                        break
+                details = dict(station)
+                details.update({
+                    'power': f"{power}kW",
+                    'points': f"{station.get('points', 'Unknown')} points",
+                    'charging_time': charging_time,
+                    'trip_time': "Calculating..."
+                })
+                return details
+
         if self.charger_data.empty:
             return None
 
@@ -570,45 +559,52 @@ class ChargingStationDataService:
             lat_col = DATA_CONFIG['CSV_COLUMNS']['LATITUDE']
             lon_col = DATA_CONFIG['CSV_COLUMNS']['LONGITUDE']
 
-            # 1) Exact/contains match by suburb (checked first — users type suburbs, not station names)
+            # 1) Exact/contains match by station name
             try:
-                sub_lower = self.charger_data[suburb_col].astype(str).str.lower()
-                mask = (sub_lower == location_clean) | sub_lower.str.contains(location_clean, na=False)
+                mask = self.charger_data[name_col].astype(
+                    str).str.lower().str.contains(location_clean, na=False)
                 rows = self.charger_data[mask]
                 if not rows.empty:
                     row = rows.iloc[0]
                     lat = float(row.get(lat_col, 0))
                     lon = float(row.get(lon_col, 0))
                     if lat != 0 and lon != 0:
-                        logger.info(f"Found coordinates from suburb: '{row.get(suburb_col)}' → ({lat}, {lon})")
+                        logger.info(
+                            f"Found coordinates from station name: '{row.get(name_col)}' → ({lat}, {lon})")
                         return (lat, lon)
             except Exception:
                 pass
 
             # 2) Contains match by address
             try:
-                mask = self.charger_data[addr_col].astype(str).str.lower().str.contains(location_clean, na=False)
+                mask = self.charger_data[addr_col].astype(
+                    str).str.lower().str.contains(location_clean, na=False)
                 rows = self.charger_data[mask]
                 if not rows.empty:
                     row = rows.iloc[0]
                     lat = float(row.get(lat_col, 0))
                     lon = float(row.get(lon_col, 0))
                     if lat != 0 and lon != 0:
-                        logger.info(f"Found coordinates from address: '{row.get(addr_col)}' → ({lat}, {lon})")
+                        logger.info(
+                            f"Found coordinates from address: '{row.get(addr_col)}' → ({lat}, {lon})")
                         return (lat, lon)
             except Exception:
                 pass
 
-            # 3) Exact/contains match by station name (last resort)
+            # 3) Exact/contains match by suburb
             try:
-                mask = self.charger_data[name_col].astype(str).str.lower().str.contains(location_clean, na=False)
+                sub_lower = self.charger_data[suburb_col].astype(
+                    str).str.lower()
+                mask = (sub_lower == location_clean) | sub_lower.str.contains(
+                    location_clean, na=False)
                 rows = self.charger_data[mask]
                 if not rows.empty:
                     row = rows.iloc[0]
                     lat = float(row.get(lat_col, 0))
                     lon = float(row.get(lon_col, 0))
                     if lat != 0 and lon != 0:
-                        logger.info(f"Found coordinates from station name: '{row.get(name_col)}' → ({lat}, {lon})")
+                        logger.info(
+                            f"Found coordinates from suburb: '{row.get(suburb_col)}' → ({lat}, {lon})")
                         return (lat, lon)
             except Exception:
                 pass
