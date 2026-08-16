@@ -8,8 +8,16 @@
     "skipLibCheck": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "typeRoots": ["./src/types", "./node_modules/@types"]
+    // "typeRoots": ["./src/types", "./node_modules/@types"]
   },
-  "include": ["server.ts", "src/**/*.ts", "src/**/*.d.ts"],
-  "exclude": ["src/src", "test", "node_modules"]
+  "include": [
+    "server.ts",
+    "src/**/*.ts",
+    "src/**/*.d.ts"
+  ],
+  "exclude": [
+    "src/src",
+    "test",
+    "node_modules"
+  ]
 }
