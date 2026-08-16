@@ -19,7 +19,7 @@ from environmental_impact_analysis.predict import predict_savings
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("[startup] Training model...")
-    costComparison.model_runner.load_and_train("costComparison/data/dummy_data.csv")
+    costComparison.model_runner.load_and_train()
 
     print("[startup] Loading price prediction model...")
     await pricePrediction.price_prediction_api.startup_event()

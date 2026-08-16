@@ -40,8 +40,8 @@ The Node API normally calls the combined Python service through `PYTHON_API_URL`
 - The combined service cannot import successfully without a valid `GOOGLE_MAPS_API_KEY`, even when only a non-routing feature is being tested.
 - Cost comparison training runs in memory at every combined-service startup. It does not save the selected model to disk.
 - Reliability scoring and charging recommendations are scoring systems, not trained ML models.
-- `npm run dev:price` currently points to the missing directory `server/python-services/price_api`. Use the price endpoints in the combined service instead.
-- `npm run dev:charging-recommendation` currently cannot start independently because `charging_station_recommendation_api/main.py` provides a ranking function but no FastAPI `app`. Use the endpoint mounted by the combined service.
+- Price prediction and charging recommendations are feature packages mounted in
+  the combined service; they are not standalone FastAPI applications.
 - There is currently no Python Dockerfile or Compose file in the repository. Section 9 provides a reproducible development-container command without claiming that EVAT has a production container image.
 
 ## 3. Prerequisites
@@ -49,7 +49,7 @@ The Node API normally calls the combined Python service through `PYTHON_API_URL`
 Install:
 
 - Git;
-- Python 3.11 (recommended; Python 3.10 or newer is required by current type syntax);
+- uv, which manages the project's pinned Python 3.12 environment;
 - Node.js 18 or newer and npm, if running the full EVAT stack;
 - MongoDB access, if running the Node API; and
 - Docker Desktop or Docker Engine only if using the optional Docker workflow.
@@ -58,7 +58,7 @@ Check the tools:
 
 ```bash
 git --version
-python3 --version
+uv --version
 node --version
 npm --version
 docker --version  # optional
@@ -68,54 +68,23 @@ All commands below assume the terminal starts in the EVAT repository root.
 
 ## 4. Install dependencies
 
-### 4.1 Create and activate one shared Python environment
+### 4.1 Install uv
 
-macOS or Linux:
+Follow the [official installation instructions](https://docs.astral.sh/uv/getting-started/installation/).
+For example, use `brew install uv` on macOS with Homebrew or
+`winget install --id=astral-sh.uv -e` on Windows.
 
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip setuptools wheel
-```
+### 4.2 Install the Python dependencies
 
-Windows PowerShell:
-
-```powershell
-py -3.11 -m venv .venv
-.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip setuptools wheel
-```
-
-If PowerShell blocks activation for the current terminal, run:
-
-```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-.venv\Scripts\Activate.ps1
-```
-
-### 4.2 Install the combined service dependencies
+Create and synchronize the Python 3.12 environment from the committed lockfile:
 
 ```bash
-python -m pip install -r python-requirements.txt
+npm run python:sync
 ```
 
-### 4.3 Install standalone-service dependencies
+uv creates `server/python-services/.venv`. It does not need to be activated.
 
-Install these as well when testing all Python services:
-
-```bash
-python -m pip install -r server/python-services/charging_station_recommendation_api/requirements.txt
-python -m pip install -r server/python-services/reliability_scoring_api/requirements.txt
-python -m pip install -r server/python-services/environmental_impact_analysis/requirements.txt
-```
-
-The personalised-insights requirements file pins older versions and also lists Flask and Gunicorn, although the current feature is mounted in FastAPI. Prefer the root requirements for the combined service. Use its dedicated requirements only if reproducing that component in isolation:
-
-```bash
-python -m pip install -r server/python-services/personalisedEVInsights/requirements.txt
-```
-
-### 4.4 Install full-stack dependencies
+### 4.3 Install full-stack dependencies
 
 This step is only required when the React client or Node API will be run:
 
@@ -123,11 +92,14 @@ This step is only required when the React client or Node API will be run:
 npm install
 ```
 
-### 4.5 Confirm important imports
+Alternatively, `npm run install:all` performs both the npm installation and the
+Python synchronization.
+
+### 4.4 Confirm important imports
 
 ```bash
-python -c "import fastapi, uvicorn, pandas, sklearn, joblib, kmodes, lightgbm; print('Combined ML dependencies are available')"
-python -c "import vaderSentiment; print('Reliability dependencies are available')"
+cd server/python-services
+uv run --locked python -c "import fastapi, uvicorn, pandas, sklearn, joblib, kmodes, lightgbm, vaderSentiment; print('Python dependencies are available')"
 ```
 
 ## 5. Configure the environment
@@ -231,7 +203,7 @@ Only load pickle or Joblib artifacts obtained from a trusted EVAT source. These 
 
 ### 6.1 Combined ML service
 
-Activate the virtual environment, then run from the repository root:
+Run from the repository root:
 
 ```bash
 npm run dev:python
@@ -241,7 +213,7 @@ Equivalent direct command:
 
 ```bash
 cd server/python-services
-python -m uvicorn main:app --host 127.0.0.1 --port 5000 --reload
+uv run --locked python -m uvicorn main:app --host 127.0.0.1 --port 5000 --reload
 ```
 
 Wait for the following startup stages:
@@ -266,7 +238,8 @@ The recommendation endpoint is mounted in the combined service:
 curl http://127.0.0.1:5000/docs
 ```
 
-Use `POST /charging-station-recommendations/rank`. Although an npm script and service README describe a standalone process on port 8002, the current module does not define a FastAPI `app`, `/health`, or standalone route. Do not use the standalone command until that application wrapper is implemented.
+Use `POST /charging-station-recommendations/rank`. The recommendation feature
+is intentionally part of the combined API and has no standalone process.
 
 ### 6.3 Reliability scoring service
 
@@ -277,8 +250,8 @@ npm run dev:reliability
 Or:
 
 ```bash
-cd server/python-services/reliability_scoring_api
-python -m uvicorn main:app --reload --host 127.0.0.1 --port 8003
+cd server/python-services
+uv run --locked python -m uvicorn reliability_scoring_api.main:app --reload --host 127.0.0.1 --port 8003
 ```
 
 Open `http://127.0.0.1:8003/health` and `http://127.0.0.1:8003/docs`.
@@ -309,7 +282,7 @@ For a non-reloading local deployment, remove `--reload`:
 
 ```bash
 cd server/python-services
-python -m uvicorn main:app --host 127.0.0.1 --port 5000 --workers 1
+uv run --locked python -m uvicorn main:app --host 127.0.0.1 --port 5000 --workers 1
 ```
 
 Use one worker for the current combined application because each worker independently trains and stores the cost-comparison model in memory.
@@ -346,21 +319,22 @@ Before replacing the CSV:
 
 The notebook `server/python-services/environmental_impact_analysis/Clean_Model_Code.ipynb` trains and writes `co2_savings_model.pkl`.
 
-Install Jupyter separately:
+Run Jupyter as a one-off tool from the environmental feature directory:
 
 ```bash
-python -m pip install jupyterlab
 cd server/python-services/environmental_impact_analysis
-python -m jupyter lab Clean_Model_Code.ipynb
+uv run --project .. --with jupyterlab python -m jupyter lab Clean_Model_Code.ipynb
 ```
 
 Run all notebook cells from top to bottom. Confirm that the final artifact is created in the same directory:
 
 ```bash
-python predict.py
+uv run --locked --project .. python predict.py
 ```
 
-The environmental model is not mounted in the current combined FastAPI application. `predict.py` is an offline verification utility, while the Node environmental-impact feature currently uses database fields rather than this artifact.
+The environmental model is mounted at `POST /environmentalImpact/predict` in
+the combined FastAPI application. `predict.py` is also an offline verification
+utility.
 
 ### 7.3 Artifact-only models: training is not reproducible here
 
@@ -381,7 +355,9 @@ To replace one safely:
 7. run schema, health, and representative prediction checks; and
 8. replace the committed artifact only after review.
 
-For price prediction, use `PRICE_MODEL_PATH` to test a candidate without overwriting the current model. Personalised insights and demand forecasting currently use hard-coded relative artifact paths, so test replacements on a branch and retain the original files.
+For price prediction, use `PRICE_MODEL_PATH` to test a candidate without
+overwriting the current model. Test other replacements on a branch and retain
+the original files.
 
 ### 7.4 Non-training services
 
@@ -437,16 +413,11 @@ curl --fail -X POST http://127.0.0.1:8003/score \
 
 ### 8.5 Automated tests
 
-The recommendation filtering and ranking units currently have working Python tests. Run them from the repository root with both import roots configured:
+Run all Python tests from the repository root:
 
 ```bash
-PYTHONPATH="$PWD/server/python-services:$PWD/server/python-services/charging_station_recommendation_api" \
-  .venv/bin/python -m pytest \
-  server/python-services/charging_station_recommendation_api/tests/test_candidate_filters.py \
-  server/python-services/charging_station_recommendation_api/tests/test_ranking_service.py
+npm run test:python
 ```
-
-On Windows PowerShell, set `$env:PYTHONPATH` to the same two absolute directories separated by a semicolon, then run `python -m pytest` with the two test paths. The current `test_main.py` expects a standalone FastAPI `app` that the module does not define, so it fails during collection and is excluded above.
 
 Run the full-stack backend tests separately from the repository root:
 
@@ -460,7 +431,7 @@ npm run test:server
 
 The repository currently contains only `server/node-api/Dockerfile`. That image builds the Node API and does not package the Python ML services. There is no committed Python Dockerfile or Docker Compose definition.
 
-The following one-off container is suitable for local verification of the combined Python service. It mounts the working tree, installs dependencies into a disposable Python 3.11 container, and leaves the repository unchanged.
+The following one-off container is suitable for local verification of the combined Python service. It mounts the working tree, installs dependencies into a disposable Python 3.12 container, and leaves the repository unchanged.
 
 macOS or Linux:
 
@@ -471,8 +442,8 @@ docker run --rm -it \
   --env-file server/node-api/.env \
   -v "$PWD:/workspace" \
   -w /workspace/server/python-services \
-  python:3.11-slim \
-  sh -lc "apt-get update && apt-get install -y --no-install-recommends libgomp1 && rm -rf /var/lib/apt/lists/* && pip install --no-cache-dir -r /workspace/python-requirements.txt && uvicorn main:app --host 0.0.0.0 --port 5000"
+  python:3.12-slim \
+  sh -lc "apt-get update && apt-get install -y --no-install-recommends libgomp1 && rm -rf /var/lib/apt/lists/* && pip install --no-cache-dir uv && uv sync --locked && uv run python -m uvicorn main:app --host 0.0.0.0 --port 5000"
 ```
 
 Windows PowerShell:
@@ -484,8 +455,8 @@ docker run --rm -it `
   --env-file server/node-api/.env `
   -v "${PWD}:/workspace" `
   -w /workspace/server/python-services `
-  python:3.11-slim `
-  sh -lc "apt-get update && apt-get install -y --no-install-recommends libgomp1 && rm -rf /var/lib/apt/lists/* && pip install --no-cache-dir -r /workspace/python-requirements.txt && uvicorn main:app --host 0.0.0.0 --port 5000"
+  python:3.12-slim `
+  sh -lc "apt-get update && apt-get install -y --no-install-recommends libgomp1 && rm -rf /var/lib/apt/lists/* && pip install --no-cache-dir uv && uv sync --locked && uv run python -m uvicorn main:app --host 0.0.0.0 --port 5000"
 ```
 
 Verify from the host:
@@ -521,7 +492,7 @@ On macOS, Control Center or AirPlay Receiver commonly owns port 5000. Either dis
 
 ```bash
 cd server/python-services
-python -m uvicorn main:app --host 127.0.0.1 --port 5001 --reload
+uv run --locked python -m uvicorn main:app --host 127.0.0.1 --port 5001 --reload
 ```
 
 Set the Node API to the same address:
@@ -544,27 +515,36 @@ Get-NetTCPConnection -LocalPort 5000 -State Listen  # Windows PowerShell
 
 ### `FileNotFoundError` for a model, CSV, or feature file
 
-Cause: the combined service was started from the wrong working directory or an artifact is missing.
+Cause: a required artifact is missing or an override environment variable points
+to an invalid file.
 
-Fix: run `npm run dev:python` from the repository root, or change to `server/python-services` before invoking Uvicorn. Then run the artifact checks in Section 5.5.
+Fix: run `npm run test:python` to exercise the artifact-loading smoke tests, then
+check that all committed artifacts are present.
 
-### `uvicorn: command not found` or a missing Python module
+### `uv: command not found` or a missing Python module
 
-Activate `.venv` and install the appropriate requirements. A more reliable invocation is:
+Install uv, then synchronize the locked environment:
 
 ```bash
-python -m uvicorn main:app --host 127.0.0.1 --port 5000
+npm run python:sync
 ```
 
-For `No module named 'vaderSentiment'`, install the reliability requirements. For `field_validator` import errors, reinstall the root requirements so that the current Pydantic version matches FastAPI.
+Do not install missing application modules individually with pip. Add legitimate
+dependencies to `pyproject.toml` and update the lockfile instead.
 
 ### A pickle or Joblib artifact fails to load
 
 Model artifacts can depend on the Python and library versions used during training.
 
-1. use Python 3.11;
-2. recreate `.venv` rather than mixing global packages;
-3. reinstall the documented requirements;
+The currently committed artifacts contain estimators serialized by different
+scikit-learn versions (1.8 and 1.9). The project initially locks scikit-learn
+1.8 because the price pipeline depends on it, but the environmental artifact
+may emit compatibility warnings until the ML team supplies matching training
+metadata or re-exports the models from one agreed environment.
+
+1. use the locked Python 3.12 environment;
+2. recreate `.venv` with `npm run python:sync` rather than mixing global packages;
+3. run the model artifact smoke tests;
 4. confirm the artifact was not truncated; and
 5. obtain the training environment metadata from the artifact owner if incompatibility remains.
 
@@ -578,13 +558,10 @@ Cost comparison trains three candidate models at startup. Wait for the model R²
 
 The weather integration accepts future dates only, up to 16 days ahead. Use a postcode returned by `/demandForecasting/postcodes` and a supported future date. The service falls back to 20°C when Open-Meteo cannot be reached.
 
-### `npm run dev:price` fails
+### Price or charging recommendation endpoints are unavailable
 
-The script currently changes into `server/python-services/price_api`, which does not exist. Price prediction is already mounted under `/pricePrediction/*` in the combined service. Start `npm run dev:python` and use those endpoints.
-
-### `npm run dev:charging-recommendation` fails
-
-The current recommendation module exports `rank_charging_stations` for the combined API but does not define a standalone FastAPI `app`. Use `npm run dev:python` and the combined `/charging-station-recommendations/rank` endpoint. The same mismatch causes `tests/test_main.py` to fail during test collection; the working unit-test command is in Section 8.5.
+Both features are mounted in the combined application. Start `npm run dev:python`
+and use `/pricePrediction/*` or `/charging-station-recommendations/rank`.
 
 ### Node returns a Python connection error
 
@@ -618,13 +595,11 @@ Before marking an ML deployment change complete:
 ## 12. Quick command reference
 
 ```bash
-# Activate Python
-source .venv/bin/activate
+# Install all JavaScript and Python dependencies
+npm run install:all
 
-# Install all current Python dependencies
-python -m pip install -r python-requirements.txt
-python -m pip install -r server/python-services/charging_station_recommendation_api/requirements.txt
-python -m pip install -r server/python-services/reliability_scoring_api/requirements.txt
+# Synchronize only the locked Python environment
+npm run python:sync
 
 # Run combined ML service
 npm run dev:python
@@ -640,9 +615,6 @@ curl --fail http://127.0.0.1:5000/
 curl --fail http://127.0.0.1:5000/pricePrediction/health
 curl --fail http://127.0.0.1:8003/health
 
-# Test charging recommendation units (run from repository root)
-PYTHONPATH="$PWD/server/python-services:$PWD/server/python-services/charging_station_recommendation_api" \
-  .venv/bin/python -m pytest \
-  server/python-services/charging_station_recommendation_api/tests/test_candidate_filters.py \
-  server/python-services/charging_station_recommendation_api/tests/test_ranking_service.py
+# Run all Python tests
+npm run test:python
 ```

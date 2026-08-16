@@ -79,23 +79,31 @@ PYTHON_API_URL = "http://127.0.0.1:5000"
 
 Because we use NPM workspaces, you do not need to navigate into individual folders to install packages.
 
-1. Install all dependencies (Frontend & Backend):
-   Navigate to the root of the repository and run:
+1. Install [uv](https://docs.astral.sh/uv/getting-started/installation/), the
+   Python project manager used by EVAT. For example:
+
    ```sh
-   npm install
+   # macOS with Homebrew
+   brew install uv
+
+   # macOS or Linux with the standalone installer
+   curl -LsSf https://astral.sh/uv/install.sh | sh
+
+   # Windows with WinGet
+   winget install --id=astral-sh.uv -e
    ```
 
-2. Install necessary Python packages:
-   There are two ways of doing this, creating a Python virtual environment or installing packages globally.
-   **Virtual Environment Setup (Recommended)**
-   If you *aren't* using VS Code instructions on how to create a Python virtual environment can be found [here](https://www.w3schools.com/python/python_virtualenv.asp).
-   If you are using VS Code install the official Python extension, then access the Python Logo button on the left sidebar. Use any environment manager of your choice, for this walkthrough venv will be used. Create a new virtual environment by pressing the +.
-   **Package installation for Global and Virtual Environment**
-   Launch a new terminal in the root directory of the project and installing the packages by running:
+   Verify that it is available with `uv --version`.
+
+2. Install all JavaScript and Python dependencies from the repository root:
+
    ```sh
-   pip install -r python-requirements.txt
+   npm run install:all
    ```
 
+   To prepare only the Python environment, run `npm run python:sync`. uv creates
+   `server/python-services/.venv` and installs the versions recorded in
+   `server/python-services/uv.lock`; manual activation is not required.
 
 3. Start the dev stack:
    From the root of the repository, run:
@@ -117,6 +125,12 @@ Because we use NPM workspaces, you do not need to navigate into individual folde
       ```sh
       npm run dev:python
       ```
+   - Start the standalone reliability scoring API when required:
+      ```sh
+      npm run dev:reliability
+      ```
+
+   Run the Python tests with `npm run test:python`.
 
 ---
 

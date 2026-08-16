@@ -18,25 +18,24 @@ Python FastAPI service for the EVAT Reliability Scoring use case from
 
 ## Setup
 
-```powershell
-cd server/python-services/reliability_scoring_api
-python -m venv .venv
-.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
+From the repository root:
+
+```sh
+npm run python:sync
 ```
 
 ## Run
 
 From the repository root:
 
-```powershell
+```sh
 npm run dev:reliability
 ```
 
-Or from this folder:
+Or from `server/python-services`:
 
-```powershell
-uvicorn main:app --reload --host 127.0.0.1 --port 8003
+```sh
+uv run --locked python -m uvicorn reliability_scoring_api.main:app --reload --host 127.0.0.1 --port 8003
 ```
 
 Health: [http://127.0.0.1:8003/health](http://127.0.0.1:8003/health)
