@@ -48,3 +48,22 @@ Each Python service should include tests for:
 4. Add tests to one additional ML service.
 5. Document how tests are run locally.
 6. Review future CI integration.
+
+Environmental Impact Analysis
+Status: Automated testing implemented
+
+Current results:
+- 4 automated tests passing
+- predict.py coverage: 86%
+- overall test coverage: 94%
+
+Covered behaviour:
+- model loading
+- valid prediction
+- response structure
+- numeric and finite prediction output
+- missing required input raises ValueError
+
+Observation:
+- joblib model loading currently produces NumPy deprecation warnings
+- current input validation is handled by the trained sklearn pipeline rather than an explicit validation layer
