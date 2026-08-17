@@ -69,6 +69,7 @@ GOOGLE_APPLICATION_CREDENTIALS="./google-credentials.json"
 EMAIL_USER = "sender@example.com"
 EMAIL_PASS = "See Nodemailer section"
 ADMIN_EMAIL = "receiver@example.com"
+PYTHON_API_URL = "http://127.0.0.1:5000"
 ```
 ### IMPORTANT: Ensure .env and your .json credential files are never committed to version control!
 
@@ -84,7 +85,19 @@ Because we use NPM workspaces, you do not need to navigate into individual folde
    npm install
    ```
 
-2. Start the dev stack:
+2. Install necessary Python packages:
+   There are two ways of doing this, creating a Python virtual environment or installing packages globally.
+   **Virtual Environment Setup (Recommended)**
+   If you *aren't* using VS Code instructions on how to create a Python virtual environment can be found [here](https://www.w3schools.com/python/python_virtualenv.asp).
+   If you are using VS Code install the official Python extension, then access the Python Logo button on the left sidebar. Use any environment manager of your choice, for this walkthrough venv will be used. Create a new virtual environment by pressing the +.
+   **Package installation for Global and Virtual Environment**
+   Launch a new terminal in the root directory of the project and installing the packages by running:
+   ```sh
+   pip install -r python-requirements.txt
+   ```
+
+
+3. Start the dev stack:
    From the root of the repository, run:
    ```sh
    npm run dev
@@ -100,6 +113,10 @@ Because we use NPM workspaces, you do not need to navigate into individual folde
       ```sh
       npm run dev:client
       ```
+   - Start the Python ML services:
+      ```sh
+      npm run dev:python
+      ```
 
 ---
 
@@ -110,8 +127,10 @@ Because we use NPM workspaces, you do not need to navigate into individual folde
 2. Under 'API & Services', enable:
    - Places API (New),
    - Places API,
-   - Distance Matrix API, and
-   - Directions API.
+   - Distance Matrix API,
+   - Directions API,
+   - Maps Javascript API, and
+   - Geocoding API.
 3. Under 'Credentials', click Create Credentials -> API key. Copy this into GOOGLE_MAPS_API_KEY.
 4. Click Create Credentials -> Service account. Name it, assign the Viewer role, and click 'Done'.
 5. Click your new service account -> Keys -> Add key -> Create new key -> JSON.
@@ -144,7 +163,12 @@ npm run test:server
 
 ---
 
+## 📚 Machine Learning Deployment
+
+For local Python setup, model training support, service deployment, Docker usage, verification, and troubleshooting, see the [Machine Learning Deployment Guide](docs/MACHINE_LEARNING_DEPLOYMENT_GUIDE.md).
+
+---
+
 ## 🚧 Known Issues / Fixes Required
 
 Invalid Token Error: An invalid token error is currently occurring when performing GET /api/vehicle, even though the Bearer token appears correct when checked in the code. Needs investigation.
-

@@ -1,6 +1,7 @@
 import axios from "axios";
 
-const RECOMMENDATION_API_URL = process.env.RECOMMENDATION_API_URL || "http://127.0.0.1:8002";
+//const RECOMMENDATION_API_URL = process.env.RECOMMENDATION_API_URL || "http://127.0.0.1:8002";
+const PYTHON_API = process.env.PYTHON_API_URL;
 
 export interface RankChargingStationsRequest {
   userId: string;
@@ -38,7 +39,7 @@ export default class RecommendationRankingService {
   ): Promise<RankChargingStationsResponse> {
     try {
       const response = await axios.post(
-        `${RECOMMENDATION_API_URL}/charging-station-recommendations/rank`,
+        `${PYTHON_API}/charging-station-recommendations/rank`,
         payload
       );
       return response.data as RankChargingStationsResponse;

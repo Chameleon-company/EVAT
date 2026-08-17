@@ -21,13 +21,13 @@ class ChargingStationCandidate(BaseModel):
     membershipRequired: Optional[str] = None
     accessKeyRequired: Optional[str] = None
     isOperational: bool
-    distanceKm: float
+    distanceKm: Optional[float] = None
     durationMin: Optional[float] = None
     durationInTrafficMin: Optional[float] = None
     roadTrafficCondition: Optional[str] = None
     energyNominalKwh: Optional[float] = None
     energyNeededKwh: Optional[float] = None
-    socWithContingencyPct: float
+    socWithContingencyPct: Optional[float] = None
     temperatureC: Optional[float] = None
     windSpeedMs: Optional[float] = None
     windDirectionDeg: Optional[float] = None

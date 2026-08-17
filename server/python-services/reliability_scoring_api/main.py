@@ -360,7 +360,17 @@ def get_suburbs() -> List[str]:
     df = load_data()
     if "Suburb" not in df.columns:
         return []
-    return sorted(df["Suburb"].dropna().astype(str).unique().tolist())
+    suburbs = (
+        df["Suburb"]
+        .dropna()
+        .astype(str)
+        .str.strip()
+        .str.lower()
+        .unique()
+        .tolist()
+    )
+    # Hide filler values used only when the source suburb is missing.
+    return sorted(s for s in suburbs if s and s not in {"unknown", "nan", "none"})
 
 
 def _apply_filters(
