@@ -67,3 +67,28 @@ Covered behaviour:
 Observation:
 - joblib model loading currently produces NumPy deprecation warnings
 - current input validation is handled by the trained sklearn pipeline rather than an explicit validation layer
+
+Price Prediction
+Status: Automated testing implemented
+
+Current results:
+- 11 automated tests passing
+- price_prediction_api.py coverage: 85%
+- overall Price Prediction test coverage: 87%
+
+Covered behaviour:
+- numeric conversion helpers
+- EV and non-EV engine size handling
+- health/service state
+- unavailable model and schema error handling
+- single prediction
+- batch prediction
+- prediction response structure
+- extra input field detection
+
+Environment findings:
+- XGBoost requires libomp on macOS
+- persisted model uses a different scikit-learn version from the current environment
+- XGBoost model serialization compatibility warning identified
+- NumPy/joblib deprecation warnings identified
+- datetime.utcnow() deprecation identified
