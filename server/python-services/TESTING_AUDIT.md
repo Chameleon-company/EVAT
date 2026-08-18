@@ -92,3 +92,19 @@ Environment findings:
 - XGBoost model serialization compatibility warning identified
 - NumPy/joblib deprecation warnings identified
 - datetime.utcnow() deprecation identified
+
+Combined Standardised Test Run
+
+Current result:
+- 23 automated tests passing across three EVAT Python/ML services
+
+Services covered:
+- Charging Station Recommendation API – 8 tests
+- Environmental Impact Analysis – 4 tests
+- Price Prediction – 11 tests
+
+Key findings:
+- Existing Charging Station Recommendation API tests were tied to the older standalone service structure and were updated for isolated monorepo-compatible testing.
+- Environmental Impact Analysis now includes model loading, prediction, schema and invalid-input tests.
+- Price Prediction now includes helper, service-state, single prediction, batch prediction and extra-feature validation tests.
+- Dependency and compatibility warnings were identified for Starlette/httpx, NumPy/joblib, scikit-learn, XGBoost and datetime usage.
