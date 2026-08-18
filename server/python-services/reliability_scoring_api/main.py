@@ -14,8 +14,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
 import pandas as pd
-from fastapi import FastAPI, HTTPException, Query
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
@@ -24,18 +23,20 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 # ---------------------------------------------------------------------------
 
 BASE_DIR = Path(__file__).resolve().parent
-DATA_PATH = Path(
-    os.getenv(
-        "RELIABILITY_DATA_PATH",
-        str(BASE_DIR / "data" / "EVAT-Final-Enriched.csv"),
-    )
+
+
+def _resolve_data_path(raw_path: str) -> Path:
+    path = Path(raw_path)
+    return path if path.is_absolute() else BASE_DIR / path
+
+
+DATA_PATH = _resolve_data_path(
+    os.getenv("RELIABILITY_DATA_PATH", "data/EVAT-Final-Enriched.csv")
 )
 STATUS_WEIGHT = float(os.getenv("RELIABILITY_STATUS_WEIGHT", "0.6"))
 POWER_WEIGHT = float(os.getenv("RELIABILITY_POWER_WEIGHT", "0.4"))
 SENTIMENT_POSITIVE_THRESHOLD = 0.2
 SENTIMENT_NEGATIVE_THRESHOLD = -0.2
-HOST = os.getenv("RELIABILITY_API_HOST", "127.0.0.1")
-PORT = int(os.getenv("RELIABILITY_API_PORT", "8003"))
 
 # ---------------------------------------------------------------------------
 # Request / response models
@@ -591,36 +592,20 @@ def top_stations_data(
 
 
 # ---------------------------------------------------------------------------
-# FastAPI app
+# API router
 # ---------------------------------------------------------------------------
 
-app = FastAPI(
-    title="EVAT Reliability Scoring API",
-    description=(
-        "Charger reliability scoring and sentiment analysis "
-        "(from EVAT-Data-Science Reliability Scoring use case)."
-    ),
-    version="1.0.0",
-)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+router = APIRouter()
 
 
-@app.on_event("startup")
-def startup() -> None:
+def initialize() -> None:
     try:
         load_data()
     except FileNotFoundError as exc:
         print(f"WARNING: {exc}")
 
 
-@app.get("/health", response_model=HealthResponse)
+@router.get("/health", response_model=HealthResponse)
 def health() -> HealthResponse:
     try:
         if not is_loaded():
@@ -640,7 +625,7 @@ def health() -> HealthResponse:
     )
 
 
-@app.get("/suburbs")
+@router.get("/suburbs")
 def suburbs() -> dict:
     try:
         return {"suburbs": get_suburbs()}
@@ -648,7 +633,7 @@ def suburbs() -> dict:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
-@app.get("/summary", response_model=SummaryResponse)
+@router.get("/summary", response_model=SummaryResponse)
 def summary(
     suburb: Optional[str] = Query(default=None, description="Filter by suburb"),
 ) -> SummaryResponse:
@@ -658,7 +643,7 @@ def summary(
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
-@app.get("/stations", response_model=StationListResponse)
+@router.get("/stations", response_model=StationListResponse)
 def list_stations(
     suburb: Optional[str] = Query(default=None),
     sentiment: Optional[str] = Query(
@@ -688,7 +673,7 @@ def list_stations(
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
-@app.get("/stations/{charger_id}", response_model=StationRecord)
+@router.get("/stations/{charger_id}", response_model=StationRecord)
 def get_station(charger_id: str) -> StationRecord:
     try:
         station = get_station_data(charger_id)
@@ -700,7 +685,7 @@ def get_station(charger_id: str) -> StationRecord:
     return StationRecord(**station)
 
 
-@app.get("/top", response_model=StationListResponse)
+@router.get("/top", response_model=StationListResponse)
 def top_stations(
     kind: str = Query(
         default="positive",
@@ -729,7 +714,7 @@ def top_stations(
     )
 
 
-@app.post("/score", response_model=StationScoreResponse)
+@router.post("/score", response_model=StationScoreResponse)
 def score_station(body: StationScoreRequest) -> StationScoreResponse:
     status_score, power_score, reliability = compute_reliability_score(
         status=body.status,
@@ -751,7 +736,7 @@ def score_station(body: StationScoreRequest) -> StationScoreResponse:
     )
 
 
-@app.post("/score/batch", response_model=BatchStationScoreResponse)
+@router.post("/score/batch", response_model=BatchStationScoreResponse)
 def score_stations_batch(body: BatchStationScoreRequest) -> BatchStationScoreResponse:
     if not body.records:
         raise HTTPException(status_code=400, detail="records must be a non-empty array")
@@ -785,7 +770,7 @@ def score_stations_batch(body: BatchStationScoreRequest) -> BatchStationScoreRes
     )
 
 
-@app.post("/sentiment", response_model=SentimentResponse)
+@router.post("/sentiment", response_model=SentimentResponse)
 def analyze_sentiment(body: SentimentRequest) -> SentimentResponse:
     compound, label = score_text(body.text)
     return SentimentResponse(
@@ -793,10 +778,3 @@ def analyze_sentiment(body: SentimentRequest) -> SentimentResponse:
         sentiment_score=compound,
         sentiment_label=label,
     )
-
-
-if __name__ == "__main__":
-    import uvicorn
-
-    print(f"Data: {DATA_PATH}")
-    uvicorn.run("main:app", host=HOST, port=PORT, reload=True)

@@ -93,7 +93,7 @@ Because we use NPM workspaces, you do not need to navigate into individual folde
    **Package installation for Global and Virtual Environment**
    Launch a new terminal in the root directory of the project and installing the packages by running:
    ```sh
-   pip install -r python-requirements.txt
+   pip install -r server/python-services/requirements.txt
    ```
 
 

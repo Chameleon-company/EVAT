@@ -27,21 +27,16 @@ pip install -r requirements.txt
 
 ## Run
 
-From the repository root:
+Reliability scoring is mounted in the consolidated Python API. From the
+repository root:
 
 ```powershell
-npm run dev:reliability
+npm run dev:python
 ```
 
-Or from this folder:
+Health: [http://127.0.0.1:5000/reliability/health](http://127.0.0.1:5000/reliability/health)
 
-```powershell
-uvicorn main:app --reload --host 127.0.0.1 --port 8003
-```
-
-Health: [http://127.0.0.1:8003/health](http://127.0.0.1:8003/health)
-
-Swagger: [http://127.0.0.1:8003/docs](http://127.0.0.1:8003/docs)
+Swagger: [http://127.0.0.1:5000/docs](http://127.0.0.1:5000/docs)
 
 ## Endpoints
 
@@ -57,8 +52,8 @@ Swagger: [http://127.0.0.1:8003/docs](http://127.0.0.1:8003/docs)
 | POST | `/score/batch` | Batch scoring (shared max power normalization) |
 | POST | `/sentiment` | VADER label for free-text feedback |
 
-Node proxies this via `RELIABILITY_API_URL` (default `http://localhost:8003`)
-under `/api/reliability/*`.
+Node proxies this via `RELIABILITY_API_URL` (default
+`http://localhost:8000/reliability`) under `/api/reliability/*`.
 
 ## Optional env
 
