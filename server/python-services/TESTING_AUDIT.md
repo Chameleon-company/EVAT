@@ -6,7 +6,7 @@ This document records the current testing state of the Python and machine
 learning services in EVAT. It will be updated as the standardised testing
 framework is introduced.
 
-## Current Services
+## Initial Testing State
 
 | Service | Requirements file | Existing tests | Initial status |
 |---|---:|---:|---|
@@ -108,3 +108,32 @@ Key findings:
 - Environmental Impact Analysis now includes model loading, prediction, schema and invalid-input tests.
 - Price Prediction now includes helper, service-state, single prediction, batch prediction and extra-feature validation tests.
 - Dependency and compatibility warnings were identified for Starlette/httpx, NumPy/joblib, scikit-learn, XGBoost and datetime usage.
+
+## Current Testing State
+
+| Service | Tests | Current status |
+|---|---:|---|
+| Charging Station Recommendation | 8 | Passing |
+| Environmental Impact Analysis | 4 | Passing |
+| Price Prediction | 11 | Passing |
+| Demand Forecasting | 0 | Future work |
+| Cost Comparison | 0 | Future work |
+| Personalised EV Insights | 0 | Future work |
+| Reliability Scoring | 0 | Future work |
+| Weather-Aware Routing | 0 | Future work |
+
+## Run standard ML tests
+
+python -m pytest \
+  charging_station_recommendation_api/tests \
+  environmental_impact_analysis/tests \
+  pricePrediction/tests
+
+## Run with coverage
+
+python -m pytest \
+  environmental_impact_analysis/tests \
+  pricePrediction/tests \
+  --cov=environmental_impact_analysis \
+  --cov=pricePrediction \
+  --cov-report=term-missing
