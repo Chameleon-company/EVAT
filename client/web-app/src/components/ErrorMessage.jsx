@@ -30,11 +30,13 @@ function ErrorMessage({error}) {
 
   // return the error message container
   return (
-    <div className="validation error">
-      <AlertCircle size={20} />
-      <span className="text-xsmall font-bold center">{message}</span>
-    </div>
-  );
+    <div className="mb-3 flex items-center gap-2 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-red-700">
+      <AlertCircle className="h-5 w-5 flex-shrink-0" />
+      <span className="text-sm font-semibold">
+        {message}
+        </span>
+        </div>
+        );
 }
 
 export default ErrorMessage;
