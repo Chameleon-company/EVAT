@@ -1,3 +1,5 @@
+import fetch from "node-fetch";
+
 import EnvImpactAnalysisRepository from "../repositories/env-impact-analysis-repository";
 import { IVehicle } from "../models/vehicle-model";
 import { IIceVehicle } from "../models/ice-vehicle-model";
@@ -9,9 +11,11 @@ import {
 
 type VehicleLike = {
   _id: any;
+  model_release_year?: number;
   make?: string;
   model?: string;
   variant?: string;
+  body_style?: string;
   fuel_type?: string;
   co2_emissions_combined?: number;
   fuel_consumption_combined?: number;
@@ -44,22 +48,120 @@ function toImpactSummary(v: VehicleLike): IVehicleImpactSummary {
   };
 }
 
+function normaliseIceFuelType(fuelType?: string): string {
+  const value = (fuelType || "").trim().toLowerCase();
+
+  if (value === "diesel") return "Diesel";
+  if (value === "petrol 91ron") return "Petrol91";
+  if (value === "petrol 95ron") return "Petrol95";
+  if (value === "petrol 98ron") return "Petrol98";
+
+  throw new Error(
+    `Unsupported ICE fuel type for Environmental Impact model: ${fuelType}`
+  );
+}
+
+function buildModelPayload(ev: VehicleLike, ice: VehicleLike) {
+  if (!ev.make || !ice.make) {
+    throw new Error(
+      "Vehicle make is required for Environmental Impact prediction"
+    );
+  }
+
+  if (!ev.body_style || !ice.body_style) {
+    throw new Error(
+      "Vehicle body style is required for Environmental Impact prediction"
+    );
+  }
+
+  if (
+    ev.model_release_year === undefined ||
+    ice.model_release_year === undefined
+  ) {
+    throw new Error(
+      "Vehicle release year is required for Environmental Impact prediction"
+    );
+  }
+
+  if (ice.fuel_consumption_combined === undefined) {
+    throw new Error(
+      "ICE fuel consumption is required for Environmental Impact prediction"
+    );
+  }
+
+  const FuelType_ICE = normaliseIceFuelType(ice.fuel_type);
+
+  const emissionFactor = FuelType_ICE === "Diesel" ? 26.5 : 23.2;
+
+  return {
+    Make_EV: ev.make,
+    Make_ICE: ice.make,
+    BodyStyle_EV: ev.body_style,
+    BodyStyle_ICE: ice.body_style,
+    FuelType_ICE,
+    YearDiff: ev.model_release_year - ice.model_release_year,
+    ICE_CO2_Baseline:
+      ice.fuel_consumption_combined * emissionFactor,
+  };
+}
+
+async function getModelPrediction(
+  ev: VehicleLike,
+  ice: VehicleLike
+): Promise<number> {
+  const pythonApi =
+    process.env.PYTHON_API_URL || "http://127.0.0.1:5000";
+
+  const response = await fetch(
+    `${pythonApi}/environmentalImpact/predict`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(buildModelPayload(ev, ice)),
+    }
+  );
+
+  if (!response.ok) {
+    const message = await response.text();
+
+    throw new Error(
+      `Environmental Impact ML service error (${response.status}): ${message}`
+    );
+  }
+
+  const result = (await response.json()) as {
+    Predicted_CO2_Savings?: number;
+  };
+
+  if (typeof result.Predicted_CO2_Savings !== "number") {
+    throw new Error(
+      "Environmental Impact ML service returned an invalid prediction"
+    );
+  }
+
+  return result.Predicted_CO2_Savings;
+}
+
 function buildComparison(
   ev: IVehicleImpactSummary,
-  ice: IVehicleImpactSummary
+  ice: IVehicleImpactSummary,
+  predictedCo2SavedPerKm: number
 ): IEnvImpactComparison {
-  const evCo2 = ev.co2EmissionsCombined ?? ev.fuelLifeCycleCo2 ?? 0;
-  const iceCo2 = ice.co2EmissionsCombined ?? ice.fuelLifeCycleCo2 ?? 0;
-  const co2SavedPerKm = iceCo2 - evCo2;
+  const co2SavedPerKm = predictedCo2SavedPerKm;
 
   const evAnnual = ev.annualTailpipeCo2 ?? 0;
   const iceAnnual = ice.annualTailpipeCo2 ?? 0;
   const co2SavedAnnual = iceAnnual - evAnnual;
 
-  const evBetter = evCo2 <= iceCo2;
+  const evBetter = co2SavedPerKm >= 0;
+
   const summary = evBetter
-    ? `The EV emits ${Math.round(co2SavedPerKm)} g/km less CO2 (${Math.round(co2SavedAnnual)} kg/year).`
-    : "The ICE vehicle has lower tailpipe CO2 in this comparison.";
+    ? `The EV is predicted to save ${Math.round(
+        co2SavedPerKm
+      )} g/km CO2 compared with the selected ICE vehicle.`
+    : "The model predicts the ICE vehicle has lower CO2 emissions in this comparison.";
 
   return {
     co2SavedPerKm: co2SavedPerKm >= 0 ? co2SavedPerKm : 0,
@@ -82,6 +184,7 @@ export default class EnvImpactAnalysisService {
     if (!evVehicle) {
       throw new Error(`EV vehicle not found: ${evVehicleId}`);
     }
+
     if (!iceVehicle) {
       throw new Error(`ICE vehicle not found: ${iceVehicleId}`);
     }
@@ -91,17 +194,34 @@ export default class EnvImpactAnalysisService {
         `Vehicle ${evVehicleId} is not an electric vehicle (fuel_type: ${evVehicle.fuel_type})`
       );
     }
+
     if (isEv(iceVehicle as unknown as VehicleLike)) {
       throw new Error(
         `Vehicle ${iceVehicleId} is an electric vehicle. Please select an ICE (petrol/diesel) vehicle for comparison.`
       );
     }
 
-    const ev = toImpactSummary(evVehicle as unknown as VehicleLike);
-    const ice = toImpactSummary(iceVehicle as unknown as VehicleLike);
-    const comparison = buildComparison(ev, ice);
+    const evVehicleLike = evVehicle as unknown as VehicleLike;
+    const iceVehicleLike = iceVehicle as unknown as VehicleLike;
 
-    return { ev, ice, comparison };
+    const ev = toImpactSummary(evVehicleLike);
+    const ice = toImpactSummary(iceVehicleLike);
+
+    const predictedCo2SavedPerKm = await getModelPrediction(
+      evVehicleLike,
+      iceVehicleLike
+    );
+
+    const comparison = buildComparison(
+      ev,
+      ice,
+      predictedCo2SavedPerKm
+    );
+
+    return {
+      ev,
+      ice,
+      comparison,
+    };
   }
 }
-

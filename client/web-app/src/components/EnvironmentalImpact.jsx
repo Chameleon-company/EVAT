@@ -2,13 +2,13 @@ import React, { useState, useEffect } from "react";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-export default function EnvironmentalImpact({ 
+export default function EnvironmentalImpact({
   // This data is given from the Profile.jsx when the Environmental Impact button is pressed
-  user, 
+  user,
   allElectricVehicles,
   makes
 }) {
-  
+
   // Local state for EV dropdowns
   const [selectedEvMake, setSelectedEvMake] = useState("Select");
   const [selectedEvModel, setSelectedEvModel] = useState("Select");
@@ -91,7 +91,7 @@ export default function EnvironmentalImpact({
       return;
     }
 
-    const found = allElectricVehicles.find(v => 
+    const found = allElectricVehicles.find(v =>
       v.make === selectedEvMake &&
       v.model === selectedEvModel &&
       v.variant === selectedEvVariant &&
@@ -104,20 +104,31 @@ export default function EnvironmentalImpact({
   // Fetch comparison result whenever selected EV or ICE changes
   useEffect(() => {
   const fetchComparison = async () => {
-    if (!selectedEv?.id || !selectedIce?.id) return;
+    if (!selectedEv?.id || !selectedIce?.id) {
+  setComparisonResult(null);
+  setErrorCompare(null);
+  return;
+}
 
     try {
       setLoadingCompare(true);
       setErrorCompare(null);
+      setComparisonResult(null);
 
-      const res = await fetch(
-        `${API_URL}/environmental-impact/compare?evVehicleId=${selectedEv.id}&iceVehicleId=${selectedIce.id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        }
-      );
+  const res = await fetch(
+    `${API_URL}/env-impact-analysis/compare`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${user.token}`,
+      },
+      body: JSON.stringify({
+        evVehicleId: selectedEv.id,
+        iceVehicleId: selectedIce.id,
+      }),
+    }
+  );
 
       if (!res.ok) {
         throw new Error("Failed to fetch comparison");
@@ -126,7 +137,7 @@ export default function EnvironmentalImpact({
       const data = await res.json();
       console.log("COMPARE RESULT:", data);
 
-      setComparisonResult(data);
+      setComparisonResult(data.data);
     } catch (err) {
       console.error(err);
       setErrorCompare(err.message);
@@ -159,7 +170,7 @@ export default function EnvironmentalImpact({
       return;
     }
 
-    const found = allIceVehicles.find(v => 
+    const found = allIceVehicles.find(v =>
       v.make === selectedIceMake &&
       v.model === selectedIceModel &&
       v.variant === selectedIceVariant &&
@@ -168,7 +179,7 @@ export default function EnvironmentalImpact({
 
     setSelectedIce(found || null);
   }, [selectedIceMake, selectedIceModel, selectedIceVariant, selectedIceYear, allIceVehicles]);
-  
+
       const hasValue = (value) =>
         value !== null && value !== undefined && value !== "";
 
@@ -350,8 +361,8 @@ export default function EnvironmentalImpact({
                 <>
                   <div className="text-xlarge font-bold">{selectedEv.make} {selectedEv.model} </div>
                   <div className="text-small">
-                    {selectedEv.variant}<br /> 
-                    {selectedEv.fuel_type} - {selectedEv.year} 
+                    {selectedEv.variant}<br />
+                    {selectedEv.fuel_type} - {selectedEv.year}
                   </div>
                 </>
               )}
@@ -363,8 +374,8 @@ export default function EnvironmentalImpact({
                 <>
                   <div className="text-xlarge font-bold">{selectedIce.make} {selectedIce.model} </div>
                   <div className="text-small">
-                    {selectedIce.variant}<br /> 
-                    {selectedIce.fuel_type} - {selectedIce.year} 
+                    {selectedIce.variant}<br />
+                    {selectedIce.fuel_type} - {selectedIce.year}
                   </div>
                 </>
               )}
@@ -445,25 +456,26 @@ export default function EnvironmentalImpact({
         </tbody>
       </table>
 
-      {/* result summary */}
-      <div>
-        {selectedIce && selectedEv && (
-          <>
-            <h4>Results</h4>
-            <p className="center">
-              The {selectedEv.make} {selectedEv.model} emits{" "}
-              {displayValue(
-                hasValue(selectedIce.co2_emissions_combined) &&
-                hasValue(selectedEv.co2_emissions_combined)
-                  ? Number(selectedIce.co2_emissions_combined) -
-                      Number(selectedEv.co2_emissions_combined)
-                  : null
-              )}{" "}
-              g/km less CO2 than {selectedIce.make} {selectedIce.model}
-            </p>
-          </>
-        )}
-      </div>
+{/* Result summary returned by the backend */}
+<div>
+  {loadingCompare && <p className="center">Calculating environmental impact...</p>}
+
+  {errorCompare && (
+    <p className="center">
+      Unable to calculate the environmental impact: {errorCompare}
+    </p>
+  )}
+
+  {comparisonResult?.comparison && !loadingCompare && !errorCompare && (
+  <>
+    <h4>Results</h4>
+    <p className="center">
+      {comparisonResult.comparison.summary}
+    </p>
+  </>
+  )}
+
+</div>
     </div>
   );
 }

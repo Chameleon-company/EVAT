@@ -1,7 +1,7 @@
 
 /**
  * Node proxy for the Reliability Scoring FastAPI service.
- * Mirrors the contract at RELIABILITY_API_URL (default http://localhost:8003):
+ * Mirrors the contract at RELIABILITY_API_URL (default http://localhost:5000/reliability):
  *   GET  /health
  *   GET  /suburbs
  *   GET  /summary
@@ -14,7 +14,7 @@
  */
 export default class ReliabilityScoringService {
   private getBaseUrl(): string {
-    return (process.env.RELIABILITY_API_URL || "http://localhost:8003").replace(
+    return (process.env.RELIABILITY_API_URL || "http://localhost:5000/reliability").replace(
       /\/$/,
       ""
     );
@@ -24,7 +24,7 @@ export default class ReliabilityScoringService {
     const baseUrl = this.getBaseUrl();
     return (
       `Reliability scoring ML service is not reachable at ${baseUrl}. ` +
-      `Start it with: npm run dev:reliability`
+      `Start it with: npm run dev:python`
     );
   }
 

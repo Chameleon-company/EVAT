@@ -12,8 +12,10 @@ import costComparison.costComparison
 import costComparison.model_runner
 import pricePrediction.price_prediction_api
 import charging_station_recommendation_api.main
+import reliability_scoring_api.main as reliability_scoring
 from charging_station_recommendation_api.models.request import RankChargingStationsRequest
 from charging_station_recommendation_api.models.response import RankChargingStationsResponse
+from environmental_impact_analysis.predict import predict_savings
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -22,6 +24,9 @@ async def lifespan(app: FastAPI):
 
     print("[startup] Loading price prediction model...")
     await pricePrediction.price_prediction_api.startup_event()
+
+    print("[startup] Loading reliability scoring data...")
+    reliability_scoring.initialize()
 
     print("[startup] Models ready.")
     yield
@@ -35,6 +40,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# =============================================================
+# Reliability Scoring Use Case
+app.include_router(reliability_scoring.router, prefix="/reliability")
 
 @app.get("/")
 def root():
@@ -56,6 +65,24 @@ def weatherAwareRoutingPredict(req: WARTripRequest):
 @app.post("/personalisedEVInsights/predict")
 def personalisedEVInsightsPredict(payload: Union[dict, List[dict]]):
     return personalisedEVInsights.personalisedEVInsights.predict(payload)
+
+# =============================================================
+
+# Environmental Impact Analysis Use Case
+
+class EnvironmentalImpactPredictionRequest(BaseModel):
+    Make_EV: str
+    Make_ICE: str
+    BodyStyle_EV: str
+    BodyStyle_ICE: str
+    FuelType_ICE: str
+    YearDiff: int
+    ICE_CO2_Baseline: float
+
+
+@app.post("/environmentalImpact/predict")
+def environmentalImpactPredict(req: EnvironmentalImpactPredictionRequest):
+    return predict_savings(req.model_dump())
 
 # =============================================================
 # Demand Forecasting Use Case

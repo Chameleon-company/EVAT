@@ -6,7 +6,8 @@
   "scripts": {
     "server": "ts-node-dev --files server.ts",
     "build": "tsc",
-    "test": "jest"
+    "test": "jest",
+    "test:integration:recommendation-history": "ts-node --files test/integration/recommendation-history.integration.ts"
   },
   "author": "",
   "license": "ISC",
