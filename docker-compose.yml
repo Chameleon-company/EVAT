@@ -21,8 +21,8 @@ name: evat
 services:
   pythonsvc:
     build:
-      context: .
-      dockerfile: server/python-services/Dockerfile
+      context: ./server/python-services
+      dockerfile: Dockerfile
     image: evat-pythonsvc:local
     container_name: evat-pythonsvc
     env_file:
@@ -62,6 +62,7 @@ services:
       # Inside Compose, 127.0.0.1 is the API container itself. Reach the
       # Python service by its service name on the shared network.
       PYTHON_API_URL: "http://pythonsvc:5000"
+      RELIABILITY_API_URL: "http://pythonsvc:5000/reliability"
       # Swagger's "Try it out" must target the published host port, not the
       # port the process listens on inside the container.
       PUBLIC_API_URL: "http://localhost:${API_HOST_PORT:-8081}"
@@ -115,6 +116,4 @@ networks:
     driver: bridge
 
 # The reliability scoring API (server/python-services/reliability_scoring_api,
-# RELIABILITY_API_URL, port 8003) is still a separate uvicorn app and is not
-# containerised here. Add it as a fourth service and set
 # RELIABILITY_API_URL=http://reliability:8003 on `api` when it is needed.

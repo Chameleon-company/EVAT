@@ -66,3 +66,7 @@ google-credentials.json
 # Docker smoke-test output
 docker-test-results.txt
 docker-build.log
+
+# Compiled backend output (tsconfig has no outDir, so tsc emits beside sources)
+server/node-api/server.js
+server/node-api/src/**/*.js
