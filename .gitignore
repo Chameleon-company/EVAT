@@ -32,6 +32,9 @@ build/
 # =========================
 # Python & Data Science Caches
 # =========================
+**/.gradle/
+.gradle/
+
 __pycache__/
 *.pyc
 *.pyo
@@ -56,3 +59,10 @@ __pycache__/
 # Specific App Directories
 # =========================
 **/auth
+# Google service-account key (README names it google-credentials.json)
+google-credentials.json
+**/google-credentials.json
+
+# Docker smoke-test output
+docker-test-results.txt
+docker-build.log

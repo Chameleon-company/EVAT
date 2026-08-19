@@ -120,6 +120,39 @@ Because we use NPM workspaces, you do not need to navigate into individual folde
 
 ---
 
+## 🐳 Running the whole stack with Docker
+
+The repo ships a Compose stack (`web` + `api` + `pythonsvc`) so the app can be
+run without installing Node or Python locally. MongoDB is not included — the API
+connects to the company instance via `MONGODB_URI`.
+
+```sh
+cp server/node-api/.env.example server/node-api/.env   # fill in secrets
+docker compose build                                   # first build: 5-15 min
+docker compose up -d
+```
+
+| Service | URL |
+|---|---|
+| Web app | http://localhost:3000 |
+| Node API (Swagger) | http://localhost:8081/api/docs |
+| Python ML service | http://localhost:5000/docs |
+
+The API publishes on **8081**, not 8080, because a local Jenkins commonly owns
+8080. Override any host port from the root `.env` with `WEB_HOST_PORT`,
+`API_HOST_PORT` or `PY_HOST_PORT`.
+
+Verify the stack end to end (~45 checks, writes `docker-test-results.txt`):
+
+```sh
+./scripts/docker-smoke-test.sh
+```
+
+Details: [Local Docker testing guide](docs/DOCKER_LOCAL_TESTING.md) ·
+[Containerisation report](docs/DOCKER_FIX_REPORT.md)
+
+---
+
 ## 🔑 Authentication & API Setup
 
 ### Google Maps & AI

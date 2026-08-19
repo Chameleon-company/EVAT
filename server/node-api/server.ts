@@ -81,7 +81,9 @@ const options = {
         bearerAuth: [],
       },
     ],
-    servers: [{ url: `${DOMAIN_URL}:${PORT}` }],
+    // PUBLIC_API_URL wins when set (Docker publishes the API on a different
+    // host port than the one the process listens on).
+    servers: [{ url: process.env.PUBLIC_API_URL ?? `${DOMAIN_URL}:${PORT}` }],
   },
   apis: ["./src/routes/*.ts", "./src/routes/*.js"],
 };

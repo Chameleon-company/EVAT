@@ -1,7 +1,19 @@
+# Never ship host build artefacts or secrets into the image.
 node_modules
-npm-debug.log
-Dockerfile
-.git
+npm-debug.log*
+
+# Secrets / credentials - these must come from Compose at runtime.
 .env
-*.md
+.env.*
+!.env.example
+*credentials*.json
+*credintials*.json
+
+# Not needed to build or run the API image.
 test
+jest.config.js
+build
+dist
+*.md
+.git
+.DS_Store

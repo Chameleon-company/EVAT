@@ -1,14 +1,32 @@
+# Dependencies required by server/python-services/main.py and everything it
+# imports. Keep this in sync with the imports of the combined service.
+
+# --- web framework / server ---
 fastapi
+uvicorn[standard]
+pydantic
+
+# --- configuration ---
+# NOTE: the package that provides `from dotenv import load_dotenv` is
+# python-dotenv. The PyPI project literally named "dotenv" is a different,
+# unrelated package and does NOT provide that import.
+python-dotenv
+
+# --- external APIs (weatherAwareRouting, demandForecasting) ---
 googlemaps
-pandas
-shapely
-geopandas
-joblib
-dotenv
+requests
 holidays
-uvicorn
+
+# --- data / modelling ---
+pandas
+numpy
+joblib
 scikit-learn
 kmodes
 lightgbm
 xgboost
+shapely
+geopandas
+
+# --- test/client helper used by the FastAPI test client ---
 httpx
