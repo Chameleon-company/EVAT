@@ -9,10 +9,11 @@ name: evat
 # MongoDB is NOT started here - the stack points at the company MongoDB
 # instance via MONGODB_URI (see server/node-api/.env).
 #
-# HOST PORTS are overridable, because 8080 (Jenkins) and 5000 (macOS AirPlay
-# Receiver) are commonly taken. Only the host side moves - inside the network
-# the services always listen on 3000/8080/5000, so PYTHON_API_URL and the Nginx
-# proxy are unaffected. Override in the root .env or inline:
+# HOST PORTS are overridable, because 8080 can clash with other local services
+# and 5000 (macOS AirPlay Receiver) is commonly taken. Only the host side
+# moves - inside the network the services always listen on 3000/8080/5000, so
+# PYTHON_API_URL and the Nginx proxy are unaffected. Override in the root .env
+# or inline:
 #     API_HOST_PORT=9090 docker compose up -d
 #
 # Requires Docker Compose v2.24+ (for `env_file: required: false`).
@@ -65,7 +66,7 @@ services:
       RELIABILITY_API_URL: "http://pythonsvc:5000/reliability"
       # Swagger's "Try it out" must target the published host port, not the
       # port the process listens on inside the container.
-      PUBLIC_API_URL: "http://localhost:${API_HOST_PORT:-8081}"
+      PUBLIC_API_URL: "http://localhost:${API_HOST_PORT:-8080}"
       #
       # Do NOT list MONGODB_URI / JWT_SECRET / GOOGLE_* here. Anything named in
       # `environment` overrides `env_file`, and an unset "${VAR:-}" resolves to
@@ -76,9 +77,9 @@ services:
       pythonsvc:
         condition: service_started
     ports:
-      # Default 8081, because a local Jenkins commonly owns host 8080.
+      # Keep the published API host port aligned with the app's default port.
       # The container still listens on 8080; only the host side moves.
-      - "${API_HOST_PORT:-8081}:8080"
+      - "${API_HOST_PORT:-8080}:8080"
     healthcheck:
       test:
         - CMD
