@@ -43,15 +43,6 @@ OUTPUT_PATH = TRAINING_DIR / "training_dataset.csv"
 # LOAD ENVIRONMENT VARIABLES
 # ============================================================
 
-load_dotenv(ENV_PATH)
-
-MONGO_URI = os.getenv("MONGODB_URI")
-
-if not MONGO_URI:
-    raise ValueError(
-        f"MONGODB_URI was not found in: {ENV_PATH}"
-    )
-
 
 # ============================================================
 # FEATURES USED TO DETECT INVALID SNAPSHOT SESSIONS
@@ -278,8 +269,16 @@ def build_dataset():
     # CONNECT TO MONGODB
     # --------------------------------------------------------
 
+    load_dotenv(ENV_PATH)
+    mongo_uri = os.getenv("MONGODB_URI")
+
+    if not mongo_uri:
+        raise ValueError(
+            f"MONGODB_URI was not found in: {ENV_PATH}"
+        )
+
     client = MongoClient(
-        MONGO_URI,
+        mongo_uri,
         serverSelectionTimeoutMS=10000
     )
 
