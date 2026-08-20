@@ -256,6 +256,7 @@ This CSS has the style settings for Sidebar (access when clicking on a charger).
 .promo-chip {
   border: 1px solid var(--grey-light);
   background: var(--white);
+  color: var(--text-color-black);
   border-radius: 999px;
   padding: 0.2rem 0.6rem;
   font-size: 0.75rem;
@@ -275,6 +276,7 @@ This CSS has the style settings for Sidebar (access when clicking on a charger).
   padding: 0.65rem;
   margin-bottom: 0.6rem;
   background: var(--white);
+  color: var(--text-color-black);
   box-shadow: var(--website-shadow-box);
 }
 
@@ -337,6 +339,7 @@ This CSS has the style settings for Sidebar (access when clicking on a charger).
   gap: 0.25rem;
   border: 1px dashed var(--secondary-color-base);
   background: transparent;
+  color: var(--secondary-color-base);
   border-radius: 6px;
   padding: 0.15rem 0.45rem;
   font-size: 0.7rem;
