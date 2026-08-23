@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { toast } from "react-toastify";
+import ErrorMessage from "../components/ErrorMessage";
 
 const API_URL = import.meta.env.VITE_API_URL
 const BOOKING_ENDPOINT = `${API_URL}/bookings`;
@@ -178,9 +179,9 @@ export default function SidebarBookingTool({ stationName = "Unknown Station" }) 
 
   return (
     <div>
-      <div className="input-and-label-same-line">
+      <div className="mb-4 flex items-center justify-between gap-4">
         {/* date picker */}
-        <label>Date</label>
+        <label className="font-medium" >Date</label>
         <DatePicker
           className="date-picker"
           popperPlacement="right"
@@ -191,9 +192,9 @@ export default function SidebarBookingTool({ stationName = "Unknown Station" }) 
           placeholderText="YYYY-MM-DD"
         />
       </div>
-      <div className="input-and-label-same-line">
+      <div className="mb-4 flex items-center justify-between gap-4">
         {/* time picker */}
-        <label>Time</label>
+        <label  className="font-medium">Time</label>
         <DatePicker
           popperPlacement="right"
           selected={selectedTime}
@@ -209,18 +210,16 @@ export default function SidebarBookingTool({ stationName = "Unknown Station" }) 
       <div>
         {/* warning if selected date and time is in the past */}
         {selectedDate && selectedTime && isPastDateTime() && (
-          <div className="validation error">
-            Selected time is in the past
-          </div>
+          <ErrorMessage error="Selected time is in the past" />
         )}
       </div>
       <div>
         {/* notes text area - does not accept characters past the limit */}
-        <label>
-          Notes (optional) - <span className="text-tiny">{notesRemaining} characters remaining</span>
+        <label className="mb-2 block font-medium" >
+          Notes (optional) - <span className="text-xs text-gray-500">{notesRemaining} characters remaining</span>
         </label>
         <textarea 
-          className="full-width"
+          className="min-h-24 w-full resize-y rounded-lg border-2 border-white bg-gray-100 px-3 py-2 text-black transition focus:border-emerald-500 focus:bg-white focus:outline-none"
           value={notes} 
           onChange={(e) => setNotes(e.target.value.slice(0, NOTES_MAX_LENGTH))} // cut the string at the max length
           placeholder="Any notes..." 
@@ -229,16 +228,14 @@ export default function SidebarBookingTool({ stationName = "Unknown Station" }) 
       </div>
 
       {/* agree to booking terms checkbox */}
-      <label className="checkbox">
+      <label className="mt-4 flex items-center gap-2">
         <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} />
-        <span className="text-small font-italic">I agree to booking terms</span>
+        <span className="text-sm italic text-gray-600">I agree to booking terms</span>
       </label>
 
       {/* recent booking warning */}
       {recentBookingWarning && (
-        <div className="validation error">
-            Please wait a few seconds before booking again.
-        </div>
+        <ErrorMessage error="Please wait a few seconds before booking again." />
       )}
 
       {/* confirm booking button */}
