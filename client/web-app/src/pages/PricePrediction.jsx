@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import NavBar from "../components/NavBar";
 import { getPriceHealth, predictPrice } from "../services/pricePredictionService";
 import "../styles/Root.css";
@@ -43,6 +43,7 @@ export default function PricePrediction() {
   const [condition, setCondition] = useState("Like New");
 
   const [health, setHealth] = useState(null);
+  const [checkingHealth, setCheckingHealth] = useState(false);
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState("");
   const [result, setResult] = useState(null);
@@ -50,16 +51,24 @@ export default function PricePrediction() {
   const tokenFull = localStorage.getItem("currentUser");
   const token = tokenFull ? JSON.parse(tokenFull).token : null;
 
-  useEffect(() => {
-    getPriceHealth()
-      .then(setHealth)
-      .catch((err) => {
-        // Detailed reason stays in the console; the banner must not claim a model failure
-        // when the service was simply unreachable.
-        console.warn("Price prediction health check failed:", err.message);
-        setHealth({ status: "unavailable", unreachable: true });
-      });
+  /** Re-runnable so the page can recover when the service comes back. */
+  const refreshHealth = useCallback(async () => {
+    setCheckingHealth(true);
+    try {
+      setHealth(await getPriceHealth());
+    } catch (err) {
+      // Detailed reason stays in the console; the banner must not claim a model failure
+      // when the service was simply unreachable.
+      console.warn("Price prediction health check failed:", err.message);
+      setHealth({ status: "unavailable", unreachable: true });
+    } finally {
+      setCheckingHealth(false);
+    }
   }, []);
+
+  useEffect(() => {
+    refreshHealth();
+  }, [refreshHealth]);
 
   useEffect(() => {
     const models = BRAND_MODELS[brand] || [];
@@ -106,8 +115,14 @@ export default function PricePrediction() {
       };
       const prediction = await predictPrice(features, token, "web-ui");
       setResult(prediction);
+      // A successful prediction proves the service is up; keep the banner consistent
+      // with what just happened instead of leaving a stale "unavailable" message.
+      if (!health?.model_loaded) refreshHealth();
     } catch (err) {
       setServerError(err.message || "Prediction failed");
+      // Keep the banner honest in the other direction too: if the service died while
+      // this page was open, re-check rather than leaving a stale healthy message.
+      refreshHealth();
     } finally {
       setLoading(false);
     }
@@ -135,6 +150,16 @@ export default function PricePrediction() {
                       ? ` · model loaded (${health.feature_count} features)`
                       : " · model not loaded"
                   }`}
+              {health.model_loaded ? null : (
+                <button
+                  type="button"
+                  className="pp-health-retry"
+                  onClick={refreshHealth}
+                  disabled={checkingHealth}
+                >
+                  {checkingHealth ? "Checking…" : "Check again"}
+                </button>
+              )}
             </p>
           )}
         </div>

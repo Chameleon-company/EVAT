@@ -48,6 +48,27 @@
   color: #f87171;
 }
 
+.price-prediction-page .pp-health-retry {
+  margin-left: 10px;
+  padding: 2px 10px;
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  cursor: pointer;
+  opacity: 0.85;
+}
+
+.price-prediction-page .pp-health-retry:hover:not(:disabled) {
+  opacity: 1;
+}
+
+.price-prediction-page .pp-health-retry:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
 .price-prediction-page .pp-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
