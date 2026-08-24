@@ -149,7 +149,7 @@ def _map_station_for_ui(station: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def _send_station_cards(dispatcher: CollectingDispatcher, stations: List[Dict[str, Any]], limit: int = 10) -> None:
+def _send_station_cards(dispatcher: CollectingDispatcher, stations: List[Dict[str, Any]], limit: int = 20) -> None:
     """Send stations to frontend in the expected custom payload schema."""
     try:
         mapped = [_map_station_for_ui(
@@ -479,11 +479,11 @@ class ActionHandleMenuSelection(Action):
 
                 if stations:
                     start_display = "Your Location" if isinstance(start_location, tuple) else start_location
-                    _send_station_cards(dispatcher, stations, limit=10)
+                    _send_station_cards(dispatcher, stations, limit=20)
                     dispatcher.utter_message(
                         text=f"Found {len(stations)} station{'s' if len(stations) != 1 else ''} along your route "
                              f"from {start_display} to {end_location}. Tap a card or type a station name.")
-                    displayed = stations[:10]
+                    displayed = stations[:20]
 
                     return [
                         SlotSet("start_location", start_location),
@@ -621,11 +621,11 @@ class ActionHandleRouteInput(Action):
 
                     if stations:
                         start_display = "Your Location" if isinstance(start_location, tuple) else start_location
-                        _send_station_cards(dispatcher, stations, limit=10)
+                        _send_station_cards(dispatcher, stations, limit=20)
                         dispatcher.utter_message(
                             text=f"Found {len(stations)} station{'s' if len(stations) != 1 else ''} along your route "
                                  f"from {start_display} to {end_location}. Tap a card or type a station name.")
-                        displayed = stations[:10]
+                        displayed = stations[:20]
                         return [
                             SlotSet("start_location", start_location),
                             SlotSet("end_location", end_location),
@@ -666,11 +666,11 @@ class ActionHandleRouteInput(Action):
 
             if stations:
                 start_display = "Your Location" if isinstance(start_location, tuple) else start_location
-                _send_station_cards(dispatcher, stations, limit=10)
+                _send_station_cards(dispatcher, stations, limit=20)
                 dispatcher.utter_message(
                     text=f"Found {len(stations)} station{'s' if len(stations) != 1 else ''} along your route "
                          f"from {start_display} to {end_location}. Tap a card or type a station name.")
-                displayed = stations[:10]
+                displayed = stations[:20]
                 return [
                     SlotSet("start_location", start_location),
                     SlotSet("end_location", end_location),
@@ -838,11 +838,11 @@ class ActionHandleRouteInfo(Action):
 
         if stations:
             start_display = "Your Location" if isinstance(start_location, tuple) else start_location
-            _send_station_cards(dispatcher, stations, limit=10)
+            _send_station_cards(dispatcher, stations, limit=20)
             dispatcher.utter_message(
                 text=f"Found {len(stations)} station{'s' if len(stations) != 1 else ''} along your route "
                      f"from {start_display} to {end_location}. Tap a card or type a station name.")
-            displayed = stations[:10]
+            displayed = stations[:20]
             return [
                 SlotSet("conversation_context",
                         ConversationContexts.ROUTE_PLANNING_RESULTS),
@@ -961,7 +961,7 @@ class ActionHandleEmergencyLocationInput(Action):
                             str(st.get('connection_types', '')).lower(),
                             str(st.get('power', '')).lower()
                         )
-                    ][:3]
+                    ][:5]
 
                     if matched:
                         closest = matched[0]
@@ -969,7 +969,7 @@ class ActionHandleEmergencyLocationInput(Action):
                         dispatcher.utter_message(
                             text=f"🚨 Nearest {connector.upper()} compatible stations near your location.\n"
                                  f"🔌 Connector: {connector.upper()} — Tap a card or type a station name.")
-                        _send_station_cards(dispatcher, matched, limit=3)
+                        _send_station_cards(dispatcher, matched, limit=5)
                         return [
                             SlotSet("conversation_context", ConversationContexts.EMERGENCY_RESULTS),
                             SlotSet("displayed_stations", matched),
@@ -984,24 +984,24 @@ class ActionHandleEmergencyLocationInput(Action):
                         dispatcher.utter_message(
                             text=f"⚠️ No {connector.upper()} compatible stations found nearby. "
                                  f"Here are the closest stations:")
-                        _send_station_cards(dispatcher, stations, limit=3)
+                        _send_station_cards(dispatcher, stations, limit=5)
                         return [
                             SlotSet("conversation_context", ConversationContexts.EMERGENCY_RESULTS),
-                            SlotSet("displayed_stations", stations[:3]),
+                            SlotSet("displayed_stations", stations[:5]),
                             SlotSet("start_location", current_location),
                             SlotSet("end_location", closest_dest),
                             SlotSet("selected_station", closest.get('name'))
                         ]
                 else:
-                    # No connector specified — show 3 nearest stations
+                    # No connector specified — show 5 nearest stations
                     closest = stations[0]
                     closest_dest = closest.get('address') or closest.get('name')
                     dispatcher.utter_message(
                         text="🚨 Nearest charging stations near your location. Tap a card or type a station name.")
-                    _send_station_cards(dispatcher, stations, limit=3)
+                    _send_station_cards(dispatcher, stations, limit=5)
                     return [
                         SlotSet("conversation_context", ConversationContexts.EMERGENCY_RESULTS),
-                        SlotSet("displayed_stations", stations[:3]),
+                        SlotSet("displayed_stations", stations[:5]),
                         SlotSet("start_location", current_location),
                         SlotSet("end_location", closest_dest),
                         SlotSet("selected_station", closest.get('name'))
@@ -1018,7 +1018,7 @@ class ActionHandleEmergencyLocationInput(Action):
             _send_station_cards(dispatcher, stations, limit=5)
             response = f"🚨 Emergency charging stations near {current_location}:\n\n"
 
-            for i, station in enumerate(stations, 1):
+            for i, station in enumerate(stations[:5], 1):
                 response += f"{i}. **{station['name']}** - {station['distance_km']}km away, {station['cost']} ✅\n"
 
             response += "\nAll have available charging points. Which one?"
@@ -1325,25 +1325,9 @@ class ActionGetDirectionsById(Action):
         else:
             maps_url = ActionAdvancedDirections()._build_maps_link("My Location", destination)
 
-        # Try real-time route — call TomTom directly with float tuples (bypasses CSV geocoder)
-        route_info = {}
-        if (REAL_TIME_INTEGRATION_AVAILABLE and real_time_manager
-                and real_time_manager.api_manager
-                and user_lat is not None and dest_lat is not None):
-            try:
-                route_data = real_time_manager.api_manager.get_real_time_route(
-                    (float(user_lat), float(user_lng)),
-                    (float(dest_lat), float(dest_lng))
-                )
-                if route_data:
-                    route_info = {
-                        "distance_km": route_data.get("distance_km"),
-                        "duration_minutes": route_data.get("duration_minutes"),
-                        "traffic_delay_minutes": route_data.get("traffic_delay_minutes"),
-                        "instructions": route_data.get("instructions") or [],
-                    }
-            except Exception:
-                pass
+        # Google Maps calculates directions after the user opens the link.
+        # No additional TomTom request is required here.
+        route_info: Dict[str, Any] = {}
 
         # Send rich directions card; station_lat/lng used by frontend for iframe embed URL
         dispatcher.utter_message(json_message={
@@ -1984,122 +1968,61 @@ class ActionAdvancedDirections(Action):
     def name(self) -> Text:
         return "action_advanced_directions"
 
-    def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-        """Provide directions and traffic-aware ETA using real-time integration if available."""
+    def run(
+        self,
+        dispatcher: CollectingDispatcher,
+        tracker: Tracker,
+        domain: Dict[Text, Any]
+    ) -> List[Dict[Text, Any]]:
+        """Open directions using Google Maps without another TomTom call."""
+
         start_location = tracker.get_slot("start_location")
         end_location = tracker.get_slot("end_location")
         selected_station = tracker.get_slot("selected_station")
 
-        # Prioritize selected_station over end_location when user asks for directions to a specific station
         if selected_station:
             end_location = selected_station
 
         if not start_location or not end_location:
             dispatcher.utter_message(
                 text=(
-                    "🧭 Please provide both start and destination to get directions.\n\n"
+                    "🧭 Please provide both start and destination "
+                    "to get directions.\n\n"
                     "Example: 'from Richmond to Malvern Central'"
                 )
             )
             return []
 
-        # Try real-time enhanced route planning
-        if REAL_TIME_INTEGRATION_AVAILABLE and real_time_manager:
-            try:
-                real_time_data = real_time_manager.get_enhanced_route_planning(
-                    start_location, end_location
-                )
+        maps_url = self._build_maps_link(
+            str(start_location),
+            str(end_location)
+        )
 
-                if real_time_data and real_time_data.get("success"):
-                    route_info = real_time_data.get("route_info") or {}
-                    traffic_info = real_time_data.get("traffic_info") or {}
-
-                    distance_km = route_info.get("distance_km")
-                    duration_min = route_info.get("duration_minutes")
-                    delay_min = route_info.get("traffic_delay_minutes")
-
-                    # Send structured payload for frontend first
-                    instr_list = route_info.get("instructions") or []
-                    if not isinstance(instr_list, list):
-                        instr_list = []
-                    instr_list = [str(s) for s in instr_list][:10]
-                    try:
-                        dispatcher.utter_message(json_message={
-                            "type": "directions",
-                            "origin": start_location,
-                            "destination": end_location,
-                            "distance_km": distance_km,
-                            "eta_min": duration_min,
-                            "delay_min": delay_min,
-                            "instructions": instr_list,
-                            "maps_url": self._build_maps_link(start_location, end_location),
-                        })
-                    except Exception:
-                        pass
-
-                    logger.info(
-                        f"Directions computed: {start_location} → {end_location} | "
-                        f"distance_km={distance_km} | duration_min={duration_min} | delay_min={delay_min}"
-                    )
-
-                    response_parts: List[str] = []
-                    response_parts.append(
-                        f"🗺️ Directions: {start_location} → {end_location}"
-                    )
-
-                    if distance_km is not None or duration_min is not None:
-                        dist_txt = f"{distance_km:.1f} km" if isinstance(distance_km, (int, float)) else "—"
-                        dur_txt = f"{int(duration_min)} min" if isinstance(duration_min, (int, float)) else "—"
-                        response_parts.append(f"• Distance: {dist_txt} | ETA: {dur_txt}")
-
-                    if isinstance(delay_min, (int, float)) and delay_min > 0:
-                        response_parts.append(f"• Traffic delay: +{int(delay_min)} min")
-
-                    if traffic_info:
-                        congestion = traffic_info.get("congestion_level")
-                        status = traffic_info.get("traffic_status")
-                        if status or congestion is not None:
-                            response_parts.append(
-                                f"• Traffic: {status or 'Unknown'}"
-                                + (f" (level {congestion})" if congestion is not None else "")
-                            )
-
-                    dispatcher.utter_message(text="\n".join(response_parts))
-
-                    dispatcher.utter_message(
-                        text="Would you like real-time traffic for this route?",
-                        buttons=[
-                            {"title": "Yes, show traffic", "payload": "/affirm"},
-                            {"title": "No, thanks", "payload": "/deny"},
-                        ],
-                    )
-
-                    return [
-                        SlotSet("conversation_context", ConversationContexts.GETTING_DIRECTIONS),
-                        SlotSet("start_location", start_location),
-                        SlotSet("end_location", end_location),
-                    ]
-
-            except Exception as e:
-                print(f"Error in ActionAdvancedDirections real-time flow: {e}")
+        dispatcher.utter_message(
+            json_message={
+                "type": "directions",
+                "origin": start_location,
+                "destination": end_location,
+                "distance_km": None,
+                "eta_min": None,
+                "delay_min": None,
+                "instructions": [],
+                "maps_url": maps_url,
+            }
+        )
 
         dispatcher.utter_message(
             text=(
-                f"🗺️ Directions requested for {start_location} → {end_location}.\n"
-                f"Real-time data unavailable right now. Please try again later."
+                f"🗺️ Open Google Maps for directions from "
+                f"{start_location} to {end_location}."
             )
         )
 
-        dispatcher.utter_message(
-            text="Would you like to check traffic for this route?",
-            buttons=[
-                {"title": "Yes, show traffic", "payload": "/affirm"},
-                {"title": "No, thanks", "payload": "/deny"},
-            ],
-        )
-
         return [
-            SlotSet("conversation_context", ConversationContexts.GETTING_DIRECTIONS),
+            SlotSet(
+                "conversation_context",
+                ConversationContexts.GETTING_DIRECTIONS
+            ),
             SlotSet("start_location", start_location),
             SlotSet("end_location", end_location),
         ]
@@ -2438,10 +2361,10 @@ class ActionCongestionPrediction(Action):
             )
 
             if stations:
-                _send_station_cards(dispatcher, stations, limit=10)
+                _send_station_cards(dispatcher, stations, limit=20)
 
                 response = f"⚡ Found {len(stations)} charging stations from **{start_location}** to **{location}**:\n\n"
-                for i, station in enumerate(stations[:5]):
+                for i, station in enumerate(stations[:20]):
                     response += f"**{i+1}. {station.get('name')}**\n"
                     response += f"⚡ {station.get('power')} | 💰 {station.get('cost')}\n\n"
 
@@ -2452,7 +2375,8 @@ class ActionCongestionPrediction(Action):
                 return [
                     SlotSet("start_location", start_location),
                     SlotSet("end_location", location),
-                    SlotSet("conversation_context", ConversationContexts.ROUTE_PLANNING_RESULTS)
+                    SlotSet("conversation_context", ConversationContexts.ROUTE_PLANNING_RESULTS),
+                    SlotSet("displayed_stations", stations[:20]),
                 ]
 
             else:

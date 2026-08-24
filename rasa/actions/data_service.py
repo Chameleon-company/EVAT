@@ -21,12 +21,10 @@ if PROJECT_ROOT not in sys.path:
 
 from backend.charging_station_service import get_charging_stations
 
-# Import real-time APIs for enhanced functionality
+# Import the canonical backend implementation. Importing the same file as
+# top-level ``real_time_apis`` can create a second module/global instance.
 try:
-    import sys
-    sys.path.append(os.path.join(
-        os.path.dirname(__file__), '..', '..', 'backend'))
-    from real_time_apis import api_manager
+    from backend.real_time_apis import api_manager
     REAL_TIME_AVAILABLE = True
     logger = logging.getLogger(__name__)
     logger.info("Real-time APIs imported successfully")
@@ -108,43 +106,41 @@ class ChargingStationDataService:
             return []
 
     def get_stations_by_preference(self, location: Tuple[float, float], preference: str, limit: int = 5) -> List[Dict[str, Any]]:
-        """Get stations based on preference (cheapest, fastest, closest) within preference radius.
+        """Get stations based on preference using Open Charge Map distance.
 
         Logic:
-        1) Pre-filter stations within straight-line radius (PREFERENCE_PREFILTER_KM) for performance.
-        2) If real-time routing available, compute road distance per candidate and keep <= PREFERENCE_RADIUS_KM.
-           Fallback to straight-line distance if routing is unavailable.
-        3) Sort the filtered set by the selected preference and return top N.
+        1) Retrieve stations within the preference prefilter radius.
+        2) Filter using the existing straight-line distance.
+        3) Sort by closest, cheapest, or fastest.
+        4) Return the requested number of results.
         """
-        preference_radius = SEARCH_CONFIG.get('PREFERENCE_RADIUS_KM', 10.0)
+        preference_radius = SEARCH_CONFIG.get(
+            "PREFERENCE_RADIUS_KM",
+            10.0
+        )
         prefilter_radius = SEARCH_CONFIG.get(
-            'PREFERENCE_PREFILTER_KM', max(12.0, preference_radius))
+            "PREFERENCE_PREFILTER_KM",
+            max(12.0, preference_radius)
+        )
 
-        # Step 1: Pre-filter by straight-line distance to reduce routing calls
         prefiltered = self.get_nearby_stations(
-            location, radius_km=prefilter_radius)
+            location,
+            radius_km=prefilter_radius
+        )
 
-        # Step 2: Apply road distance filter using TomTom when available
         filtered: List[Dict[str, Any]] = []
-        for station in prefiltered:
-            station_coords = (station.get('latitude'),
-                              station.get('longitude'))
-            road_distance_km: Optional[float] = None
-            if REAL_TIME_AVAILABLE and api_manager is not None:
-                try:
-                    route = api_manager.get_real_time_route(
-                        location, station_coords)  # type: ignore
-                    if route and route.get('source') == 'tomtom':
-                        road_distance_km = float(route.get('distance_km', 0))
-                except Exception:
-                    road_distance_km = None
-            # Fallback to straight-line
-            if road_distance_km is None:
-                road_distance_km = float(station.get('distance_km', 9999))
 
-            if road_distance_km <= preference_radius:
+        for station in prefiltered:
+            try:
+                distance_km = float(
+                    station.get("distance_km", 9999)
+                )
+            except (TypeError, ValueError):
+                distance_km = 9999
+
+            if distance_km <= preference_radius:
                 station_copy = dict(station)
-                station_copy['distance_km'] = round(road_distance_km, 2)
+                station_copy["distance_km"] = round(distance_km, 2)
                 filtered.append(station_copy)
 
         candidates = filtered
@@ -195,10 +191,16 @@ class ChargingStationDataService:
             candidates.sort(key=lambda s: s.get('distance_km', 9999))
             return candidates[:limit]
 
-    def get_route_stations(self, start_location: str, end_location: str) -> List[Dict[str, Any]]:
-        """Get charging stations along a route between two locations with real-time integration"""
+    def get_route_stations(
+        self,
+        start_location: str,
+        end_location: str
+    ) -> List[Dict[str, Any]]:
+        """Get charging stations along a route using one TomTom route request."""
+
         logger.info(
-            f"Planning route from '{start_location}' to '{end_location}'")
+            f"Planning route from '{start_location}' to '{end_location}'"
+        )
 
         # Get coordinates for both locations
         start_coords = self._get_location_coordinates(start_location)
@@ -206,58 +208,86 @@ class ChargingStationDataService:
 
         if not start_coords:
             logger.error(
-                f"Could not find coordinates for start location: {start_location}")
+                f"Could not find coordinates for start location: {start_location}"
+            )
             return []
 
         if not end_coords:
             logger.error(
-                f"Could not find coordinates for end location: {end_location}")
+                f"Could not find coordinates for end location: {end_location}"
+            )
             return []
 
         logger.info(
-            f"Route coordinates: {start_location} ({start_coords}) -> {end_location} ({end_coords})")
+            f"Route coordinates: {start_location} ({start_coords}) "
+            f"-> {end_location} ({end_coords})"
+        )
 
-        # Get real-time route information if available
+        # Make one TomTom request for the main route and its polyline
         route_info = None
-        if REAL_TIME_AVAILABLE:
+
+        if REAL_TIME_AVAILABLE and api_manager is not None:
             try:
                 route_info = api_manager.get_real_time_route(
-                    start_coords, end_coords)
+                    start_coords,
+                    end_coords
+                )
+
                 if isinstance(route_info, dict):
-                    instructions = route_info.get('instructions') or []
+                    instructions = route_info.get("instructions") or []
+
                     logger.info(
-                        f"Real-time route data: distance_km={route_info.get('distance_km')} "
+                        f"Real-time route data: "
+                        f"distance_km={route_info.get('distance_km')} "
                         f"duration_min={route_info.get('duration_minutes')} "
                         f"delay_min={route_info.get('traffic_delay_minutes')} "
                         f"instructions_count={len(instructions)}"
                     )
                 else:
-                    logger.info("Real-time route data received")
-            except Exception as e:
-                logger.warning(f"Real-time route data unavailable: {e}")
+                    logger.warning(
+                        "TomTom route data unavailable; using fallback route"
+                    )
 
-        # Calculate route distance (use real-time data if available, otherwise calculate)
-        if route_info and route_info.get('source') == 'tomtom':
-            route_distance = route_info.get('distance_km', 0)
-            logger.info(f"Real-time route distance: {route_distance:.1f} km")
+            except Exception as error:
+                logger.warning(
+                    f"Real-time route data unavailable: {error}"
+                )
+                route_info = None
+
+        # Use TomTom road distance when available
+        if route_info and route_info.get("source") == "tomtom":
+            route_distance = float(route_info.get("distance_km", 0))
+            logger.info(
+                f"Real-time route distance: {route_distance:.1f} km"
+            )
         else:
-            route_distance = self._calculate_distance(start_coords, end_coords)
-            logger.info(f"Calculated route distance: {route_distance:.1f} km")
+            # Straight-line fallback if TomTom is unavailable
+            route_distance = self._calculate_distance(
+                start_coords,
+                end_coords
+            )
+            logger.info(
+                f"Calculated fallback route distance: "
+                f"{route_distance:.1f} km"
+            )
 
-        # Get stations along the route using enhanced logic
+        # Search Open Charge Map along the TomTom polyline.
+        # CSV backup remains handled by get_charging_stations().
         route_stations = self._get_stations_along_route(
-            start_coords, end_coords, route_distance, route_info)
+            start_coords,
+            end_coords,
+            route_distance,
+            route_info
+        )
 
         if route_stations:
-            logger.info(f"Found {len(route_stations)} stations along route")
-            # Enhance station data with real-time information
-            if REAL_TIME_AVAILABLE:
-                route_stations = self._enhance_stations_with_real_time_data(
-                    route_stations, start_coords, end_coords)
+            logger.info(
+                f"Found {len(route_stations)} stations along route"
+            )
             return route_stations
-        else:
-            logger.warning("No stations found along route")
-            return []
+
+        logger.warning("No stations found along route")
+        return []
 
     def _get_stations_along_route(self, start_coords: Tuple[float, float],
                                   end_coords: Tuple[float, float],
@@ -282,16 +312,22 @@ class ChargingStationDataService:
         except Exception:
             polyline = None
 
-        # If no polyline available, do not attempt alternative techniques
         if not polyline:
             logger.warning(
-                "No polyline available from real-time route; skipping station search along route")
-            return []
+                "No polyline available from real-time route; using straight-line fallback corridor"
+            )
+            polyline = [start_coords, end_coords]
 
         # Query stations around sampled points along the route
         candidates: List[Dict[str, Any]] = []
         seen = set()
-        sample_count = min(5, len(polyline))
+        # Space searches across the whole driving route. Five fixed samples can
+        # leave large gaps on longer routes, so scale conservatively with route
+        # length while capping external API calls.
+        sample_count = min(
+            len(polyline),
+            max(2, min(12, int(route_distance / max(search_radius, 1.0)) + 2))
+        )
         sample_indexes = sorted({round(i * (len(polyline) - 1) / (sample_count - 1))
                                  for i in range(sample_count)}) if sample_count > 1 else [0]
 
@@ -409,36 +445,6 @@ class ChargingStationDataService:
             return min_dist
         except Exception:
             return None
-
-    def _enhance_stations_with_real_time_data(self, stations: List[Dict[str, Any]],
-                                              start_coords: Tuple[float, float],
-                                              end_coords: Tuple[float, float]) -> List[Dict[str, Any]]:
-        """Enhance station data with real-time traffic only. Per-station enrichment removed."""
-        if not REAL_TIME_AVAILABLE:
-            return stations
-
-        enhanced_stations: List[Dict[str, Any]] = []
-        for station in stations:
-            try:
-                station_coords = (station.get('latitude'),
-                                  station.get('longitude'))
-                if station_coords != start_coords:
-                    traffic_info = api_manager.get_real_time_traffic(
-                        start_coords, station_coords)
-                    if traffic_info and traffic_info.get('source') == 'tomtom':
-                        station = {**station,
-                                   'traffic_status': traffic_info.get('traffic_status', 'Unknown'),
-                                   'congestion_level': traffic_info.get('congestion_level', 0),
-                                   'estimated_delay': traffic_info.get('estimated_delay_minutes', 0),
-                                   'data_source': 'Real-time'}
-                    else:
-                        station = {**station, 'data_source': 'CSV Database'}
-            except Exception:
-                pass
-            enhanced_stations.append(station)
-        return enhanced_stations
-
-    # Removed _is_station_along_route (replaced by polyline-based check)
 
     def _calculate_route_position_score(self, distance_from_start: float, total_route_distance: float) -> float:
         """Calculate how well positioned a station is along the route"""
@@ -660,10 +666,6 @@ class ChargingStationDataService:
         logger.warning(
             f"Could not find coordinates for location: '{location_input}'")
         return None
-
-    """
-    Removed unused _get_location_variations.
-    """
 
     def _calculate_distance(self, point1: Tuple[float, float], point2: Tuple[float, float]) -> float:
         """Calculate distance between two points using Haversine formula"""

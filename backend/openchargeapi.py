@@ -43,11 +43,6 @@ def _value_or_default(value, default):
 def get_opencharge_stations(latitude, longitude, distance_km=20, max_results=20):
     url = "https://api.openchargemap.io/v3/poi/"
 
-    headers = {
-        "X-API-Key": API_KEY,
-        "User-Agent": "EVAT-Chatbot"
-    }
-
     params = {
         "output": "json",
         "latitude": latitude,
@@ -56,10 +51,19 @@ def get_opencharge_stations(latitude, longitude, distance_km=20, max_results=20)
         "distanceunit": "KM",
         "maxresults": max_results,
         "compact": False,
-        "verbose": False
+        "verbose": False,
+        "key": API_KEY
     }
 
-    response = requests.get(url, headers=headers, params=params, timeout=10)
+    response = requests.get(
+        url,
+        params=params,
+        headers={
+            "User-Agent": "EVAT-Chatbot"
+        },
+        timeout=10
+    )
+
     response.raise_for_status()
 
     stations = []

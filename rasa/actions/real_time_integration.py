@@ -3,12 +3,9 @@ import logging
 from typing import Dict, List, Tuple, Optional, Any
 from datetime import datetime
 
-# Import real-time APIs
+# Import the canonical backend implementation so all callers share one manager.
 try:
-    import sys
-    sys.path.append(os.path.join(
-        os.path.dirname(__file__), '..', '..', 'backend'))
-    from real_time_apis import api_manager
+    from backend.real_time_apis import api_manager
     REAL_TIME_AVAILABLE = True
     logger = logging.getLogger(__name__)
     logger.info("Real-time APIs imported successfully")

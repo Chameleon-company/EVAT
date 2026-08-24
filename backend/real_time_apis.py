@@ -1,11 +1,12 @@
 import os
-import json
+import logging
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import requests
 import datetime
 
 _station_cache: Dict[str, Dict[str, Any]] = {}
+logger = logging.getLogger(__name__)
 try:
     from dotenv import load_dotenv
 
@@ -47,7 +48,7 @@ class ApiManager:
                 'traffic': 'true',
                 'travelMode': 'car',
                 'instructionsType': 'text',
-                # Request polyline geometry when available
+                # TomTom returns route geometry as points for this representation.
                 'routeRepresentation': 'polyline',
                 'key': self.api_key,
             }
@@ -73,30 +74,32 @@ class ApiManager:
             except Exception:
                 instructions = []
 
-            # Try to extract polyline points if provided
+            # TomTom may return points on the route or on individual legs,
+            # depending on the API response/version. Support both shapes.
             polyline: List[Tuple[float, float]] = []
-            try:
-                for leg in route.get('legs', []) or []:
-                    # TomTom legs may contain 'points' array with lat/lon
-                    pts = leg.get('points') or []
-                    for p in pts:
-                        lat = p.get('latitude') or p.get('lat')
-                        lon = p.get('longitude') or p.get('lon')
-                        if isinstance(lat, (int, float)) and isinstance(lon, (int, float)):
-                            polyline.append((float(lat), float(lon)))
-                    # Some responses may use 'shape' as list of "lat,lon" strings
-                    if not pts:
-                        shape = leg.get('shape') or []
-                        for s in shape:
-                            if isinstance(s, str) and ',' in s:
-                                try:
-                                    lat_str, lon_str = s.split(',', 1)
-                                    polyline.append(
-                                        (float(lat_str), float(lon_str)))
-                                except Exception:
-                                    continue
-            except Exception:
-                polyline = []
+            point_groups = [route.get('points') or []]
+            point_groups.extend(
+                leg.get('points') or []
+                for leg in (route.get('legs') or [])
+                if isinstance(leg, dict)
+            )
+            for points in point_groups:
+                for point in points:
+                    if not isinstance(point, dict):
+                        continue
+                    lat = point.get('latitude', point.get('lat'))
+                    lon = point.get('longitude', point.get('lon'))
+                    try:
+                        lat_value = float(lat)
+                        lon_value = float(lon)
+                    except (TypeError, ValueError):
+                        continue
+                    if -90 <= lat_value <= 90 and -180 <= lon_value <= 180:
+                        coordinate = (lat_value, lon_value)
+                        if not polyline or coordinate != polyline[-1]:
+                            polyline.append(coordinate)
+
+            logger.info("TomTom route returned %s geometry points", len(polyline))
 
             return {
                 'source': 'tomtom',
@@ -106,7 +109,17 @@ class ApiManager:
                 'instructions': instructions,
                 'polyline': polyline if polyline else None,
             }
-        except Exception:
+        except requests.RequestException as error:
+            response = getattr(error, "response", None)
+            status_code = getattr(response, "status_code", "unknown")
+
+            logger.warning(
+                "TomTom route request failed with HTTP status %s",
+                status_code
+            )
+            return None
+        except (TypeError, ValueError, KeyError) as error:
+            logger.warning("Unable to parse TomTom route response: %s", error)
             return None
 
     def get_real_time_traffic(self, start_coords: Tuple[float, float], end_coords: Tuple[float, float]) -> Optional[Dict[str, Any]]:
@@ -238,7 +251,7 @@ class ApiManager:
             }
         """
         station_key = f"{lat:.4f},{lon:.4f}"
-        api_key = "azlqdL59gO4rrlVHkqtjxy0L0SOI3W7l"
+        api_key = self.api_key
 
         # --- Cache check ---
         if station_key in _station_cache:
