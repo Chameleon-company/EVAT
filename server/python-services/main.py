@@ -12,11 +12,10 @@ import costComparison.costComparison
 import costComparison.model_runner
 import pricePrediction.price_prediction_api
 import charging_station_recommendation_api.main
+import reliability_scoring_api.main as reliability_scoring
 from charging_station_recommendation_api.models.request import RankChargingStationsRequest
 from charging_station_recommendation_api.models.response import RankChargingStationsResponse
 from environmental_impact_analysis.predict import predict_savings
-import tripConfidence.trip_confidence
-from tripConfidence.trip_confidence import TripConfidenceRequest, TripConfidenceResponse
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -25,6 +24,9 @@ async def lifespan(app: FastAPI):
 
     print("[startup] Loading price prediction model...")
     await pricePrediction.price_prediction_api.startup_event()
+
+    print("[startup] Loading reliability scoring data...")
+    reliability_scoring.initialize()
 
     print("[startup] Models ready.")
     yield
@@ -38,6 +40,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# =============================================================
+# Reliability Scoring Use Case
+app.include_router(reliability_scoring.router, prefix="/reliability")
 
 @app.get("/")
 def root():
@@ -226,14 +232,3 @@ async def pricePrediction_predict_batch(request: PPBatchPredictionRequest) -> PP
 @app.post("/charging-station-recommendations/rank", response_model=RankChargingStationsResponse,)
 def stationRecommendation_rank_charging_stations(request: RankChargingStationsRequest) -> RankChargingStationsResponse:
     return charging_station_recommendation_api.main.rank_charging_stations(request)
-
-# =============================================================
-# Trip Confidence Score Use Case
-#
-# Orchestrates weatherAwareRouting, demandForecasting, the reliability
-# scoring service, costComparison, and environmental_impact_analysis into
-# one composite confidence score for a planned trip. See
-# tripConfidence/trip_confidence.py for the scoring design.
-@app.post("/tripConfidence/predict", response_model=TripConfidenceResponse)
-def tripConfidencePredict(request: TripConfidenceRequest) -> TripConfidenceResponse:
-    return tripConfidence.trip_confidence.compute_trip_confidence(request)
