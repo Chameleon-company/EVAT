@@ -97,6 +97,13 @@ services:
       context: ./client/web-app
       dockerfile: Dockerfile
       args:
+        # Vite inlines these at build time, so they must reach `docker compose
+        # build` as ARGs. Compose interpolates "${VAR}" here from the ROOT
+        # .env (or the shell env) - it never reads client/web-app/.env, and
+        # the Dockerfile's .dockerignore excludes .env from the build context
+        # anyway. Set VITE_GOOGLE_MAPS_API_KEY / VITE_GA_TRACKING_ID in the
+        # root .env if you need Maps/analytics working in the built image.
+        #
         # Same-origin API path; Nginx proxies /api/ to the api service.
         VITE_API_URL: "${VITE_API_URL:-/api}"
         VITE_GOOGLE_MAPS_API_KEY: "${VITE_GOOGLE_MAPS_API_KEY:-}"

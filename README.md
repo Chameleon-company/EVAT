@@ -56,6 +56,13 @@ VITE_GOOGLE_MAPS_API_KEY=ABCD1234 (provided that key is separate from the one us
 VITE_GA_TRACKING_ID=XXX
 ```
 
+> **Running with Docker?** `client/web-app/.env` only applies to `npm run dev:client`.
+> Vite inlines these values at build time, and `docker compose build` passes them in as
+> build args that Compose interpolates from the **root** `.env` (or your shell) — it never
+> reads `client/web-app/.env`. Also add `VITE_GOOGLE_MAPS_API_KEY` and `VITE_GA_TRACKING_ID`
+> to the root `.env` (see the root `.env.example`) before building, or the containerised
+> app will ship without them.
+
 #### 3. Backend Environment Variables
 Create a separate .env file in `/server/node-api/.env`. 
 There's an `.env.example` file provided that you can follow.
@@ -128,7 +135,8 @@ connects to the company instance via `MONGODB_URI`.
 
 ```sh
 cp server/node-api/.env.example server/node-api/.env   # fill in secrets
-docker compose build                                   # first build: 5-15 min
+cp .env.example .env                                    # optional: Maps key, custom ports
+docker compose build                                    # first build: 5-15 min
 docker compose up -d
 ```
 
@@ -141,15 +149,6 @@ docker compose up -d
 The API publishes on **8081**, not 8080, because a local Jenkins commonly owns
 8080. Override any host port from the root `.env` with `WEB_HOST_PORT`,
 `API_HOST_PORT` or `PY_HOST_PORT`.
-
-Verify the stack end to end (~45 checks, writes `docker-test-results.txt`):
-
-```sh
-./scripts/docker-smoke-test.sh
-```
-
-Details: [Local Docker testing guide](docs/DOCKER_LOCAL_TESTING.md) ·
-[Containerisation report](docs/DOCKER_FIX_REPORT.md)
 
 ---
 
