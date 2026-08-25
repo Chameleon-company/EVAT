@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import NavBar from '../components/NavBar';
 import profileImage from '../assets/game-car.png';
 import ChatBubble from "../components/ChatBubble";
+import { Button } from '../components/Button';
 
 import '../styles/Root.css';
 import '../styles/Buttons.css';
@@ -158,39 +159,39 @@ function Game() {
         </div>
         <div className="inner-center">
           <div>
-            <button className="btn btn-primary uppercase" onClick={handleAppLogin}>
+            <Button className="uppercase" onClick={handleAppLogin}>
               App Login Check-In
-            </button>
+            </Button>
           </div>
 
           <div className='spacer' />
           <div>
             <h5>Try Action-Based Rewards:</h5>
             <div className='wrap-center'>
-              <button 
-                className='btn btn-primary btn-small'
+              <Button
+                size="small"
                 onClick={() => triggerGamificationAction("check_in")}
-              >Check-In</button>
-              <button 
-                className='btn btn-primary btn-small'
+              >Check-In</Button>
+              <Button
+                size="small"
                 onClick={() => triggerGamificationAction("report_fault")}
-              >Fault Report</button>
-              <button 
-                className='btn btn-primary btn-small'
+              >Fault Report</Button>
+              <Button
+                size="small"
                 onClick={() => triggerGamificationAction("validate_ai_prediction")}
-              >AI Validation</button>
-              <button 
-                className='btn btn-primary btn-small'
+              >AI Validation</Button>
+              <Button
+                size="small"
                 onClick={() => triggerGamificationAction("discover_new_station_in_black_spot")}
-              >Black Spot Discovery</button>
-              <button 
-                className='btn btn-primary btn-small'
+              >Black Spot Discovery</Button>
+              <Button
+                size="small"
                 onClick={() => triggerGamificationAction("use_route_planner")}
-              >Route Plan</button>
-              <button 
-                className='btn btn-primary btn-small'
+              >Route Plan</Button>
+              <Button
+                size="small"
                 onClick={() => triggerGamificationAction("ask_chatbot_question")}
-              >Chatbot Question</button>
+              >Chatbot Question</Button>
             </div>
           </div>
 

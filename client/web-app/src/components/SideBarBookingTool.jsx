@@ -3,6 +3,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { toast } from "react-toastify";
 import ErrorMessage from "../components/ErrorMessage";
+import { Button } from "./Button";
 
 const API_URL = import.meta.env.VITE_API_URL
 const BOOKING_ENDPOINT = `${API_URL}/bookings`;
@@ -239,13 +240,16 @@ export default function SidebarBookingTool({ stationName = "Unknown Station" }) 
       )}
 
       {/* confirm booking button */}
-      <button
-        className="btn btn-primary uppercase btn-full btn-small"
+      <Button
+        size="small"
+        className="uppercase btn-full"
         onClick={handleConfirm}
-        disabled={!selectedDate || !selectedTime || !agree || submitting || isPastDateTime()}
+        disabled={!selectedDate || !selectedTime || !agree || isPastDateTime()}
+        loading={submitting}
+        loadingLabel="Submitting..."
       >
-        {submitting ? "Submitting..." : "Confirm Booking"}
-      </button>
+        Confirm Booking
+      </Button>
     </div>
   );
 }

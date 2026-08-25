@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { useMap, Marker, Popup, Circle } from "react-leaflet";
 import L from "leaflet";
 import markerIconUrl from "../assets/marker-icon-red.png";
+import { Button } from './Button';
 
 const markerIcon = new L.Icon({
   iconUrl: markerIconUrl,
@@ -80,16 +81,16 @@ function LocateUser({
     <>
       {container &&
         createPortal(
-          <button
+          <Button
             type="button"
-            className={`btn btn-primary btn-location ${className}`}
+            className={`btn-location ${className}`}
             title={buttonTitle}
             aria-label="Locate user"
             onClick={locateOnce}
             disabled={!("geolocation" in navigator)}
           >
             📍
-          </button>,
+          </Button>,
           container
         )}
 

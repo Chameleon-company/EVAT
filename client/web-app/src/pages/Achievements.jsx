@@ -3,6 +3,7 @@ import { UserContext } from "../context/user";
 import { useNavigate } from 'react-router-dom';
 import NavBar from '../components/NavBar';
 import ChatBubble from "../components/ChatBubble";
+import { Button } from '../components/Button';
 
 import '../styles/Root.css';
 import '../styles/Buttons.css';
@@ -316,13 +317,13 @@ function Achievements() {
                                 placeholder="Enter value"
                                 className="test-input"
                                 />
-                                <button 
+                                <Button
                                 onClick={handleAddToCounter}
-                                className="btn btn-primary btn-tiny"
+                                size="tiny"
                                 disabled={!selectedCounter || counterValue <= 0}
                                 >
                                 Add
-                                </button>
+                                </Button>
                             </div>
                         </div>
 
@@ -342,13 +343,13 @@ function Achievements() {
                                 ))}
                             </select>
 
-                            <button 
+                            <Button
                                 onClick={handleSetFlagTrue}
-                                className="btn btn-primary btn-tiny"
+                                size="tiny"
                                 disabled={!selectedFlag}
                             >
                                 Set True
-                            </button>
+                            </Button>
                         </div>
 
                         <div className='spacer' />
@@ -356,9 +357,9 @@ function Achievements() {
                         {/* Reset Controls */}
                         <div className="test-section">
                             <h6>Reset Controllers</h6>
-                            <button onClick={handleResetFlags} className="btn btn-transparent btn-tiny">Reset Flags</button>
-                            <button onClick={handleResetCounters} className="btn btn-transparent btn-tiny">Reset Counters</button>
-                            <button onClick={handleResetAll} className="btn btn-danger btn-tiny">Reset All</button>
+                            <Button variant="transparent" size="tiny" onClick={handleResetFlags}>Reset Flags</Button>
+                            <Button variant="transparent" size="tiny" onClick={handleResetCounters}>Reset Counters</Button>
+                            <Button variant="danger" size="tiny" onClick={handleResetAll}>Reset All</Button>
                         </div>
                     </div>
                 )}

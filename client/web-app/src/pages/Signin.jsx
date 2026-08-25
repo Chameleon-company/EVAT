@@ -4,6 +4,7 @@ import { Mail, Eye, EyeOff, KeyRound, User as UserIcon } from 'lucide-react';
 import { UserContext } from '../context/user';
 import ErrorMessage from '../components/ErrorMessage'
 import SuccessMessage from '../components/SuccessMessage'
+import { Button } from '../components/Button';
 
 import '../styles/Root.css';
 import '../styles/Buttons.css';
@@ -197,20 +198,18 @@ function Signin() {
 
 
         <div className="spacer-small">  </div>
-        <button 
+        <Button
           type='submit'
-          className="btn btn-primary" 
           disabled={submitted}
         >
           {submitted ? "Signing In..." : "SIGN IN"}
-        </button>
-        <button
+        </Button>
+        <Button
           type='button'
-          className="btn btn-primary"
           onClick={() => navigate('/signup')}
         >
           CREATE NEW ACCOUNT
-        </button>
+        </Button>
 
       </form>
 

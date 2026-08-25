@@ -9,6 +9,7 @@ import {
 } from '../services/chargerReviewService';
 import { toast } from "react-toastify";
 import { getChargerCongestion } from '../services/chargerCongestionService';
+import { Button } from './Button';
 
 
 export default function ChargerSideBar({ station, onClose }) {
@@ -381,16 +382,16 @@ export default function ChargerSideBar({ station, onClose }) {
             <p className={(userReview.comment.length <= 4) ? "review-charCount-invalid" : "review-charCount-valid"}>
               {userReview.comment.length}/255
             </p>
-            <button
-              className="btn btn-primary btn-small full-width uppercase"
+            <Button
+              size="small"
+              className="full-width uppercase"
               onClick={handleSubmitReview}
-              disabled={isSubmittingReview || !userReview.rating || userReview.comment.length <= 4 || userReview.comment.length >= 255}
+              disabled={!userReview.rating || userReview.comment.length <= 4 || userReview.comment.length >= 255}
+              loading={isSubmittingReview}
+              loadingLabel={userHasReviewed ? 'Updating...' : 'Submitting...'}
             >
-              {isSubmittingReview
-                ? (userHasReviewed ? 'Updating...' : 'Submitting...')
-                : (userHasReviewed ? 'Update Review' : 'Submit Review')
-              }
-            </button>
+              {userHasReviewed ? 'Update Review' : 'Submit Review'}
+            </Button>
           </div>
         )}
 

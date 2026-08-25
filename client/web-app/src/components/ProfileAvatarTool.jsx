@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useContext  } from 'react';
 import { UserContext } from "../context/user";
 import ErrorMessage from '../components/ErrorMessage';
 import SuccessMessage from '../components/SuccessMessage';
+import { Button } from './Button';
 
 // a small list of provided profile images
 const DEFAULT_AVATARS = [
@@ -307,13 +308,13 @@ const ProfileAvatarTool = ({
                     if (e.key === 'Enter' && !isAcceptDisabled) handleAcceptCustomUrl();
                   }}
                 />
-                <button 
-                  className="btn btn-primary btn-small"
+                <Button
+                  size="small"
                   onClick={handleAcceptCustomUrl}
                   disabled={isAcceptDisabled || !customUrl.trim()}
                 >
                   {isAcceptDisabled ? "Wait 5s..." : "Accept"}
-                </button>
+                </Button>
               </div>
               {/* Failed Upload Error Message  */}
               {urlError && <ErrorMessage error={urlError}/>}
@@ -349,18 +350,21 @@ const ProfileAvatarTool = ({
         </div>
 
         <div className="avatar-tool-actions">
-          <button 
-            className="btn btn-transparent btn-small one-hundred-50-width" 
+          <Button
+            variant="transparent"
+            size="small"
+            className="one-hundred-50-width"
             onClick={handleClose}
           >
             Cancel
-          </button>
-          <button 
-            className="btn btn-primary btn-small one-hundred-50-width" 
+          </Button>
+          <Button
+            size="small"
+            className="one-hundred-50-width"
             onClick={handleSave}
           >
             Save Picture
-          </button>
+          </Button>
         </div>
       </div>
     </div>

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Mail, Eye, EyeOff, KeyRound, User, Phone } from 'lucide-react';
 import ErrorMessage from '../components/ErrorMessage'
 import SuccessMessage from '../components/SuccessMessage'
+import { Button } from '../components/Button';
 
 import '../styles/Root.css';
 import '../styles/Buttons.css';
@@ -252,19 +253,18 @@ function Signup() {
         {validationErrors.password && <ErrorMessage error={validationErrors.password}/>}
 
         <div className="spacer-small">  </div>
-        <button 
+        <Button
           type="submit" 
-          className="btn btn-primary"
         >
           CREATE ACCOUNT
-        </button>
-        <button
+        </Button>
+        <Button
           type='button'
-          className="btn btn-transparent"
+          variant="transparent"
           onClick={() => navigate('/')}
         >
           BACK TO SIGN IN
-        </button>
+        </Button>
       </form>
     </div>
   );

@@ -8,6 +8,7 @@ import { useContext } from "react";
 import NavBar from "../components/NavBar";
 import { FavouritesContext } from "../context/FavouritesContext";
 import ChatBubble from "../components/ChatBubble";
+import { Button } from "../components/Button";
 
 import '../styles/Root.css';
 import '../styles/Buttons.css';
@@ -65,9 +66,9 @@ function Favourite() {
                     <td className="table-col-center">{st.charging_points || 0}</td>
                     <td className="table-col-center">{st.access_key_required === "true" ? "Closed" : "Open"}</td>
                     <td className="table-col-center">
-                      <button className="btn btn-danger btn-small" onClick={() => toggleFavourite(st)}>
+                      <Button variant="danger" size="small" onClick={() => toggleFavourite(st)}>
                         Unsave
-                      </button>
+                      </Button>
                     </td>
                   </tr>
                 ))}

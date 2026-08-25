@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import BarChart from "./BarChart";
 import { getMyInsights } from "../services/personalisedEvInsightsService";
 import { useNavigate } from 'react-router-dom';
+import { Button } from './Button';
 
 import "../styles/Root.css";
 import "../styles/Fonts.css";
@@ -167,8 +168,8 @@ export default function InsightsDisplay() {
                 </div>
                 <br></br>
                 <div className="full-width centerBtn">
-                    <button onClick={() => navigate('/insights-form')} className="btn btn-primary">Back to form</button>
-                    <button onClick={() => navigate('/profile')} className="btn btn-primary">Back to Dashboard</button>
+                    <Button type="button" onClick={() => navigate('/insights-form')}>Back to form</Button>
+                    <Button type="button" onClick={() => navigate('/profile')}>Back to Dashboard</Button>
                 </div>
             </div>
         </div>

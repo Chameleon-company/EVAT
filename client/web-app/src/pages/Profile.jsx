@@ -15,6 +15,7 @@ import EnvironmentalImpact from "../components/EnvironmentalImpact";
 import ErrorMessage from '../components/ErrorMessage';
 import SuccessMessage from '../components/SuccessMessage';
 import ProfileAvatarTool from '../components/ProfileAvatarTool';
+import { Button } from '../components/Button';
 
 import '../styles/Root.css';
 import '../styles/Buttons.css';
@@ -681,8 +682,10 @@ function Profile() {
 
           {/* Edit details button */}
           { (!editingAbout) && (
-            <button 
-              className="btn btn-transparent btn-tiny one-hundred-25-width spread" 
+            <Button
+              variant="transparent"
+              size="tiny"
+              className="one-hundred-25-width spread"
               onClick={() => {
                 if (originalUser != null){
                   setLocalUser(originalUser); // reset the details in case other edits are in progress
@@ -695,23 +698,26 @@ function Profile() {
               }}
             >
               <Pencil size='14'/>Edit Profile
-            </button>
+            </Button>
           )}
 
           {/* Save details button */}
           { (editingAbout) && (
-            <button 
-              className="btn btn-primary btn-tiny one-hundred-25-width spread uppercase" 
+            <Button
+              size="tiny"
+              className="one-hundred-25-width spread uppercase"
               onClick={() => handleSaveAbout()}
             >
               <Check size='16'/> Save
-            </button>
+            </Button>
           )}
 
           {/* Cancel edit detials button */}
           { (editingAbout) && (
-            <button 
-              className="btn btn-danger btn-tiny one-hundred-25-width spread uppercase" 
+            <Button
+              variant="danger"
+              size="tiny"
+              className="one-hundred-25-width spread uppercase"
               onClick={() => {
                 setEditingAbout(false);
                 setLocalUser(originalUser);
@@ -719,7 +725,7 @@ function Profile() {
               }}
             >
               <X size='16'/> CANCEL
-            </button>
+            </Button>
           )}
           <div className='spacer' />
 
@@ -800,8 +806,10 @@ function Profile() {
 
           {/* Edit car button */}
           { (!editingCar) && (
-            <button 
-              className="btn btn-transparent btn-tiny one-hundred-25-width spread" 
+            <Button
+              variant="transparent"
+              size="tiny"
+              className="one-hundred-25-width spread"
               onClick={() => {
                 if (originalUser != null){
                   setLocalUser(originalUser); // reset the details in case other edits are in progress
@@ -814,23 +822,26 @@ function Profile() {
               }}
             >
               <Pencil size='14'/>Edit Vehcile
-            </button>
+            </Button>
           )}
 
           {/* Save car button */}
           { (editingCar) && (
-            <button 
-              className="btn btn-primary btn-tiny one-hundred-25-width spread uppercase" 
+            <Button
+              size="tiny"
+              className="one-hundred-25-width spread uppercase"
               onClick={() => handleSaveCar()}
             >
               <Check size='16'/> Save
-            </button>
+            </Button>
           )}
 
           {/* Cancel edit car button */}
           { (editingCar) && (
-            <button 
-              className="btn btn-danger btn-tiny one-hundred-25-width spread uppercase" 
+            <Button
+              variant="danger"
+              size="tiny"
+              className="one-hundred-25-width spread uppercase"
               onClick={() => {
                 setEditingCar(false);
                 setLocalUser(originalUser);
@@ -838,15 +849,15 @@ function Profile() {
               }}
             >
               <X size='16'/> CANCEL
-            </button>
+            </Button>
           )}
 
           <div className='spacer' />
           
           {/* Other Buttons */}
-          <button className="btn btn-primary btn-tiny one-hundred-50-width spread" onClick={() => setActiveTab("payment")}> <CreditCard /> Payment</button>
-          <button className="btn btn-primary btn-tiny one-hundred-50-width spread" onClick={() => setActiveTab("history")}> <BookText /> Booking History</button>
-          <button className="btn btn-primary btn-tiny one-hundred-50-width spread" onClick={() => setActiveTab("env-impact")}> Environmental Impact</button>
+          <Button size="tiny" className="one-hundred-50-width spread" onClick={() => setActiveTab("payment")}> <CreditCard /> Payment</Button>
+          <Button size="tiny" className="one-hundred-50-width spread" onClick={() => setActiveTab("history")}> <BookText /> Booking History</Button>
+          <Button size="tiny" className="one-hundred-50-width spread" onClick={() => setActiveTab("env-impact")}> Environmental Impact</Button>
 
           <div className='spacer' />
           <div className='font-regular text-tiny'>
@@ -1090,8 +1101,8 @@ function Profile() {
           {activeTab === "payment" && (
             <>
               {/* Save/Edit button */}
-              <button
-                className="btn btn-primary one-hundred-50-width spread uppercase"
+              <Button
+                className="one-hundred-50-width spread uppercase"
                 onClick={() => {
                   if (editingPayment) {
                     handleSavePayment();
@@ -1109,7 +1120,7 @@ function Profile() {
               >
                 {editingPayment ? <Check /> : <Pencil /> }
                 {editingPayment ? "SAVE" : "EDIT"}
-              </button>
+              </Button>
             </>
           )}
 
@@ -1117,8 +1128,9 @@ function Profile() {
           { ((activeTab === "payment" && editingPayment)      // payment and editing
             ) && (
             // Cancel button
-            <button 
-              className="btn btn-transparent one-hundred-50-width spread uppercase" 
+            <Button
+              variant="transparent"
+              className="one-hundred-50-width spread uppercase"
               onClick={() => {
                 if (activeTab === "payment") {
                   setEditingPayment(false);
@@ -1128,7 +1140,7 @@ function Profile() {
               }}
             >
               <X /> CANCEL
-            </button>
+            </Button>
           )}
 
           {/* Handle Back button */}
@@ -1137,12 +1149,13 @@ function Profile() {
             (activeTab === "payment" && !editingPayment)      // payment but not editing
             ) && (
             // Back button
-            <button 
-              className="btn btn-tertiary one-hundred-50-width spread uppercase" 
+            <Button
+              variant="tertiary"
+              className="one-hundred-50-width spread uppercase"
               onClick={() => setActiveTab("dashboard")}
             >
               <ArrowLeft /> BACK
-            </button>
+            </Button>
           )}
 
         </div> 

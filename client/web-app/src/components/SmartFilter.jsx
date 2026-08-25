@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Star, Heart, MessageCircle, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { Button } from './Button';
 
 import '../styles/SmartFilter.css';
 
@@ -180,13 +181,15 @@ const SmartFilter = ({
             <h5 className='text-center'>Charger Type</h5>
             <div className="filter-options">
               {connectorTypes.map(type => (
-                <button
+                <Button
                   key={type}
-                  className={`btn btn-options btn-tiny ${filters.chargerType.includes(type) ? 'selected' : ''}`}
+                  variant="options"
+                  size="tiny"
+                  className={filters.chargerType.includes(type) ? 'selected' : ''}
                   onClick={() => handleChargerTypeToggle(type)}
                 >
                   {type}
-                </button>
+                </Button>
               ))}
             </div>
           </div>
@@ -197,13 +200,15 @@ const SmartFilter = ({
             <h5 className='text-center'>Charging Speed</h5>
             <div className="filter-options">
               {chargingSpeeds.map(speed => (
-                <button
+                <Button
                   key={speed}
-                  className={`btn btn-options btn-tiny ${filters.chargingSpeed.includes(speed) ? 'selected' : ''}`}
+                  variant="options"
+                  size="tiny"
+                  className={filters.chargingSpeed.includes(speed) ? 'selected' : ''}
                   onClick={() => handleChargingSpeedToggle(speed)}
                 >
                   {speed}
-                </button>
+                </Button>
               ))}
             </div>
           </div>
@@ -248,13 +253,15 @@ const SmartFilter = ({
             <h5 className='text-center'>Charger Operator</h5>
             <div className="filter-options">
               {operatorTypes.map(type => (
-                <button
+                <Button
                   key={type}
-                  className={`btn btn-options btn-tiny ${filters.operatorType.includes(type) ? 'selected' : ''}`}
+                  variant="options"
+                  size="tiny"
+                  className={filters.operatorType.includes(type) ? 'selected' : ''}
                   onClick={() => handleOperatorToggle(type)}
                 >
                   {type}
-                </button>
+                </Button>
               ))}
             </div>
           </div>
@@ -302,12 +309,12 @@ const SmartFilter = ({
           </h5>
           {/* Action Buttons */}
           <div className="action-buttons">
-            <button className="btn btn-transparent btn-force-flex btn-small" onClick={handleReset}>
+            <Button variant="transparent" size="small" className="btn-force-flex" onClick={handleReset}>
               Reset
-            </button>
-            <button className="btn btn-primary btn-force-flex btn-small" onClick={handleApplyFilter}>
+            </Button>
+            <Button size="small" className="btn-force-flex" onClick={handleApplyFilter}>
               Apply Filter
-            </button>
+            </Button>
           </div>
         </div>
       </div>
