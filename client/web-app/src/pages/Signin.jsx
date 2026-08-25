@@ -28,20 +28,23 @@ function Signin() {
   const [submitted, setSubmitted] = useState(false);
   const { setUser } = useContext(UserContext);
   const navigate = useNavigate();
-  const [isEmailEmpty, setIsEmailEmpty] = useState(false);
-  const [isPasswordEmpty, setIsPasswordEmpty] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({
+    email: '',
+    password: '',
+  });
 
   const handleValidation = (e) => {
     e.preventDefault();
 
-    const isEmailEmpty = email.trim() === '';
-    const isPasswordEmpty = password.trim() === '';
+    const errors = {
+      email: email.trim() ? '' : 'Email is required.',
+      password: password.trim() ? '' : 'Password is required.',
+    };
 
-    setIsEmailEmpty(isEmailEmpty);
-    setIsPasswordEmpty(isPasswordEmpty);
+    setFieldErrors(errors);
     setError(null); // Clear previous errors
 
-    if (!isEmailEmpty && !isPasswordEmpty) {
+    if (!errors.email && !errors.password) {
       handleSubmit(e);
     }
   };
@@ -161,16 +164,19 @@ function Signin() {
           <Mail className="input-icon" />
           <input
             className="input"
-            type="text"
+            type="email"
             name="email"
             placeholder="Enter your email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              setFieldErrors((previous) => ({ ...previous, email: '' }));
+            }}
           />
         </div>
         <div className="spacer-small">  </div>
         {/* Email Error Message */}
-        {isEmailEmpty && <ErrorMessage error='required'/>}
+        {fieldErrors.email && <ErrorMessage error={fieldErrors.email}/>}
 
         {/* Enter Password */}
         <label className='form-label required'>Password</label>
@@ -182,7 +188,10 @@ function Signin() {
             name="password"
             placeholder="Enter your password"
             value={password}
-            onChange={e => setPassword(e.target.value)}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              setFieldErrors((previous) => ({ ...previous, password: '' }));
+            }}
           />
           <span
             className="input-icon-end"
@@ -194,7 +203,7 @@ function Signin() {
         </div>
         <div className="spacer-small">  </div>
         {/* Password Error Message */}
-        {isPasswordEmpty && <ErrorMessage error='required'/>}
+        {fieldErrors.password && <ErrorMessage error={fieldErrors.password}/>}
 
 
         <div className="spacer-small">  </div>
