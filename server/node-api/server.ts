@@ -35,7 +35,7 @@ import userStatsRoutes from "./src/routes/user-stats-route";
 import achievementRoutes from "./src/routes/achievement-route";
 import personalisedEVInsightsRoutes from "./src/routes/personalised-ev-insights-routes";
 import weatherAwareRoutes from "./src/routes/weather-aware-routing-routes";
-import PromotionRoutes from "./src/routes/promotion-route";
+import NearbyPlaceRoutes from "./src/routes/nearby-place-route";
 
 const app: Application = express();
 const PORT = env.PORT;
@@ -47,7 +47,6 @@ mongoose.set('strictQuery', true);
 connectDB();
 
 import Admin from './src/models/admin';
-import PromotionService from './src/services/promotion-service';
 
 const createDefaultAdmin = async () => {
   const existingAdmin = await Admin.findOne({});
@@ -58,19 +57,6 @@ const createDefaultAdmin = async () => {
 };
 
 createDefaultAdmin();
-
-const seedSamplePromotions = async () => {
-  try {
-    const result = await new PromotionService().seedSamplePromotions();
-    if (!result.skipped) {
-      console.log(`✅ Seeded ${result.inserted} sample promotions`);
-    }
-  } catch (error: any) {
-    console.log('Promotion seed skipped:', error.message);
-  }
-};
-
-seedSamplePromotions();
 
 
 app.use(cors());
@@ -146,7 +132,7 @@ app.use("/api/user-stats", userStatsRoutes);
 app.use("/api/achievements", achievementRoutes);
 app.use("/api/personalised-ev-insights", personalisedEVInsightsRoutes);
 app.use("/api/weather-aware-routing", weatherAwareRoutes);
-app.use("/api/promotions", PromotionRoutes);
+app.use("/api/nearby-places", NearbyPlaceRoutes);
 
 // Serve React frontend
 const buildPath = path.join(__dirname, "/build");

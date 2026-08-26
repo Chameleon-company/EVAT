@@ -14,6 +14,7 @@ function ClusterMarkers({ showCongestion, stations, selectedStation, onSelectSta
   
   const clusterGroupRef = useRef(null);
   const [congestionLevels, setCongestionLevels] = useState({});
+  const lastFlownStationId = useRef(null);
   
   const stationIDs = useMemo(
     () => stations.map(station => station._id),
@@ -81,16 +82,13 @@ function ClusterMarkers({ showCongestion, stations, selectedStation, onSelectSta
       let icon;
 
       if (isSelected) {
-        // 🔥 Highlight marker
+        // Highlight marker
         icon = L.divIcon({
           className: 'selected-marker',
           html: '⚡',
           iconSize: [40, 40],
           iconAnchor: [20, 20],
         });
-
-        // Zoom + focus
-        map.flyTo([lat, lng], 16);
       } else {
         icon =
           congestionIcon(showCongestion, level) ||
@@ -107,6 +105,23 @@ function ClusterMarkers({ showCongestion, stations, selectedStation, onSelectSta
     });
 
   }, [stations, showCongestion, congestionLevels, onSelectStation, selectedStation, map]);
+
+  // Fly to a station only when the selection actually changes.
+  // Doing this inside marker redraws retriggers map moveend -> charger refetch loops.
+  useEffect(() => {
+    if (!selectedStation?._id) {
+      lastFlownStationId.current = null;
+      return;
+    }
+    if (lastFlownStationId.current === selectedStation._id) return;
+
+    const lat = parseFloat(selectedStation.latitude);
+    const lng = parseFloat(selectedStation.longitude);
+    if (Number.isNaN(lat) || Number.isNaN(lng)) return;
+
+    lastFlownStationId.current = selectedStation._id;
+    map.flyTo([lat, lng], 16);
+  }, [selectedStation, map]);
 
   return null;
 }

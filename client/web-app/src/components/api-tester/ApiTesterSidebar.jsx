@@ -15,7 +15,7 @@ import {
   user,
   vehicle,
   iceVehicle,
-  promotions,
+  nearbyPlaces,
 } from '../../data/apiEndpoints';
 
 // on clicking an endpoint item
@@ -57,7 +57,7 @@ const ApiTesterSidebar = ({ onEndpointClick }) => {
     { title: 'User Route', endpoints: user },
     { title: 'Vehicle Route', endpoints: vehicle },
     { title: 'ICE Vehicle Route', endpoints: iceVehicle },
-    { title: 'Promotions Route', endpoints: promotions },
+    { title: 'Nearby Places Route', endpoints: nearbyPlaces },
   ];
 
   // filter function — searches endpoint, label, method

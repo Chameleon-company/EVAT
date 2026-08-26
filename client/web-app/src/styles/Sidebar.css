@@ -280,6 +280,23 @@ This CSS has the style settings for Sidebar (access when clicking on a charger).
   box-shadow: var(--website-shadow-box);
 }
 
+.promo-photo {
+  width: 100%;
+  height: 8rem;
+  object-fit: cover;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  background: var(--grey-light);
+  display: block;
+}
+
+.promo-photo-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+}
+
 .promo-card-header {
   display: flex;
   align-items: flex-start;
@@ -299,11 +316,13 @@ This CSS has the style settings for Sidebar (access when clicking on a charger).
 .promo-business {
   font-size: 0.75rem;
   opacity: 0.75;
+  color: var(--text-color-dark);
 }
 
 .promo-title {
   font-weight: 700;
   font-size: 0.9rem;
+  color: var(--text-color-black);
 }
 
 .promo-discount {
@@ -318,6 +337,7 @@ This CSS has the style settings for Sidebar (access when clicking on a charger).
 
 .promo-description {
   margin: 0.4rem 0 0.5rem 0;
+  color: var(--text-color-dark);
 }
 
 .promo-meta {
@@ -325,12 +345,14 @@ This CSS has the style settings for Sidebar (access when clicking on a charger).
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
+  color: var(--text-color-dark);
 }
 
 .promo-distance {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
+  color: var(--text-color-dark);
 }
 
 .promo-code-btn {
@@ -340,6 +362,7 @@ This CSS has the style settings for Sidebar (access when clicking on a charger).
   border: 1px dashed var(--secondary-color-base);
   background: transparent;
   color: var(--secondary-color-base);
+  text-decoration: none;
   border-radius: 6px;
   padding: 0.15rem 0.45rem;
   font-size: 0.7rem;
