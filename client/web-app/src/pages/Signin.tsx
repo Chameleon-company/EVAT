@@ -1,18 +1,9 @@
 import { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Eye, EyeOff, KeyRound, User as UserIcon } from 'lucide-react';
+import { Mail, Eye, EyeOff, KeyRound } from 'lucide-react';
 import { UserContext } from '../context/user';
+import { Banner } from '../components/Banner';
 import { Input } from '../components/Input';
-
-// import '../styles/Root.css';
-// import '../styles/Buttons.css';
-// import '../styles/Elements.css';
-// import '../styles/Fonts.css';
-// import '../styles/Forms.css';
-// import '../styles/NavBar.css';
-// import '../styles/Sidebar.css';
-// import '../styles/Tables.css';
-// import '../styles/Validation.css';
 
 type UserData = {
   id: string | number;
@@ -31,6 +22,9 @@ type SigninResponseType = {
   user?: Partial<UserData>;
   [key: string]: unknown;
 };
+type SigninErrorResponseType = null
+  | 'internal'
+  | 'credentials';
 
 const API_URL = import.meta.env.VITE_API_URL;
 const url = `${API_URL}/auth/login`;
@@ -40,7 +34,7 @@ function Signin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<SigninErrorResponseType>();
   const [submitting, setSubmitting] = useState(false);
   const { setUser } = useContext(UserContext);
   const navigate = useNavigate();
@@ -82,9 +76,7 @@ function Signin() {
         const accessToken = _extractAccessToken(parsed);
 
         if (accessToken.trim() === '') {
-          setError('Login succeeded but no access token was returned.');
-          setSubmitting(false);
-          return;
+          throw new Error('Invalid access token returned from the server!');
         }
 
         // Fetch detailed profile
@@ -112,13 +104,19 @@ function Signin() {
         localStorage.setItem('currentUser', JSON.stringify(userData));
         // Navigate to map page after successful login
         navigate('/map');
-      } else {
-        setError('User does not exist or incorrect password.');
       }
-    } catch (err) {
+      else {
+        setError('credentials');
+        // setError('User does not exist or incorrect password.');
+      }
+    }
+    catch (err) {
       console.error('Error signing in:', err);
-      setError('An unexpected error occurred. Please contact this number to resolve: +61 123 456 789.');
-    } finally {
+      setError('internal');
+      // setError('An unexpected error occurred. Please contact this number to resolve: +61 123 456 789.');
+    }
+    finally {
+      setPassword('');
       setSubmitting(false);
     }
   };
@@ -186,7 +184,17 @@ function Signin() {
       </div>
 
       <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-120">
-        <div className="bg-white px-6 py-12 shadow-sm sm:rounded-lg sm:px-12">
+        { typeof error === 'string' && error.trim().length > 0 && 
+          <Banner
+            className="sm:w-full sm:max-w-120"
+            type="error"
+            onDismiss={() => setError(null)}
+          >
+            { error === 'credentials' && 'Invalid email address or password.' }
+            { error === 'internal' && 'An internal server error occured, please try again later.' }
+          </Banner>
+        }
+        <div className="bg-white px-6 py-12 border border-surface-200 sm:rounded-lg sm:px-12">
           <form action="javascript:;" className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <label htmlFor="email" className="block text-sm/6 font-medium text-gray-900">
@@ -279,53 +287,7 @@ function Signin() {
             Sign up
           </button>
         </div>
-
-{/* 
-        {error && <ErrorMessage error={error}/>}
-        {submitted && <SuccessMessage message='Signup successful!'/>}
-        <div className="spacer-small">  </div>
-
-        <label className='form-label required'>Email</label>
-        <div className='icon-inside-input'>
-          <input
-            className="input"
-            type="email"
-            name="email"
-            placeholder="Enter your email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </div>
-        
-        <div className="spacer-small">  </div>
-        {isEmailEmpty && <ErrorMessage error='required'/>}
-
-        <label className='form-label required'>Password</label>
-        <div className='icon-inside-input'>
-          <input
-            className="input"
-            type={showPassword ? 'text' : 'password'}
-            name="password"
-            placeholder="Enter your password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-          />
-          <span
-            className="input-icon-end"
-            onClick={() => setShowPassword(!showPassword)}
-            role="button"
-          >
-            {showPassword ? <EyeOff /> : <Eye />}
-          </span>
-        </div>
-        <div className="spacer-small">  </div>
-        {isPasswordEmpty && <ErrorMessage error='required'/>}
-
-
-        <div className="spacer-small">  </div> */}
-
       </div>
-
     </div>
   );
 }

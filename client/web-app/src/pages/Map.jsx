@@ -15,17 +15,15 @@ import FloatingVoiceAssistant from '../components/FloatingVoiceAssistant';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
-import '../styles/Root.css';
-import '../styles/SmartFilter.css';
-import '../styles/Map.css';
-import '../styles/Buttons.css';
-import '../styles/Elements.css';
-import '../styles/Fonts.css';
-import '../styles/Forms.css';
-import '../styles/NavBar.css';
-import '../styles/Sidebar.css';
-import '../styles/Tables.css';
-import '../styles/Validation.css';
+// import '../styles/Root.css';
+// import '../styles/SmartFilter.css';
+// import '../styles/Buttons.css';
+// import '../styles/Elements.css';
+// import '../styles/Fonts.css';
+// import '../styles/Forms.css';
+// import '../styles/Sidebar.css';
+// import '../styles/Tables.css';
+// import '../styles/Validation.css';
 
 // Configure default Leaflet marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -302,19 +300,19 @@ export default function Map() {
   const [operatorTypes, setOperatorTypes] = useState([]);
 
   // local UI state for the floating dark-mode button icon
-  const [isDark, setIsDark] = useState(false);
+  // const [isDark, setIsDark] = useState(false);
 
   // toggle dark mode only when inside the Map page
-  useEffect(() => {
-    if (isDark) {
-      document.body.classList.add("dark-mode");
-    } else {
-      document.body.classList.remove("dark-mode");
-    }
-    return () => {
-      document.body.classList.remove("dark-mode");
-    };
-  }, [isDark]);
+  // useEffect(() => {
+  //   if (isDark) {
+  //     document.body.classList.add("dark-mode");
+  //   } else {
+  //     document.body.classList.remove("dark-mode");
+  //   }
+  //   return () => {
+  //     document.body.classList.remove("dark-mode");
+  //   };
+  // }, [isDark]);
 
   // Fetch chargers only when token available and bbox changes
   useEffect(() => {
@@ -450,9 +448,9 @@ export default function Map() {
   }, [stations, filters]);
 
   return (
-    <div className={`map-page ${isDark ? "dark" : ""}`}>
+    <>
       <NavBar />
-      <div className='container-map'>
+      <div className="relative h-(--content-height) overflow-auto">
         <button
           className="btn btn-primary btn-filter btn-small"
           onClick={() => setIsFilterOpen(true)}
@@ -546,7 +544,7 @@ export default function Map() {
         )}
 
         <MapContainer
-          className="map-visible-area hide-scrollbar "
+          className="h-full"
           center={[-37.8136, 144.9631]}
           zoom={13}
           whenCreated={(mapInstance) => {
@@ -567,14 +565,14 @@ export default function Map() {
           <LocateUser />
         </MapContainer>
 
-        <button
+        {/* <button
           className="btn btn-primary btn-dark-mode"
           aria-label="Toggle dark mode"
           onClick={() => setIsDark(prev => !prev)}
           title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
         >
           {isDark ? '🌙' : '☀️'}
-        </button>
+        </button> */}
 
         <SmartFilter
           isOpen={isFilterOpen}
@@ -599,6 +597,6 @@ export default function Map() {
         {/* Existing chat bubble (kept as is) */}
         <ChatBubble />
       </div>
-    </div>
+    </>
   );
 }
