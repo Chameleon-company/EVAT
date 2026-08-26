@@ -11,11 +11,11 @@ export default defineConfig(() => {
     parsed: {
       // Load root .env
       ...(dotenv.config({
-        path: path.resolve(__dirname, '../../.env'),
+        path: path.resolve(import.meta.dirname, '../../.env'),
       }).parsed || {}),
       // Load workspace-specific .env, overriding duplicates
       ...(dotenv.config({
-        path: path.resolve(__dirname, './.env'),
+        path: path.resolve(import.meta.dirname, './.env'),
       }).parsed || {}),
     },
   }
