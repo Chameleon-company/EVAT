@@ -28,9 +28,9 @@ The main Python entry point is `server/python-services/main.py`. It exposes most
 | Demand forecasting | `demandForecasting/` | Loads `ev_demand_model.pkl` | 5000 | No |
 | Cost comparison | `costComparison/` | Trains and selects a model during API startup | 5000 | Yes |
 | Vehicle price prediction | `pricePrediction/` | Loads `price_best_model_latest.joblib` | 5000 | No |
-| Charging-station recommendation | `charging_station_recommendation_api/` | Deterministic filtering and weighted scoring | 5000 through the combined API | No model training required |
+| Charging-station recommendation | `charging_station_recommendation_api/` | Deterministic runtime ranking plus an offline preference-model pipeline | 5000 through the combined API | Yes, but the trained preference artifact is not yet used at runtime |
 | Reliability scoring | `reliability_scoring_api/` | Deterministic reliability and sentiment scoring | 5000 under `/reliability` | No model training required |
-| Environmental impact model | `environmental_impact_analysis/` | Offline notebook and prediction utility | No API port | Yes, through the notebook |
+| Environmental impact model | `environmental_impact_analysis/` | Loads `co2_savings_model.pkl` for prediction | 5000 under `/environmentalImpact` | Yes, through the notebook |
 
 The Node API calls the combined Python service through `PYTHON_API_URL`. Reliability scoring is also served by that process through `RELIABILITY_API_URL=http://127.0.0.1:5000/reliability`.
 
@@ -39,8 +39,8 @@ The Node API calls the combined Python service through `PYTHON_API_URL`. Reliabi
 - Run the combined service from `server/python-services`. Several model and data paths are relative to that directory.
 - The combined service cannot import successfully without a valid `GOOGLE_MAPS_API_KEY`, even when only a non-routing feature is being tested.
 - Cost comparison training runs in memory at every combined-service startup. It does not save the selected model to disk.
-- Reliability scoring and charging recommendations are scoring systems, not trained ML models.
-- Price prediction, charging recommendations, and reliability scoring are all served by the combined Python process. Use `npm run dev:python`.
+- Reliability scoring and the active charging-recommendation ranker use explicit formulas. A separately trained charging-preference artifact exists but is not integrated into the ranker.
+- Price prediction, environmental impact, charging recommendations, and reliability scoring are all served by the combined Python process. Use `npm run dev:python`.
 - There is currently no Python Dockerfile or Compose file in the repository. Section 9 provides a reproducible development-container command without claiming that EVAT has a production container image.
 
 ## 3. Prerequisites
@@ -340,7 +340,7 @@ Run all notebook cells from top to bottom. Confirm that the final artifact is cr
 python predict.py
 ```
 
-The environmental model is not mounted in the current combined FastAPI application. `predict.py` is an offline verification utility, while the Node environmental-impact feature currently uses database fields rather than this artifact.
+The combined FastAPI application mounts the model at `POST /environmentalImpact/predict`. The Node environmental-impact service loads EV and ICE records from MongoDB, derives the model payload, calls that endpoint, and combines the prediction with the stored vehicle summaries.
 
 ### 7.3 Artifact-only models: training is not reproducible here
 
@@ -365,7 +365,7 @@ For price prediction, use `PRICE_MODEL_PATH` to test a candidate without overwri
 
 ### 7.4 Non-training services
 
-Charging recommendations and reliability scoring use explicit formulas and rules. Changes to weights or thresholds are code/configuration changes, not model retraining. Validate those changes with tests and representative inputs.
+Reliability scoring and the active charging-recommendation ranker use explicit formulas and rules. Changes to their runtime weights or thresholds are code/configuration changes, not automatic model retraining. The separate charging-preference training pipeline writes a candidate Joblib model and coefficient JSON, but neither output is consumed by the active ranker. Validate formula changes and any future model integration with tests and representative inputs.
 
 ## 8. Verify the deployment
 
