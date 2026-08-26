@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import NavBar from "../components/NavBar";
 
 const useCases = [
   {
@@ -86,6 +87,8 @@ export default function Dashboard() {
   const [hoveredId, setHoveredId] = useState(null);
 
   return (
+    <>
+      <NavBar />
     <main className="min-h-screen bg-[#fafafa] text-slate-900">
       {/* Subtle background accent */}
       <div className="pointer-events-none absolute left-1/2 top-0 -z-0 h-[420px] w-[700px] -translate-x-1/2 rounded-full bg-emerald-100/40 blur-3xl" />
@@ -218,5 +221,6 @@ export default function Dashboard() {
         </div>
       </div>
     </main>
+  </>
   );
 }
