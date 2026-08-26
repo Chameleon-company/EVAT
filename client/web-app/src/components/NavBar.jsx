@@ -1,5 +1,5 @@
-import React, { useState, useContext } from 'react';
-import { UserContext } from "../context/user";
+import React, { useState, useEffect, useRef, useContext } from 'react';
+import { UserContext } from '../context/user';
 import { useNavigate, useLocation } from 'react-router-dom';
 import logo from '../assets/logo.png';
 import {
@@ -7,7 +7,7 @@ import {
   LogOut,
   ChevronDown,
   Bell
-} from "lucide-react";
+} from 'lucide-react';
 
 function NavBar() {
   const navigate = useNavigate();
@@ -25,8 +25,8 @@ function NavBar() {
 
   // Handle sign out
   const handleSignOut = () => {
-    localStorage.removeItem("currentUser");
-    navigate("/signin");
+    localStorage.removeItem('currentUser');
+    navigate('/signin');
   };
 
   const toggleMainMenu = () => {
@@ -46,39 +46,38 @@ function NavBar() {
   };
 
   const mainMenuItems = [
-    { label: "Profile", path: "/profile" },
-    { label: "Map", path: "/map" },
-    { label: "Dashboard", path: "/dashboard" },
-    { label: "Favourite Chargers", path: "/favourites" },
-    { label: "Rewards", path: "/game" },
-    { label: "Feedback", path: "/feedback" },
-    { label: "Support", path: "/support" },
+    { label: 'Profile', path: '/profile' },
+    { label: 'Map', path: '/map' },
+    { label: 'Dashboard', path: '/dashboard' },
+    { label: 'Favourite Chargers', path: '/favourites' },
+    { label: 'Rewards', path: '/game' },
+    { label: 'Feedback', path: '/feedback' },
+    { label: 'Support', path: '/support' },
   ];
 
   const developerMenuItems = [
-    { label: "Use Case Dashboard", path: "/use-cases" },
-    { label: "API Tester", path: "/apitester" },
-    { label: "Voice Query", path: "/voice-query" },
-    { label: "Cost Comparison", path: "/cost-comparison" },
-    { label: "Environmental Impact", path: "/environmental-impact" },
-    { label: "Demand Forecasting", path: "/demand-forecasting" },
-    { label: "Congestion Prediction", path: "/congestion-prediction" },
-    { label: "Weather Routing", path: "/weather-routing" },
-    { label: "Chatbot", path: "/chatbot" },
+    { label: 'Use Case Dashboard', path: '/use-cases' },
+    { label: 'API Tester', path: '/apitester' },
+    { label: 'Voice Query', path: '/voice-query' },
+    { label: 'Cost Comparison', path: '/cost-comparison' },
+    { label: 'Environmental Impact', path: '/environmental-impact' },
+    { label: 'Demand Forecasting', path: '/demand-forecasting' },
+    { label: 'Price Prediction', path: '/price-prediction' },
+    { label: 'Reliability Scoring', path: '/reliability-scoring' },
+    { label: 'Congestion Prediction', path: '/congestion-prediction' },
+    { label: 'Weather Routing', path: '/weather-routing' },
+    { label: 'Chatbot', path: '/chatbot' },
   ];
 
   const getUserName = () => {
-    if (!user) return "Account";
+    if (!user) return 'Account';
 
     const fullName = [
       user?.firstName,
       user?.lastName
-    ]
-      .filter(Boolean)
-      .join(" ")
-      .trim();
+    ].filter(Boolean).join(' ').trim();
 
-    return fullName || user?.name || "Account";
+    return fullName || 'Account';
   };
 
   return (
@@ -219,7 +218,7 @@ function NavBar() {
           <Bell size={21} strokeWidth={1.8} />
 
           {/* Small green notification indicator */}
-          <span className="absolute right-[8px] top-[7px] h-2 w-2 rounded-full border-2 border-white bg-emerald-500" />
+          <span className="absolute right-2 top-1.75 h-2 w-2 rounded-full border-2 border-white bg-emerald-500" />
         </button>
 
 
@@ -245,7 +244,7 @@ function NavBar() {
             key={user?.avatarURL}
           />
 
-          <span className="hidden max-w-[150px] truncate text-sm font-semibold text-slate-800 lg:block">
+          <span className="hidden max-w-36 truncate text-sm font-semibold text-slate-800 lg:block">
             {getUserName()}
           </span>
 

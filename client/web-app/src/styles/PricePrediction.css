@@ -1,0 +1,221 @@
+.price-prediction-page .pp-container {
+  position: relative;
+  z-index: 1;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 100px 20px 60px;
+}
+
+.price-prediction-page .pp-header {
+  margin-bottom: 28px;
+}
+
+.price-prediction-page .pp-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 180, 130, 0.35);
+  color: #00b482;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+
+.price-prediction-page .pp-title {
+  color: #fff;
+  margin: 0 0 8px;
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.price-prediction-page .pp-subtitle {
+  color: rgba(255, 255, 255, 0.55);
+  margin: 0;
+  max-width: 560px;
+}
+
+.price-prediction-page .pp-health {
+  font-size: 12px;
+  margin-top: 10px;
+}
+
+.price-prediction-page .pp-health--ok {
+  color: #34d399;
+}
+
+.price-prediction-page .pp-health--down {
+  color: #f87171;
+}
+
+.price-prediction-page .pp-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: 24px;
+}
+
+.price-prediction-page .pp-panel {
+  background: rgba(15, 35, 24, 0.85);
+  border: 1px solid rgba(0, 180, 130, 0.2);
+  border-radius: 16px;
+  padding: 24px;
+  backdrop-filter: blur(8px);
+}
+
+.price-prediction-page .pp-result-panel {
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.price-prediction-page .pp-result-panel.has-result {
+  justify-content: flex-start;
+}
+
+.price-prediction-page .pp-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.price-prediction-page .pp-field {
+  margin-bottom: 14px;
+}
+
+.price-prediction-page .pp-label {
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.price-prediction-page .pp-label--accent {
+  color: #00b482;
+}
+
+.price-prediction-page .pp-label--info {
+  color: #60a5fa;
+}
+
+.price-prediction-page .pp-label--warn {
+  color: #fbbf24;
+}
+
+.price-prediction-page .pp-input {
+  width: 100%;
+  margin-bottom: 4px;
+  box-sizing: border-box;
+}
+
+.price-prediction-page .pp-error {
+  color: #f87171;
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+.price-prediction-page .pp-submit {
+  margin-top: 12px;
+  width: 100%;
+  background: #00b482;
+  color: #04140e;
+  font-weight: 700;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 16px;
+  cursor: pointer;
+}
+
+.price-prediction-page .pp-submit:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.price-prediction-page .pp-placeholder {
+  color: rgba(255, 255, 255, 0.45);
+  text-align: center;
+  margin: 0;
+}
+
+.price-prediction-page .pp-loading {
+  color: #00b482;
+  text-align: center;
+  margin: 0;
+}
+
+.price-prediction-page .pp-price {
+  color: #fff;
+  font-size: 42px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.price-prediction-page .pp-result-label {
+  margin-bottom: 8px;
+}
+
+.price-prediction-page .pp-cards {
+  display: grid;
+  gap: 10px;
+}
+
+.price-prediction-page .pp-card {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+.price-prediction-page .pp-card--muted {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.price-prediction-page .pp-card--info {
+  background: rgba(96, 165, 250, 0.08);
+  border: 1px solid rgba(96, 165, 250, 0.25);
+}
+
+.price-prediction-page .pp-card--warn {
+  background: rgba(251, 191, 36, 0.08);
+  border: 1px solid rgba(251, 191, 36, 0.25);
+}
+
+.price-prediction-page .pp-card--ok {
+  background: rgba(0, 180, 130, 0.08);
+  border: 1px solid rgba(0, 180, 130, 0.25);
+}
+
+.price-prediction-page .pp-card-value {
+  color: #fff;
+  font-size: 16px;
+}
+
+.price-prediction-page .pp-calc {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.price-prediction-page .pp-calc-row {
+  margin-top: 4px;
+}
+
+.price-prediction-page .pp-calc code,
+.price-prediction-page .pp-calc strong {
+  color: #fff;
+}
+
+.price-prediction-page .pp-meta {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .price-prediction-page .pp-layout,
+  .price-prediction-page .pp-fields {
+    grid-template-columns: 1fr;
+  }
+}

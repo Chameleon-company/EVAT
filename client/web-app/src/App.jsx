@@ -2,7 +2,6 @@ import {
   BrowserRouter as Router,
   Routes,
   Route,
-  Navigate,
 } from 'react-router-dom';
 import Signup from './pages/Signup';
 import Signin from './pages/Signin';
@@ -26,6 +25,8 @@ import EVChatBubble from './components/EVChatBubble';
 import Dashboard from './pages/Dashboard';
 import EnvironmentalImpact from './pages/EnvironmentalImpact';
 import DemandForecasting from './pages/DemandForecasting';
+import PricePrediction from './pages/PricePrediction';
+import ReliabilityScoring from './pages/ReliabilityScoring';
 import WeatherRouting from './pages/WeatherRouting';
 import Chatbot from './pages/Chatbot';
 import PersonalisedInsightsForm from './pages/PersonalisedInsightsForm';
@@ -51,11 +52,20 @@ function App() {
             <Route path="/voice-query" element={<VoiceQueryPage />} />
             <Route path="/achievements" element={<Achievements />} />
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/weather-routing" element={<WeatherRouting />} />
+            <Route path="/use-cases" element={<Dashboard />} />
+            <Route path="/congestion-prediction" element={<Map />} />
             <Route path="/weather-aware-routing" element={<WeatherRouting />} />
+            <Route path="/weather-routing" element={<WeatherRouting />} />
             <Route path="/environmental-impact" element={<EnvironmentalImpact />} />
+            <Route path="/demand-forecasting" element={<DemandForecasting />} />
+            <Route path="/price-prediction" element={<PricePrediction />} />
+            <Route path="/reliability-scoring" element={<ReliabilityScoring />} />
+            <Route path="/chatbot" element={<Chatbot />} />
             <Route path="/insights-form" element={<PersonalisedInsightsForm />} />
             <Route path="/insights" element={<PersonalisedInsights />} />
+            <Route path="/cost-comparison" element={<Cost />} />
+            <Route path="/demand-forecasting" element={<DemandForecasting />} />
+            <Route path="/price-prediction" element={<PricePrediction />} />
             {/* Catch-all Route */}
             <Route path="*" element={<div>404 Page Not Found</div>} />
           </Routes>

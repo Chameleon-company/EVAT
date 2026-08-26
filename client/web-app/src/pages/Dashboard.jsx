@@ -30,10 +30,25 @@ const useCases = [
     status: "live",
   },
   {
+    id: "price-prediction",
+    title: "Price Prediction",
+    description: "Estimate vehicle purchase price from brand, model, mileage, and condition.",
+    icon: "💵",
+    route: "/price-prediction",
+    status: "live",
+  },
+  {
+    id: "reliability-scoring",
+    title: "Reliability Scoring",
+    description: "Explore charger reliability, uptime, and sentiment for Melbourne stations.",
+    icon: "⚡",
+    route: "/reliability-scoring",
+    status: "live",
+  },
+  {
     id: "personalised-insights",
     title: "Personalised EV Insights",
-    description:
-      "Get personalised recommendations based on your driving habits and lifestyle.",
+    description: "Get personalised recommendations based on your driving habits and lifestyle.",
     icon: "🔍",
     route: "/insights-form",
     status: "live",
@@ -41,10 +56,9 @@ const useCases = [
   {
     id: "congestion-prediction",
     title: "Congestion Prediction",
-    description:
-      "Forecast charging station congestion to optimise your travel planning.",
     icon: "🚦",
-    route: "/map",
+    route: "/congestion-prediction",
+    description: "Forecast charging station congestion to optimise your travel planning.",
     status: "live",
   },
   {

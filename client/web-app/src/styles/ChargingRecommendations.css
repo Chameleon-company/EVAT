@@ -1,0 +1,507 @@
+/* .
+   CHARGING RECOMMENDATIONS
+   Right-side floating map panel
+   */
+
+.charging-recommendations {
+    position: absolute;
+
+    /* RIGHT SIDE OF MAP */
+    top: 105px;
+    right: 100px;
+    left: auto;
+
+    z-index: 1500;
+
+    width: 350px;
+    max-width: calc(100vw - 180px);
+    max-height: calc(100vh - 145px);
+
+    padding: 18px;
+
+    /* EVAT dark theme */
+    background: rgba(8, 20, 15, 0.96);
+
+    border: 1px solid rgba(0, 0, 0, 0.55);
+    border-radius: 16px;
+
+    box-shadow:
+        0 14px 35px rgba(0, 0, 0, 0.35),
+        0 0 20px rgba(0, 0, 0, 0.08);
+
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    font-family: inherit;
+
+    animation: recommendationPanelEnter 0.25s ease-out;
+}
+
+
+/* .
+   PANEL SCROLLBAR
+   */
+
+.charging-recommendations::-webkit-scrollbar {
+    width: 6px;
+}
+
+.charging-recommendations::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 10px;
+}
+
+.charging-recommendations::-webkit-scrollbar-thumb {
+    background: #000000;
+    border-radius: 10px;
+}
+
+.charging-recommendations::-webkit-scrollbar-thumb:hover {
+    background: #20b969;
+}
+
+
+/* .
+   PANEL HEADER
+   */
+
+.recommendations-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 12px;
+
+    margin-bottom: 2px;
+}
+
+.recommendations-header h2,
+.charging-recommendations h2 {
+    margin: 0;
+
+    color: #ffffff;
+
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+
+/* .
+   SUBTITLE
+   */
+
+.recommendations-subtitle {
+    margin: 6px 0 10px;
+
+    color: rgba(255, 255, 255, 0.72);
+
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+
+/* .
+   MINIMIZE BUTTON
+   */
+
+.recommendations-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 30px;
+    height: 30px;
+
+    flex-shrink: 0;
+
+    padding: 0;
+
+    background: rgba(0, 0, 0, 0);
+    color: #ffffff;
+
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 8px;
+
+    font-size: 18px;
+    line-height: 1;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.15s ease;
+}
+
+.recommendations-toggle:hover {
+    background: rgba(45, 211, 126, 0.14);
+    border-color: #2dd37e;
+
+    transform: scale(1.04);
+}
+
+
+/* .
+   FIND CHARGING STATIONS BUTTON
+   */
+
+.find-stations-btn {
+    width: 100%;
+
+    margin-top: 10px;
+    padding: 10px 16px;
+
+    background: #2dd37e;
+    color: #07140e;
+
+    border: 1px solid #2dd37e;
+    border-radius: 9px;
+
+    font-size: 13px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        transform 0.15s ease,
+        box-shadow 0.2s ease;
+}
+
+.find-stations-btn:hover:not(:disabled) {
+    background: #3be58b;
+
+    transform: translateY(-1px);
+
+    box-shadow:
+        0 6px 18px rgba(0, 0, 0, 0.28);
+}
+
+.find-stations-btn:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.find-stations-btn:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: 2px;
+}
+
+.find-stations-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+
+/* .
+   RECOMMENDATION LIST
+   */
+
+.recommendations-list {
+    margin-top: 10px;
+}
+
+
+/* .
+   RECOMMENDATION CARD
+   */
+
+.recommendation-card {
+    margin-top: 10px;
+    padding: 13px;
+
+    background: rgba(0, 0, 0, 0.96);
+
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 11px;
+
+    transition:
+        transform 0.18s ease,
+        border-color 0.18s ease,
+        box-shadow 0.18s ease;
+}
+
+.recommendation-card:hover {
+    transform: translateY(-2px);
+
+    border-color: rgba(45, 211, 126, 0.7);
+
+    box-shadow:
+        0 7px 18px rgba(0, 0, 0, 0.28);
+}
+
+
+/* .
+   CARD HEADING
+   */
+
+.recommendation-card h3 {
+    margin: 0 0 9px;
+
+    color: #ffffff;
+
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+
+/* .
+   CARD INFORMATION
+   */
+
+.recommendation-card p {
+    margin: 5px 0;
+
+    color: rgba(255, 255, 255, 0.82);
+
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+
+/* .
+   CARD BUTTONS
+   */
+
+.recommendation-card button {
+    margin-top: 9px;
+    margin-right: 6px;
+
+    padding: 7px 11px;
+
+    background: transparent;
+    color: #ffffff;
+
+    border: 1px solid rgba(255, 255, 255, 0.42);
+    border-radius: 7px;
+
+    font-size: 11px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease,
+        transform 0.15s ease;
+}
+
+.recommendation-card button:hover {
+    background: #2dd37e;
+    color: #07140e;
+
+    border-color: #2dd37e;
+
+    transform: translateY(-1px);
+}
+
+
+/* .
+   RECOMMENDATION REASONS
+   */
+
+.recommendation-card ul {
+    margin: 10px 0 2px;
+    padding: 9px 11px;
+
+    list-style: none;
+
+    background: rgba(45, 211, 126, 0.09);
+
+    border-left: 2px solid #2dd37e;
+    border-radius: 7px;
+}
+
+.recommendation-card li {
+    position: relative;
+
+    margin: 5px 0;
+    padding-left: 16px;
+
+    color: rgba(255, 255, 255, 0.78);
+
+    font-size: 11px;
+    line-height: 1.4;
+}
+
+.recommendation-card li::before {
+    content: "✓";
+
+    position: absolute;
+    left: 0;
+    top: 0;
+
+    color: #2dd37e;
+
+    font-weight: 700;
+}
+
+
+/* .
+   ERROR MESSAGE
+   */
+
+.recommendations-error {
+    margin: 10px 0 0;
+    padding: 9px 11px;
+
+    background: rgba(220, 38, 38, 0.12);
+    color: #ff8f8f;
+
+    border: 1px solid rgba(255, 100, 100, 0.35);
+    border-radius: 8px;
+
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+
+/*  EMPTY STATE*/
+
+.recommendations-empty {
+    margin: 10px 0 3px;
+    padding: 12px;
+
+    background: rgba(255, 255, 255, 0.04);
+
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+
+    color: rgba(255, 255, 255, 0.65);
+
+    font-size: 12px;
+    line-height: 1.5;
+
+    text-align: center;
+}
+
+
+/*  MINIMIZED PANEL */
+
+.charging-recommendations--minimized {
+    width: 300px;
+
+    padding: 13px 15px;
+}
+
+.charging-recommendations--minimized
+.recommendations-header {
+    align-items: center;
+}
+
+.charging-recommendations--minimized h2 {
+    font-size: 15px;
+}
+
+
+/* PANEL ENTRY ANIMATION */
+
+@keyframes recommendationPanelEnter {
+    from {
+        opacity: 0;
+        transform: translateX(12px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+
+/*
+   LARGE SCREENS
+   Keeps the panel inside the right side without
+   touching the map controls. */
+
+@media (min-width: 1400px) {
+    .charging-recommendations {
+        right: 100px;
+        width: 350px;
+    }
+}
+
+
+/*  MEDIUM SCREENS*/
+
+@media (min-width: 769px) and (max-width: 1399px) {
+    .charging-recommendations {
+        right: 75px;
+
+        width: 330px;
+
+        max-width: calc(100vw - 150px);
+    }
+}
+
+
+/* TABLET */
+
+@media (max-width: 768px) {
+    .charging-recommendations {
+        top: 75px;
+
+        left: auto;
+        right: 20px;
+
+        width: 320px;
+        max-width: calc(100vw - 40px);
+
+        max-height: calc(100vh - 100px);
+
+        padding: 15px;
+
+        border-radius: 13px;
+    }
+
+    .charging-recommendations h2 {
+        font-size: 18px;
+    }
+}
+
+
+/*  Responsive */
+
+@media (max-width: 768px) {
+  .charging-recommendations {
+    top: 65px;
+    left: 10px;
+    right: 75px;
+
+    width: auto;
+    max-width: none;
+    max-height: 65vh;
+
+    padding: 18px;
+    border-radius: 14px;
+  }
+
+  .charging-recommendations h2 {
+    font-size: 20px;
+  }
+}
+
+
+/* Small Mobile Screen */
+
+@media (max-width: 480px) {
+  .charging-recommendations {
+    top: 65px;
+    left: 10px;
+    right: 75px;
+
+    width: auto;
+    max-width: none;
+    max-height: 65vh;
+  }
+
+  .charging-recommendations--minimized {
+    width: 330px;
+    max-width: calc(100vw - 85px);
+  }
+}
