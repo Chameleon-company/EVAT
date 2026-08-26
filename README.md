@@ -167,6 +167,8 @@ npm run test:server
 
 For local Python setup, model training support, service deployment, Docker usage, verification, and troubleshooting, see the [Machine Learning Deployment Guide](docs/MACHINE_LEARNING_DEPLOYMENT_GUIDE.md).
 
+For the end-to-end data, training, evaluation, artifact, and prediction architecture, see the [Machine Learning Pipeline Architecture](docs/MACHINE_LEARNING_PIPELINE_ARCHITECTURE.md).
+
 ---
 
 ## 🚧 Known Issues / Fixes Required
