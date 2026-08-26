@@ -1,6 +1,6 @@
 # EVAT Machine Learning Pipeline Architecture
 
-**Task:** 051S1 — Document Machine Learning Pipeline Architecture<br>
+**Task:** 058S1 — Prepare Machine Learning Handover Documentation<br>
 **Audience:** Future EVAT developers, data scientists, reviewers, and maintainers<br>
 **Last verified against:** `main` at `b13c949` (26 August 2026)<br>
 **Related operations guide:** [Machine Learning Deployment Guide](MACHINE_LEARNING_DEPLOYMENT_GUIDE.md)
