@@ -1,13 +1,4 @@
-/* Buttons.css */
-
-/*
-This CSS has the style settings for all buttons
-
-It is set up to use multiple layers for a button.
-The btn is the default, it includes the main design and a standard hover animation.
-From there, we can layer other button styles on top. The button styles (primary, secondary, 
-and transparent) include the colour differences. 
-*/
+/* Legacy styles for elements that have not yet migrated to the Button component. */
 
 /* Base button styles */
 /* default state */
@@ -59,33 +50,6 @@ and transparent) include the colour differences.
   background: var(--button-primary-background-active);
 }
 
-/* Secondary / Outline button */
-/* default state - set colour and background position */
-.btn-secondary {
-  background: var(--button-secondary-background);
-  color: var(--button-secondary-text);
-  border: var(--button-secondary-border);
-}
-
-/* active state - set colour */
-.btn-secondary:active:not(:disabled) {
-  background: var(--button-secondary-background-active);
-}
-
-/* Tertiary button */
-/* default state - set colour and background position */
-.btn-tertiary {
-  background: var(--button-tertiary-background);
-  color: var(--button-tertiary-text);
-  border: var(--button-tertiary-border);
-}
-
-/* active state - set colour */
-.btn-tertiary:active:not(:disabled) {
-  background: var(--button-tertiary-background-active);
-}
-
-
 /* Danger / Delete button */
 /* default state - set colour and background position */
 .btn-danger {
@@ -114,108 +78,11 @@ and transparent) include the colour differences.
   border: var(--button-disabled-border);
 }
 
-/* Outline button */
-/* default state - set colour and background position */
-.btn-transparent {
-  border: var(--button-transparent-border);
-  background: var(--button-transparent-background);
-  color: var(--button-transparent-text);
-}
-
-/* active state - set colour */
-.btn-cancel:active:not(:disabled) {
-  background: var(--button-transparent-background-active);
-}
-
-/* White button */
-/* default state - set colour and background position */
-.btn-options {
-  background: var(--button-options-background);
-  color: var(--button-options-text);
-  border: var(--button-options-border);
-}
-
-/* active state - set colour */
-.btn-options:active:not(:disabled) {
-  background: var(--button-options-background-active);
-}
-
-/* active state - set colour */
-.btn-options.selected:not(:disabled) {
-  background: var(--button-options-selected-background);
-  border: var(--button-options-selected-border);
-  color: var(--button-options-selected-text);
-}
-
-/* Navigation Bar button */
-/* default state - set colour and background position */
-.btn-navbar {
-  background:  var(--navbar-button-background);
-  box-shadow: var(--navbar-button-box-shadow);
-  border: var(--navbar-button-border);
-  color: var(--navbar-button-text);
-  font-size: var(--navbar-font-size);
-  cursor: pointer;
-  display:flex;
-}
-
-/* hover state - set colour */
-.btn-navbar:hover:not(:disabled) {
-  color: var(--navbar-button-hover-text);
-}
-
-/* active state - set colour */
-.btn-navbar:active:not(:disabled) {
-  color: var(--navbar-button-active-text);
-}
-
-/* disable state - set colour */
-.btn-navbar:disabled {
-  color: var(--navbar-button-disable-text);
-}
-
-/* Loading state (optional - add .is-loading class) */
-.btn.is-loading {
-  pointer-events: none;
-  position: relative;
-}
-
-.btn.is-loading::after {
-  content: "";
-  position: absolute;
-  width: 1.2em;
-  height: 1.2em;
-  border: 2px solid currentColor;
-  border-right-color: transparent;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 /* Utility modifiers */
-/* Tiny */
-.btn-tiny {
-  padding: var(--button-padding-tiny);
-  gap:5px;
-  font-size:  var(--button-font-tiny);
-  align-items: center;
-}
-
 /* Small */
 .btn-small {
   padding: var(--button-padding-small);
   font-size: var(--button-font-small);
-}
-
-/* Large */
-.btn-large {
-  padding: var(--button-padding-large);
-  font-size: var(--button-font-large);
 }
 
 .btn-force-flex {
