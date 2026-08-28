@@ -214,7 +214,7 @@ export default function SupportRequestForm() {
         <div className="h-2" />
 
         {/* Name Error Message */}
-        {isNameEmpty && <ErrorMessage error="required" />}
+        {isNameEmpty && <ErrorMessage error="Name is required." />}
 
         {/* Enter Email */}
         <label className="mb-2 block text-sm font-semibold text-slate-700 after:ml-1 after:text-red-500 after:content-['*']">
@@ -238,7 +238,7 @@ export default function SupportRequestForm() {
         <div className="h-2" />
 
         {/* Email Error Message */}
-        {isEmailEmpty && <ErrorMessage error="required" />}
+        {isEmailEmpty && <ErrorMessage error="Email is required." />}
 
         {/* Enter Issue */}
         <label className="mb-2 block text-sm font-semibold text-slate-700 after:ml-1 after:text-red-500 after:content-['*']">
@@ -261,7 +261,7 @@ export default function SupportRequestForm() {
         <div className="h-2" />
 
         {/* Issue Error Message */}
-        {isIssueEmpty && <ErrorMessage error="required" />}
+        {isIssueEmpty && <ErrorMessage error="Issue type is required." />}
 
         {/* Enter Description */}
         <label className="mb-2 block text-sm font-semibold text-slate-700 after:ml-1 after:text-red-500 after:content-['*']">
@@ -280,7 +280,7 @@ export default function SupportRequestForm() {
         <div className="h-2" />
 
         {/* Description Error Message */}
-        {isDescriptionEmpty && <ErrorMessage error="required" />}
+        {isDescriptionEmpty && <ErrorMessage error="Description is required." />}
 
         <div className="h-2" />
 
