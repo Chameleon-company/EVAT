@@ -4,6 +4,7 @@ import { Mail, Eye, EyeOff, KeyRound, User, Phone } from 'lucide-react';
 import ErrorMessage from '../components/ErrorMessage'
 import SuccessMessage from '../components/SuccessMessage'
 import { Button } from '../components/Button';
+import { getFriendlyErrorMessage } from '../utils/getFriendlyErrorMessage';
 
 import '../styles/Root.css';
 import '../styles/Buttons.css';
@@ -135,7 +136,7 @@ function Signup() {
         alert(`Sign Up successful: ${data.message}, welcome ${form.firstName}`);
         navigate('/signin');
       } else {
-        setErrorMessage(data.message || "Sign up failed");
+        setErrorMessage(getFriendlyErrorMessage(data.message, 'Sign up failed'));
       }
     } catch (err) {
       console.error('Error signing up:', err);

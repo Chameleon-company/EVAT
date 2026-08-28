@@ -5,6 +5,7 @@ import { UserContext } from '../context/user';
 import ErrorMessage from '../components/ErrorMessage'
 import SuccessMessage from '../components/SuccessMessage'
 import { Button } from '../components/Button';
+import { getFriendlyErrorMessage } from '../utils/getFriendlyErrorMessage';
 
 import '../styles/Root.css';
 import '../styles/Buttons.css';
@@ -100,7 +101,10 @@ function Signin() {
         // Navigate to map page after successful login
         navigate('/map');
       } else {
-        setError('User does not exist or incorrect password.');
+        setError(getFriendlyErrorMessage(
+          data?.message || data?.error,
+          'User does not exist or incorrect password.',
+        ));
       }
     } catch (err) {
       console.error('Error signing in:', err);
