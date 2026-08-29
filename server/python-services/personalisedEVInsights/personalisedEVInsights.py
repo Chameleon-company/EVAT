@@ -67,8 +67,10 @@ def predict(payload: Union[dict, List[dict]]):
         clusters = kproto.predict(X, categorical=CAT_COLS)
         # Return single prediction if input was a single object
         if single:
+            print({"cluster": int(clusters[0])})
             return {"cluster": int(clusters[0])}
         else:
+            print({"clusters": [int(c) for c in clusters]})
             return {"clusters": [int(c) for c in clusters]}
 
     except HTTPException:

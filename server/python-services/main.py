@@ -12,6 +12,7 @@ import costComparison.costComparison
 import costComparison.model_runner
 import pricePrediction.price_prediction_api
 import charging_station_recommendation_api.main
+import models
 from charging_station_recommendation_api.models.request import RankChargingStationsRequest
 from charging_station_recommendation_api.models.response import RankChargingStationsResponse
 
@@ -42,18 +43,15 @@ def root():
 
 # =============================================================
 # Weather Aware Routing Use Case
-class WARTripRequest(BaseModel):
-    origin: str
-    destination: str
-    ac_on: bool = True
 
-@app.post("/weatherAwareRouting/predict")
-def weatherAwareRoutingPredict(req: WARTripRequest):
+
+@app.post("/weatherAwareRouting/predict", response_model=models.WAR_RouteResponse)
+def weatherAwareRoutingPredict(req: models.WAR_TripRequest):
     return weatherAwareRouting.weatherAwareRouting.predict(req)
 
 # =============================================================
 # Personalised EV Usage Insights Use Case
-@app.post("/personalisedEVInsights/predict")
+@app.post("/personalisedEVInsights/predict", response_model=models.PEVUI_Response)
 def personalisedEVInsightsPredict(payload: Union[dict, List[dict]]):
     return personalisedEVInsights.personalisedEVInsights.predict(payload)
 
@@ -75,7 +73,7 @@ class DFPredictionResponse(BaseModel):
     predicted_demand_kwh: float
     status: str
 
-@app.get("/demandForecasting/coords/{postcode}")
+@app.get("/demandForecasting/coords/{postcode}", response_model=models.DF_Postcode)
 def demandForecasting_get_postcode_coords(postcode: str):
     return demandForecasting.demandForecasting.get_postcode_coords(postcode)
 
@@ -83,7 +81,7 @@ def demandForecasting_get_postcode_coords(postcode: str):
 def demandForecastingPredict(request: DFPredictionRequest):
     return demandForecasting.demandForecasting.handle_prediction(request)
 
-@app.get("/demandForecasting/postcodes")
+@app.get("/demandForecasting/postcodes", response_model=models.DF_ListPostcodes)
 def demandForecasting_list_postcodes():
     return demandForecasting.demandForecasting.list_postcodes()
 
@@ -105,11 +103,11 @@ class CCVehicleEfficiencyRequest(BaseModel):
     model: str
     variant: Optional[str] = None
 
-@app.post("/costComparison/predict")
+@app.post("/costComparison/predict", response_model=models.CC_Model_Predict)
 def costComparisonPredict(req: CCPredictRequest):
     return costComparison.costComparison.predict(req)
 
-@app.post("/costComparison/charts")
+@app.post("/costComparison/charts", response_model=models.CC_Charts)
 def costComparisonCharts(req: CCPredictRequest):
     return costComparison.costComparison.charts(req)
 
@@ -121,11 +119,12 @@ def costComparisonEv_vehicles():
 def costComparisonIce_vehicles():
     return costComparison.costComparison.ice_vehicles()
 
-@app.post("/costComparison/vehicles/ev/efficiency")
+@app.post("/costComparison/vehicles/ev/efficiency", response_model=models.CC_Efficiency)
 def costComparisonEv_efficiency(req: CCVehicleEfficiencyRequest):
+    print(costComparison.costComparison.ev_efficiency(req))
     return costComparison.costComparison.ev_efficiency(req)
 
-@app.post("/costComparison/vehicles/ice/efficiency")
+@app.post("/costComparison/vehicles/ice/efficiency", response_model=models.CC_Efficiency)
 def costComparisonIce_efficiency(req: CCVehicleEfficiencyRequest):
     return costComparison.costComparison.ice_efficiency(req)
 
