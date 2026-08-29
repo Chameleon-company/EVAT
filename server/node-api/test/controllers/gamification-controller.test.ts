@@ -5,28 +5,27 @@ import { GameVirtualItem, GameProfile, GameEvent, GameBadge, GameQuest } from ".
 
 // Mock the Mongoose models
 jest.mock("../../src/models/game-model", () => {
-    // Mock the constructor and save method for instance-based operations
-    const mockSave = jest.fn().mockResolvedValue(this);
-    const mockModel = jest.fn().mockImplementation(() => ({
-        save: mockSave,
-    })) as any;
-
-    // Attach static methods
-    mockModel.create = jest.fn();
-    mockModel.find = jest.fn();
-    mockModel.findById = jest.fn();
-    mockModel.findByIdAndUpdate = jest.fn();
-    mockModel.findByIdAndDelete = jest.fn();
-    mockModel.findOne = jest.fn();
-    mockModel.findOneAndUpdate = jest.fn();
-    mockModel.findOneAndDelete = jest.fn();
+    const createMockModel = () => {
+      const mockModel = jest.fn().mockImplementation((data) => ({
+        ...data,
+        save: jest.fn().mockResolvedValue(undefined),
+      })) as any;
+      mockModel.find = jest.fn();
+      mockModel.findById = jest.fn();
+      mockModel.findByIdAndUpdate = jest.fn();
+      mockModel.findByIdAndDelete = jest.fn();
+      mockModel.findOne = jest.fn();
+      mockModel.findOneAndUpdate = jest.fn();
+      mockModel.findOneAndDelete = jest.fn();
+      return mockModel;
+    };
 
     return {
-        GameVirtualItem: mockModel,
-        GameProfile: mockModel,
-        GameEvent: mockModel,
-        GameBadge: mockModel,
-        GameQuest: mockModel,
+        GameVirtualItem: createMockModel(),
+        GameProfile: createMockModel(),
+        GameEvent: createMockModel(),
+        GameBadge: createMockModel(),
+        GameQuest: createMockModel(),
     };
 });
 
@@ -115,13 +114,14 @@ describe("GamificationController", () => {
     test("Case: Should create a virtual item successfully", async () => {
       const itemData = { name: "Test Item" };
       mockRequest = { body: itemData };
-      (GameVirtualItem.create as jest.Mock).mockResolvedValue(itemData);
 
       await gamificationController.createVirtualItem(mockRequest as Request, mockResponse as Response);
 
-      expect(GameVirtualItem.create).toHaveBeenCalledWith(itemData);
+      expect(GameVirtualItem).toHaveBeenCalledWith(itemData);
       expect(mockResponse.status).toHaveBeenCalledWith(201);
-      expect(mockResponse.json).toHaveBeenCalledWith(expect.objectContaining({ data: itemData }));
+      expect(mockResponse.json).toHaveBeenCalledWith(expect.objectContaining({
+        data: expect.objectContaining(itemData),
+      }));
     });
   });
 
@@ -130,13 +130,14 @@ describe("GamificationController", () => {
       test("Case: Should create a badge successfully", async () => {
         const badgeData = { name: "Test Badge" };
         mockRequest = { body: badgeData };
-        (GameBadge.create as jest.Mock).mockResolvedValue(badgeData);
 
         await gamificationController.createBadge(mockRequest as Request, mockResponse as Response);
 
-        expect(GameBadge.create).toHaveBeenCalledWith(badgeData);
+        expect(GameBadge).toHaveBeenCalledWith(badgeData);
         expect(mockResponse.status).toHaveBeenCalledWith(201);
-        expect(mockResponse.json).toHaveBeenCalledWith(expect.objectContaining({ data: badgeData }));
+        expect(mockResponse.json).toHaveBeenCalledWith(expect.objectContaining({
+          data: expect.objectContaining(badgeData),
+        }));
       });
   });
 
@@ -145,13 +146,14 @@ describe("GamificationController", () => {
     test("Case: Should create a quest successfully", async () => {
         const questData = { name: "Test Quest" };
         mockRequest = { body: questData };
-        (GameQuest.create as jest.Mock).mockResolvedValue(questData);
 
         await gamificationController.createQuest(mockRequest as Request, mockResponse as Response);
 
-        expect(GameQuest.create).toHaveBeenCalledWith(questData);
+        expect(GameQuest).toHaveBeenCalledWith(questData);
         expect(mockResponse.status).toHaveBeenCalledWith(201);
-        expect(mockResponse.json).toHaveBeenCalledWith(expect.objectContaining({ data: questData }));
+        expect(mockResponse.json).toHaveBeenCalledWith(expect.objectContaining({
+          data: expect.objectContaining(questData),
+        }));
     });
   });
 
@@ -160,15 +162,18 @@ describe("GamificationController", () => {
       test("Case: Should create a game profile successfully", async () => {
         const profileData = { main_app_user_id: mockUser.id };
         mockRequest = { body: profileData };
-        (GameProfile.findOne as jest.Mock).mockResolvedValue(null);
-        (GameProfile.create as jest.Mock).mockResolvedValue(profileData);
+        (GameProfile.findOne as jest.Mock).mockReturnValue({
+          exec: jest.fn().mockResolvedValue(null),
+        });
         
         await gamificationController.createGameProfile(mockRequest as Request, mockResponse as Response);
 
         expect(GameProfile.findOne).toHaveBeenCalledWith({ main_app_user_id: mockUser.id });
-        expect(GameProfile.create).toHaveBeenCalledWith(profileData);
+        expect(GameProfile).toHaveBeenCalledWith(profileData);
         expect(mockResponse.status).toHaveBeenCalledWith(201);
-        expect(mockResponse.json).toHaveBeenCalledWith(expect.objectContaining({ data: profileData }));
+        expect(mockResponse.json).toHaveBeenCalledWith(expect.objectContaining({
+          data: expect.objectContaining(profileData),
+        }));
       });
   });
 
@@ -177,13 +182,14 @@ describe("GamificationController", () => {
     test("Case: Should create a game event successfully", async () => {
         const eventData = { user_id: mockUser.id, event_type: "ACTION_PERFORMED" };
         mockRequest = { body: eventData };
-        (GameEvent.create as jest.Mock).mockResolvedValue(eventData);
 
         await gamificationController.createEvent(mockRequest as Request, mockResponse as Response);
 
-        expect(GameEvent.create).toHaveBeenCalledWith(eventData);
+        expect(GameEvent).toHaveBeenCalledWith(eventData);
         expect(mockResponse.status).toHaveBeenCalledWith(201);
-        expect(mockResponse.json).toHaveBeenCalledWith(expect.objectContaining({ data: eventData }));
+        expect(mockResponse.json).toHaveBeenCalledWith(expect.objectContaining({
+          data: expect.objectContaining(eventData),
+        }));
     });
   });
 

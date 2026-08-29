@@ -5,7 +5,13 @@ import { UserItemResponse } from "../../src/dtos/user-item-response";
 import jwt from "jsonwebtoken";
 import generateToken from "../../src/utils/generate-token";
 
-jest.mock("jsonwebtoken");
+jest.mock("jsonwebtoken", () => ({
+  __esModule: true,
+  default: {
+    verify: jest.fn(),
+    decode: jest.fn(),
+  },
+}));
 jest.mock("../../src/utils/generate-token", () => ({
     __esModule: true,
     default: jest.fn()
@@ -35,6 +41,7 @@ describe("UserController", () => {
 
   beforeEach(() => {
     // Reset mocks for each test
+    jest.clearAllMocks();
     mockUserService = new UserService() as jest.Mocked<UserService>;
     userController = new UserController(mockUserService);
 
@@ -429,6 +436,20 @@ describe("UserController", () => {
             expect(statusMock).toHaveBeenCalledWith(404);
             expect(jsonMock).toHaveBeenCalledWith({ message: "User not found" });
         });
+
+          test("Case: User lookup failure returns a server error", async () => {
+            (jwt.verify as jest.Mock).mockReturnValue({ id: "2" });
+            mockUserService.getUserById = jest.fn().mockRejectedValue(new Error("Database unavailable"));
+            mockRequest.headers = { authorization: "Bearer validtoken" };
+
+            await userController.jwtLogin(mockRequest as Request, mockResponse as Response);
+
+            expect(statusMock).toHaveBeenCalledWith(500);
+            expect(jsonMock).toHaveBeenCalledWith({
+              message: "Internal server error",
+              error: "Database unavailable",
+            });
+          });
 
         test("Case: Expired token but refresh token still valid", async () => {
             // Arrange
