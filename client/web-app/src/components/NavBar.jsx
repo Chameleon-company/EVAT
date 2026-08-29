@@ -129,6 +129,10 @@ function NavBar() {
                                             onClick={() => handleNavigate('/price-prediction')}>
                                               Price Prediction
                                               </button>
+                                            <button className={`dropdown-item ${isActive('/reliability-scoring') ? 'dropdown-item-active' : ''}`}
+                                            onClick={() => handleNavigate('/reliability-scoring')}>
+                                              Reliability Scoring
+                                            </button>
                                               <button className={`dropdown-item ${isActive('/congestion-prediction') ? 'dropdown-item-active' : ''}`}
                                               onClick={() => handleNavigate('/congestion-prediction')}>
                                                 Congestion Prediction

@@ -21,18 +21,18 @@ Do not assume that every committed `.pkl` or `.joblib` file can be recreated fro
 
 The main Python entry point is `server/python-services/main.py`. It exposes most ML features through one FastAPI process.
 
-| Capability | Implementation | Runtime type | Default port | Training source in this repository |
-|---|---|---|---:|---|
-| Weather-aware routing | `weatherAwareRouting/` | Calculation plus external Google Maps and Open-Meteo APIs | 5000 | Not applicable |
-| Personalised EV insights | `personalisedEVInsights/` | Loads `kproto_bundle.pkl` | 5000 | No |
-| Demand forecasting | `demandForecasting/` | Loads `ev_demand_model.pkl` | 5000 | No |
-| Cost comparison | `costComparison/` | Trains and selects a model during API startup | 5000 | Yes |
-| Vehicle price prediction | `pricePrediction/` | Loads `price_best_model_latest.joblib` | 5000 | No |
-| Charging-station recommendation | `charging_station_recommendation_api/` | Deterministic filtering and weighted scoring | 5000 through the combined API | No model training required |
-| Reliability scoring | `reliability_scoring_api/` | Deterministic reliability and sentiment scoring | 8003 standalone | No model training required |
-| Environmental impact model | `environmental_impact_analysis/` | Offline notebook and prediction utility | No API port | Yes, through the notebook |
+| Capability                      | Implementation                         | Runtime type                                              |                  Default port | Training source in this repository |
+| ------------------------------- | -------------------------------------- | --------------------------------------------------------- | ----------------------------: | ---------------------------------- |
+| Weather-aware routing           | `weatherAwareRouting/`                 | Calculation plus external Google Maps and Open-Meteo APIs |                          5000 | Not applicable                     |
+| Personalised EV insights        | `personalisedEVInsights/`              | Loads `kproto_bundle.pkl`                                 |                          5000 | No                                 |
+| Demand forecasting              | `demandForecasting/`                   | Loads `ev_demand_model.pkl`                               |                          5000 | No                                 |
+| Cost comparison                 | `costComparison/`                      | Trains and selects a model during API startup             |                          5000 | Yes                                |
+| Vehicle price prediction        | `pricePrediction/`                     | Loads `price_best_model_latest.joblib`                    |                          5000 | No                                 |
+| Charging-station recommendation | `charging_station_recommendation_api/` | Deterministic filtering and weighted scoring              | 5000 through the combined API | No model training required         |
+| Reliability scoring             | `reliability_scoring_api/`             | Deterministic reliability and sentiment scoring           |     5000 under `/reliability` | No model training required         |
+| Environmental impact model      | `environmental_impact_analysis/`       | Loads `co2_savings_model.pkl`; notebook can regenerate it | 5000 through the combined API | Yes, through the notebook          |
 
-The Node API normally calls the combined Python service through `PYTHON_API_URL`. Reliability scoring has its own `RELIABILITY_API_URL`.
+The Node API calls the combined Python service through `PYTHON_API_URL`. Reliability scoring is also served by that process through `RELIABILITY_API_URL=http://127.0.0.1:5000/reliability`.
 
 ### Important current behaviour
 
@@ -40,8 +40,7 @@ The Node API normally calls the combined Python service through `PYTHON_API_URL`
 - The combined service cannot import successfully without a valid `GOOGLE_MAPS_API_KEY`, even when only a non-routing feature is being tested.
 - Cost comparison training runs in memory at every combined-service startup. It does not save the selected model to disk.
 - Reliability scoring and charging recommendations are scoring systems, not trained ML models.
-- Price prediction and charging recommendations are feature packages mounted in
-  the combined service; they are not standalone FastAPI applications.
+- Price prediction, charging recommendations, and reliability scoring are all served by the combined Python process. Use `npm run dev:python`.
 - There is currently no Python Dockerfile or Compose file in the repository. Section 9 provides a reproducible development-container command without claiming that EVAT has a production container image.
 
 ## 3. Prerequisites
@@ -82,7 +81,7 @@ Create and synchronize the Python 3.12 environment from the committed lockfile:
 npm run python:sync
 ```
 
-uv creates `server/python-services/.venv`. It does not need to be activated.
+Note that uv creates `server/python-services/.venv`. It does not need to be activated separately.
 
 ### 4.3 Install full-stack dependencies
 
@@ -133,7 +132,7 @@ MONGODB_URI=mongodb://127.0.0.1:27017/EVAT
 JWT_SECRET=replace-with-a-long-random-development-secret
 
 PYTHON_API_URL=http://127.0.0.1:5000
-RELIABILITY_API_URL=http://127.0.0.1:8003
+RELIABILITY_API_URL=http://127.0.0.1:5000/reliability
 ```
 
 ### 5.2 Backend environment and Google Maps
@@ -151,7 +150,7 @@ MONGODB_URI=mongodb://127.0.0.1:27017/EVAT
 JWT_SECRET=replace-with-a-long-random-development-secret
 GOOGLE_MAPS_API_KEY=replace-with-a-valid-google-maps-key
 PYTHON_API_URL=http://127.0.0.1:5000
-RELIABILITY_API_URL=http://127.0.0.1:8003
+RELIABILITY_API_URL=http://127.0.0.1:5000/reliability
 ```
 
 `weatherAwareRouting/config.py` explicitly reads `server/node-api/.env`. A Google key placed only in another file may therefore not be found by the combined Python service.
@@ -175,8 +174,6 @@ Relative price paths are resolved from `server/python-services/pricePrediction`.
 Defaults are suitable for local use:
 
 ```dotenv
-RELIABILITY_API_HOST=127.0.0.1
-RELIABILITY_API_PORT=8003
 RELIABILITY_DATA_PATH=data/EVAT-Final-Enriched.csv
 RELIABILITY_STATUS_WEIGHT=0.6
 RELIABILITY_POWER_WEIGHT=0.4
@@ -243,18 +240,14 @@ is intentionally part of the combined API and has no standalone process.
 
 ### 6.3 Reliability scoring service
 
-```bash
-npm run dev:reliability
-```
-
-Or:
+Reliability scoring is included in the combined Python service:
 
 ```bash
-cd server/python-services
-uv run --locked python -m uvicorn reliability_scoring_api.main:app --reload --host 127.0.0.1 --port 8003
+npm run dev:python
 ```
 
-Open `http://127.0.0.1:8003/health` and `http://127.0.0.1:8003/docs`.
+Open `http://127.0.0.1:5000/reliability/health` and
+`http://127.0.0.1:5000/docs`.
 
 ### 6.4 Full EVAT stack
 
@@ -264,19 +257,15 @@ With MongoDB and all environment variables configured:
 npm run dev
 ```
 
-This starts the React client, Node API, and combined Python service. Start reliability scoring separately if that feature is required:
-
-```bash
-npm run dev:reliability
-```
+This starts the React client, Node API, and consolidated Python service,
+including reliability scoring.
 
 The usual local addresses are:
 
 - React client: the URL printed by Vite, commonly `http://localhost:3000` or `http://localhost:5173`;
 - Node API: `http://localhost:8080`;
 - Node Swagger UI: `http://localhost:8080/api/docs`;
-- combined Python API: `http://127.0.0.1:5000`; and
-- reliability API: `http://127.0.0.1:8003`.
+- combined Python API: `http://127.0.0.1:5000` (including reliability under `/reliability`).
 
 For a non-reloading local deployment, remove `--reload`:
 
@@ -301,7 +290,7 @@ Run the training selection manually:
 
 ```bash
 cd server/python-services
-python -c "from costComparison.model_runner import load_and_train, get_model_name; load_and_train('costComparison/data/dummy_data.csv'); print('Selected model:', get_model_name())"
+uv run --locked python -c "from costComparison.model_runner import load_and_train, get_model_name; load_and_train('costComparison/data/dummy_data.csv'); print('Selected model:', get_model_name())"
 ```
 
 The pipeline compares Gradient Boosting, Random Forest, and Ridge using a fixed train/test split and selects the highest test R². The selected model remains only in that Python process. Restarting the API retrains it.
@@ -370,7 +359,7 @@ Charging recommendations and reliability scoring use explicit formulas and rules
 ```bash
 curl --fail http://127.0.0.1:5000/
 curl --fail http://127.0.0.1:5000/pricePrediction/health
-curl --fail http://127.0.0.1:8003/health
+curl --fail http://127.0.0.1:5000/reliability/health
 ```
 
 Only run checks for services that were started.
@@ -406,7 +395,7 @@ curl --fail -X POST http://127.0.0.1:5000/demandForecasting/predict \
 ### 8.4 Reliability scoring smoke test
 
 ```bash
-curl --fail -X POST http://127.0.0.1:8003/score \
+curl --fail -X POST http://127.0.0.1:5000/reliability/score \
   -H "Content-Type: application/json" \
   -d '{"station_id":"test-1","status":"Operational","power_kw":150,"max_power_kw":350}'
 ```
@@ -431,7 +420,7 @@ npm run test:server
 
 The repository currently contains only `server/node-api/Dockerfile`. That image builds the Node API and does not package the Python ML services. There is no committed Python Dockerfile or Docker Compose definition.
 
-The following one-off container is suitable for local verification of the combined Python service. It mounts the working tree, installs dependencies into a disposable Python 3.12 container, and leaves the repository unchanged.
+The following one-off container is suitable for local verification of the combined Python service. It mounts the working tree into a disposable Python 3.12 container. Because the project is bind-mounted, `uv sync` may create or update the ignored `server/python-services/.venv` directory on the host.
 
 macOS or Linux:
 
@@ -488,7 +477,7 @@ Fix:
 
 ### Port 5000 is already in use
 
-On macOS, Control Center or AirPlay Receiver commonly owns port 5000. Either disable AirPlay Receiver in System Settings or run Python on another port:
+If port 5000 is already in use, run Python on another port:
 
 ```bash
 cd server/python-services
@@ -560,8 +549,13 @@ The weather integration accepts future dates only, up to 16 days ahead. Use a po
 
 ### Price or charging recommendation endpoints are unavailable
 
-Both features are mounted in the combined application. Start `npm run dev:python`
-and use `/pricePrediction/*` or `/charging-station-recommendations/rank`.
+Both features are mounted in the combined Python service. Start it with:
+
+```bash
+npm run dev:python
+```
+
+Then use the `/pricePrediction/*` endpoints or `POST /charging-station-recommendations/rank`.
 
 ### Node returns a Python connection error
 
@@ -569,7 +563,7 @@ Confirm that:
 
 - the combined Python service is running;
 - `PYTHON_API_URL` exactly matches its host and port;
-- reliability uses `RELIABILITY_API_URL` and port 8003;
+- reliability uses `RELIABILITY_API_URL=http://127.0.0.1:5000/reliability`;
 - Docker-hosted services publish their ports; and
 - the environment was loaded before the Node process started.
 
@@ -604,16 +598,13 @@ npm run python:sync
 # Run combined ML service
 npm run dev:python
 
-# Run standalone reliability scoring
-npm run dev:reliability
-
 # Run the full EVAT application
 npm run dev
 
 # Verify
 curl --fail http://127.0.0.1:5000/
 curl --fail http://127.0.0.1:5000/pricePrediction/health
-curl --fail http://127.0.0.1:8003/health
+curl --fail http://127.0.0.1:5000/reliability/health
 
 # Run all Python tests
 npm run test:python

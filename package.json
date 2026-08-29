@@ -14,7 +14,6 @@
     "dev:server": "npm run server --workspace=server",
     "python:sync": "uv sync --locked --project \"server/python-services\"",
     "dev:python": "cd \"server/python-services\" && uv run --locked python -m uvicorn main:app --host 127.0.0.1 --port 5000 --reload",
-    "dev:reliability": "cd \"server/python-services\" && uv run --locked python -m uvicorn reliability_scoring_api.main:app --reload --host 127.0.0.1 --port 8003",
     "build:client": "npm run build --workspace=client",
     "build:server": "npm run build --workspace=server",
     "test:client": "npm run test --workspace=client",

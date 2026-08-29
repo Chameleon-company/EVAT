@@ -4,7 +4,7 @@
 **Project:** EV Adoption Tools  
 **Team:** Web/App  
 
-This repository is a **Monorepo** containing both the Vite + React frontend web application and the Express + Node.js backend API, managed via NPM Workspaces.
+This repository is a **Monorepo** containing the Vite + React frontend web application, the Express + Node.js backend API, and consolidated Python services. The JavaScript packages are managed through npm workspaces, while the Python environment and dependencies are managed through uv.
 
 ---
 
@@ -12,14 +12,14 @@ This repository is a **Monorepo** containing both the Vite + React frontend web 
 
 **Frontend (Client):** Vite, React, Chart.js, Leaflet  
 **Backend (Server):** Node.js, TypeScript, Express.js, MongoDB, JWT, Nodemailer  
-**Microservices:** Python (Flask/FastAPI)
+**Python services:** FastAPI, uv
 
 ---
 
 ## 📦 Prerequisites
 
 Before you begin, ensure you have the following installed:
-- [Node.js](https://nodejs.org/) (v16 or higher recommended)
+- [Node.js](https://nodejs.org/) 20.19+ or 22.12+
 - [npm](https://www.npmjs.com/)
 - MongoDB (See Database Setup inside handbook)
 
@@ -70,6 +70,7 @@ EMAIL_USER = "sender@example.com"
 EMAIL_PASS = "See Nodemailer section"
 ADMIN_EMAIL = "receiver@example.com"
 PYTHON_API_URL = "http://127.0.0.1:5000"
+RELIABILITY_API_URL = "http://127.0.0.1:5000/reliability"
 ```
 ### IMPORTANT: Ensure .env and your .json credential files are never committed to version control!
 
@@ -125,11 +126,6 @@ Because we use NPM workspaces, you do not need to navigate into individual folde
       ```sh
       npm run dev:python
       ```
-   - Start the standalone reliability scoring API when required:
-      ```sh
-      npm run dev:reliability
-      ```
-
    Run the Python tests with `npm run test:python`.
 
 ---
@@ -160,7 +156,7 @@ Because we use NPM workspaces, you do not need to navigate into individual folde
 
 ## 🧪 Testing
 
-Testing is implemented using Jest.
+Backend testing is implemented using Jest. Python testing is implemented using pytest.
 
 Location: Backend tests are located in server/node-api/test/. The folder structure mirrors the src/ directory (e.g., tests for controllers/user-controller.ts live in test/controllers/user-controller.test.ts).
 
@@ -168,11 +164,20 @@ Pattern: Tests must be written using the AAA pattern (Arrange, Act, Assert).
 
 Structure: Use nested describe() blocks (outer for the file, inner for the function) and use test('Description of what should happen') for clarity.
 
-To run the backend tests:
-Run the following from the root of the monorepo:
+Run the following commands from the root of the monorepo.
 
-Bash
+To run the backend tests:
+
+```bash
 npm run test:server
+```
+
+To run the Python tests:
+
+```bash
+npm run test:python
+```
+
 (Tip: We highly recommend using the Jest Test Explorer VSCode extension for debugging).
 
 ---
@@ -180,6 +185,8 @@ npm run test:server
 ## 📚 Machine Learning Deployment
 
 For local Python setup, model training support, service deployment, Docker usage, verification, and troubleshooting, see the [Machine Learning Deployment Guide](docs/MACHINE_LEARNING_DEPLOYMENT_GUIDE.md).
+
+For the end-to-end data, training, evaluation, artifact, and prediction architecture, see the [Machine Learning Pipeline Architecture](docs/MACHINE_LEARNING_PIPELINE_ARCHITECTURE.md).
 
 ---
 
