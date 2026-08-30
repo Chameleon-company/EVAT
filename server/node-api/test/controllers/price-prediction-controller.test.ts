@@ -278,6 +278,132 @@ describe("PricePredictionController", () => {
     });
   });
 
+  describe("predict — feature validation", () => {
+    /** Run predict with the given features and return the message sent back. */
+    const rejectionFor = async (features: Record<string, unknown>) => {
+      mockRequest = { body: { features } };
+      mockService.predict = jest.fn();
+      await controller.predict(mockRequest as Request, mockResponse as Response);
+      return (mockResponse.json as jest.Mock).mock.calls[0][0].message as string;
+    };
+
+    test("Case: Rejects an empty feature set instead of predicting from defaults", async () => {
+      // Arrange + Act
+      const message = await rejectionFor({});
+
+      // Assert
+      expect(mockService.predict).not.toHaveBeenCalled();
+      expect(mockResponse.status).toHaveBeenCalledWith(400);
+      expect(message).toContain("Missing required feature(s)");
+      expect(message).toContain("Brand");
+      expect(message).toContain("Condition");
+    });
+
+    test("Case: Rejects a partially specified vehicle", async () => {
+      // Arrange + Act
+      const message = await rejectionFor({ Brand: "Tesla" });
+
+      // Assert
+      expect(mockService.predict).not.toHaveBeenCalled();
+      expect(mockResponse.status).toHaveBeenCalledWith(400);
+      expect(message).toContain("Missing required feature(s)");
+    });
+
+    test("Case: Names the specific field that was omitted", async () => {
+      // Arrange
+      const { Condition, ...withoutCondition } = validFeatures;
+
+      // Act
+      const message = await rejectionFor(withoutCondition);
+
+      // Assert
+      expect(message).toBe("Missing required feature(s): Condition");
+    });
+
+    test("Case: Accepts an Engine Size of zero for an electric vehicle", async () => {
+      // Arrange
+      mockRequest = { body: { features: { ...validFeatures, "Engine Size": 0 } } };
+      mockService.predict = jest.fn().mockResolvedValue({ predicted_price: 46183.75 });
+
+      // Act
+      await controller.predict(mockRequest as Request, mockResponse as Response);
+
+      // Assert
+      expect(mockService.predict).toHaveBeenCalledTimes(1);
+      expect(mockResponse.status).toHaveBeenCalledWith(200);
+    });
+
+    test("Case: Rejects a non-numeric Year", async () => {
+      // Arrange + Act
+      const message = await rejectionFor({ ...validFeatures, Year: "not-a-year" });
+
+      // Assert
+      expect(mockService.predict).not.toHaveBeenCalled();
+      expect(message).toBe("Invalid value for Year: expected a number");
+    });
+
+    test("Case: Rejects a Year outside a plausible range", async () => {
+      // Arrange + Act
+      const message = await rejectionFor({ ...validFeatures, Year: 1800 });
+
+      // Assert
+      expect(mockService.predict).not.toHaveBeenCalled();
+      expect(message).toContain("Invalid value for Year");
+    });
+
+    test("Case: Rejects a negative Mileage", async () => {
+      // Arrange + Act
+      const message = await rejectionFor({ ...validFeatures, Mileage: -5000 });
+
+      // Assert
+      expect(mockService.predict).not.toHaveBeenCalled();
+      expect(message).toContain("Invalid value for Mileage");
+    });
+
+    test("Case: Rejects a negative Engine Size", async () => {
+      // Arrange + Act
+      const message = await rejectionFor({ ...validFeatures, "Engine Size": -1 });
+
+      // Assert
+      expect(mockService.predict).not.toHaveBeenCalled();
+      expect(message).toContain("Invalid value for Engine Size");
+    });
+
+    test("Case: Rejects a non-text Brand", async () => {
+      // Arrange + Act
+      const message = await rejectionFor({ ...validFeatures, Brand: 12345 });
+
+      // Assert
+      expect(mockService.predict).not.toHaveBeenCalled();
+      expect(message).toBe("Invalid value for Brand: expected text");
+    });
+
+    test("Case: Rejects a blank Brand", async () => {
+      // Arrange + Act
+      const message = await rejectionFor({ ...validFeatures, Brand: "   " });
+
+      // Assert
+      expect(mockService.predict).not.toHaveBeenCalled();
+      expect(message).toBe("Missing required feature(s): Brand");
+    });
+
+    test("Case: Still forwards a fully specified vehicle unchanged", async () => {
+      // Arrange
+      mockRequest = { body: { features: validFeatures, row_id: "web-ui" } };
+      mockService.predict = jest.fn().mockResolvedValue({ predicted_price: 46183.75 });
+
+      // Act
+      await controller.predict(mockRequest as Request, mockResponse as Response);
+
+      // Assert
+      expect(mockService.predict).toHaveBeenCalledWith({
+        features: validFeatures,
+        row_id: "web-ui",
+      });
+      expect(mockResponse.status).toHaveBeenCalledWith(200);
+    });
+  });
+
   describe("predictBatch", () => {
     test("Case: Successfully returns predictions for a batch of records", async () => {
       // Arrange
@@ -358,6 +484,29 @@ describe("PricePredictionController", () => {
       expect(mockResponse.json).toHaveBeenCalledWith({
         message: "records[1].features must be an object",
       });
+    });
+
+    test("Case: Rejects a batch record whose vehicle is not fully specified", async () => {
+      // Arrange
+      mockRequest = {
+        body: {
+          records: [
+            { row_id: "ok", features: validFeatures },
+            { row_id: "thin", features: { Brand: "Tesla" } },
+          ],
+        },
+      };
+      mockService.predictBatch = jest.fn();
+
+      // Act
+      await controller.predictBatch(mockRequest as Request, mockResponse as Response);
+
+      // Assert
+      expect(mockService.predictBatch).not.toHaveBeenCalled();
+      expect(mockResponse.status).toHaveBeenCalledWith(400);
+      const message = (mockResponse.json as jest.Mock).mock.calls[0][0].message as string;
+      expect(message).toContain("records[1]:");
+      expect(message).toContain("Missing required feature(s)");
     });
 
     test("Case: Surfaces the 503 raised when the ML service is unreachable", async () => {
