@@ -12,6 +12,7 @@ import costComparison.costComparison
 import costComparison.model_runner
 import pricePrediction.price_prediction_api
 import charging_station_recommendation_api.main
+import reliability_scoring_api.main as reliability_scoring
 from charging_station_recommendation_api.models.request import RankChargingStationsRequest
 from charging_station_recommendation_api.models.response import RankChargingStationsResponse
 from environmental_impact_analysis.predict import predict_savings
@@ -23,6 +24,9 @@ async def lifespan(app: FastAPI):
 
     print("[startup] Loading price prediction model...")
     await pricePrediction.price_prediction_api.startup_event()
+
+    print("[startup] Loading reliability scoring data...")
+    reliability_scoring.initialize()
 
     print("[startup] Models ready.")
     yield
@@ -36,6 +40,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# =============================================================
+# Reliability Scoring Use Case
+app.include_router(reliability_scoring.router, prefix="/reliability")
 
 @app.get("/")
 def root():

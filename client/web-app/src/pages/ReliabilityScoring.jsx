@@ -208,7 +208,7 @@ export default function ReliabilityScoring() {
               ML service: {health.status}
               {health.data_loaded
                 ? ` · data loaded (${health.station_count} stations)`
-                : " · data not loaded — start with npm run dev:reliability"}
+                : " · data not loaded — start with npm run dev:python"}
             </p>
           )}
         </div>
