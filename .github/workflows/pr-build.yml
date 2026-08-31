@@ -47,3 +47,36 @@ jobs:
 
       - name: Build web client
         run: npm run build:client
+
+  test-python-ml:
+    name: Test Python ML Services
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            python-requirements.txt
+            server/python-services/requirements-test.txt
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r python-requirements.txt
+          pip install -r server/python-services/requirements-test.txt
+
+      - name: Run ML service tests
+        working-directory: server/python-services
+        run: |
+          python -m pytest \
+            charging_station_recommendation_api/tests \
+            environmental_impact_analysis/tests \
+            pricePrediction/tests \
+            -v
+            
