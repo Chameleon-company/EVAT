@@ -21,6 +21,10 @@ if PROJECT_ROOT not in sys.path:
 
 from backend.charging_station_service import get_charging_stations
 
+from backend.station_preference_service import (
+    get_stations_by_preference as backend_get_stations_by_preference,
+)
+
 # Import the canonical backend implementation. Importing the same file as
 # top-level ``real_time_apis`` can create a second module/global instance.
 try:
@@ -105,92 +109,42 @@ class ChargingStationDataService:
             logger.error(f"Unable to retrieve nearby stations: {e}")
             return []
 
-    def get_stations_by_preference(self, location: Tuple[float, float], preference: str, limit: int = 5) -> List[Dict[str, Any]]:
-        """Get stations based on preference using Open Charge Map distance.
+    def get_stations_by_preference(
+        self,
+        location: Tuple[float, float],
+        preference: str,
+        limit: int = 5
+    ) -> List[Dict[str, Any]]:
+        """Get stations based on user preference via reusable backend service."""
 
-        Logic:
-        1) Retrieve stations within the preference prefilter radius.
-        2) Filter using the existing straight-line distance.
-        3) Sort by closest, cheapest, or fastest.
-        4) Return the requested number of results.
-        """
-        preference_radius = SEARCH_CONFIG.get(
-            "PREFERENCE_RADIUS_KM",
-            10.0
-        )
-        prefilter_radius = SEARCH_CONFIG.get(
-            "PREFERENCE_PREFILTER_KM",
-            max(12.0, preference_radius)
-        )
+        try:
+            user_lat, user_lon = location
 
-        prefiltered = self.get_nearby_stations(
-            location,
-            radius_km=prefilter_radius
-        )
+            stations = backend_get_stations_by_preference(
+                latitude=float(user_lat),
+                longitude=float(user_lon),
+                preference=preference,
+                limit=limit,
+                preference_radius_km=SEARCH_CONFIG.get(
+                    "PREFERENCE_RADIUS_KM",
+                    10.0
+                ),
+                prefilter_radius_km=SEARCH_CONFIG.get(
+                    "PREFERENCE_PREFILTER_KM",
+                    10.0
+                ),
+                max_results=SEARCH_CONFIG["MAX_RESULTS"],
+            )
 
-        filtered: List[Dict[str, Any]] = []
+            self.latest_stations = stations
+            return stations
 
-        for station in prefiltered:
-            try:
-                distance_km = float(
-                    station.get("distance_km", 9999)
-                )
-            except (TypeError, ValueError):
-                distance_km = 9999
-
-            if distance_km <= preference_radius:
-                station_copy = dict(station)
-                station_copy["distance_km"] = round(distance_km, 2)
-                filtered.append(station_copy)
-
-        candidates = filtered
-        if not candidates:
+        except Exception as e:
+            logger.error(
+                f"Unable to retrieve stations by preference: {e}"
+            )
             return []
-
-        if preference == "closest":
-            candidates.sort(key=lambda s: s.get('distance_km', 9999))
-            return candidates[:limit]
-
-        elif preference == "cheapest":
-            # Sort by cost (extract numeric value from Usage Cost column)
-            def extract_cost(station):
-                cost_str = str(station.get('cost', '0'))
-                try:
-                    # Extract first number from cost string (e.g., "AUD 0.30 per kWh" -> 0.30)
-                    numbers = re.findall(r'\d+\.?\d*', cost_str)
-                    if numbers:
-                        return float(numbers[0])
-                    # Handle "Free" case
-                    if 'free' in cost_str.lower():
-                        return 0.0
-                    return 999.0  # High cost for unknown
-                except:
-                    return 999.0
-
-            sorted_stations = sorted(candidates, key=extract_cost)
-            return sorted_stations[:limit]
-
-        elif preference == "fastest":
-            # Sort by power (higher power = faster charging)
-            def extract_power(station):
-                power_str = str(station.get('power', '0'))
-                try:
-                    # Extract first number from power string (e.g., "75, 22" -> 75)
-                    numbers = re.findall(r'\d+\.?\d*', power_str)
-                    if numbers:
-                        return float(numbers[0])
-                    return 0.0
-                except:
-                    return 0.0
-
-            sorted_stations = sorted(
-                candidates, key=extract_power, reverse=True)
-            return sorted_stations[:limit]
-
-        else:
-            candidates.sort(key=lambda s: s.get('distance_km', 9999))
-            return candidates[:limit]
-
+        
     def get_route_stations(
         self,
         start_location: str,
