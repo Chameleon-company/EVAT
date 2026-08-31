@@ -29,10 +29,10 @@ The main Python entry point is `server/python-services/main.py`. It exposes most
 | Cost comparison | `costComparison/` | Trains and selects a model during API startup | 5000 | Yes |
 | Vehicle price prediction | `pricePrediction/` | Loads `price_best_model_latest.joblib` | 5000 | No |
 | Charging-station recommendation | `charging_station_recommendation_api/` | Deterministic filtering and weighted scoring | 5000 through the combined API | No model training required |
-| Reliability scoring | `reliability_scoring_api/` | Deterministic reliability and sentiment scoring | 8003 standalone | No model training required |
+| Reliability scoring | `reliability_scoring_api/` | Deterministic reliability and sentiment scoring | 5000 under `/reliability` | No model training required |
 | Environmental impact model | `environmental_impact_analysis/` | Offline notebook and prediction utility | No API port | Yes, through the notebook |
 
-The Node API normally calls the combined Python service through `PYTHON_API_URL`. Reliability scoring has its own `RELIABILITY_API_URL`.
+The Node API calls the combined Python service through `PYTHON_API_URL`. Reliability scoring is also served by that process through `RELIABILITY_API_URL=http://127.0.0.1:5000/reliability`.
 
 ### Important current behaviour
 
@@ -40,8 +40,7 @@ The Node API normally calls the combined Python service through `PYTHON_API_URL`
 - The combined service cannot import successfully without a valid `GOOGLE_MAPS_API_KEY`, even when only a non-routing feature is being tested.
 - Cost comparison training runs in memory at every combined-service startup. It does not save the selected model to disk.
 - Reliability scoring and charging recommendations are scoring systems, not trained ML models.
-- `npm run dev:price` currently points to the missing directory `server/python-services/price_api`. Use the price endpoints in the combined service instead.
-- `npm run dev:charging-recommendation` currently cannot start independently because `charging_station_recommendation_api/main.py` provides a ranking function but no FastAPI `app`. Use the endpoint mounted by the combined service.
+- Price prediction, charging recommendations, and reliability scoring are all served by the combined Python process. Use `npm run dev:python`.
 - There is currently no Python Dockerfile or Compose file in the repository. Section 9 provides a reproducible development-container command without claiming that EVAT has a production container image.
 
 ## 3. Prerequisites
@@ -96,24 +95,15 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 ### 4.2 Install the combined service dependencies
 
 ```bash
-python -m pip install -r python-requirements.txt
+python -m pip install -r server/python-services/requirements.txt
 ```
 
-### 4.3 Install standalone-service dependencies
+### 4.3 Service-specific requirements
 
-Install these as well when testing all Python services:
-
-```bash
-python -m pip install -r server/python-services/charging_station_recommendation_api/requirements.txt
-python -m pip install -r server/python-services/reliability_scoring_api/requirements.txt
-python -m pip install -r server/python-services/environmental_impact_analysis/requirements.txt
-```
-
-The personalised-insights requirements file pins older versions and also lists Flask and Gunicorn, although the current feature is mounted in FastAPI. Prefer the root requirements for the combined service. Use its dedicated requirements only if reproducing that component in isolation:
-
-```bash
-python -m pip install -r server/python-services/personalisedEVInsights/requirements.txt
-```
+The shared requirements file covers the consolidated Python API and all services
+loaded by `server/python-services/main.py`. The older service-level requirement
+files are retained for historical standalone use and are not needed for normal
+local development.
 
 ### 4.4 Install full-stack dependencies
 
@@ -161,7 +151,7 @@ MONGODB_URI=mongodb://127.0.0.1:27017/EVAT
 JWT_SECRET=replace-with-a-long-random-development-secret
 
 PYTHON_API_URL=http://127.0.0.1:5000
-RELIABILITY_API_URL=http://127.0.0.1:8003
+RELIABILITY_API_URL=http://127.0.0.1:5000/reliability
 ```
 
 ### 5.2 Backend environment and Google Maps
@@ -179,7 +169,7 @@ MONGODB_URI=mongodb://127.0.0.1:27017/EVAT
 JWT_SECRET=replace-with-a-long-random-development-secret
 GOOGLE_MAPS_API_KEY=replace-with-a-valid-google-maps-key
 PYTHON_API_URL=http://127.0.0.1:5000
-RELIABILITY_API_URL=http://127.0.0.1:8003
+RELIABILITY_API_URL=http://127.0.0.1:5000/reliability
 ```
 
 `weatherAwareRouting/config.py` explicitly reads `server/node-api/.env`. A Google key placed only in another file may therefore not be found by the combined Python service.
@@ -203,8 +193,6 @@ Relative price paths are resolved from `server/python-services/pricePrediction`.
 Defaults are suitable for local use:
 
 ```dotenv
-RELIABILITY_API_HOST=127.0.0.1
-RELIABILITY_API_PORT=8003
 RELIABILITY_DATA_PATH=data/EVAT-Final-Enriched.csv
 RELIABILITY_STATUS_WEIGHT=0.6
 RELIABILITY_POWER_WEIGHT=0.4
@@ -270,18 +258,14 @@ Use `POST /charging-station-recommendations/rank`. Although an npm script and se
 
 ### 6.3 Reliability scoring service
 
-```bash
-npm run dev:reliability
-```
-
-Or:
+Reliability scoring is included in the combined Python service:
 
 ```bash
-cd server/python-services/reliability_scoring_api
-python -m uvicorn main:app --reload --host 127.0.0.1 --port 8003
+npm run dev:python
 ```
 
-Open `http://127.0.0.1:8003/health` and `http://127.0.0.1:8003/docs`.
+Open `http://127.0.0.1:5000/reliability/health` and
+`http://127.0.0.1:5000/docs`.
 
 ### 6.4 Full EVAT stack
 
@@ -291,19 +275,15 @@ With MongoDB and all environment variables configured:
 npm run dev
 ```
 
-This starts the React client, Node API, and combined Python service. Start reliability scoring separately if that feature is required:
-
-```bash
-npm run dev:reliability
-```
+This starts the React client, Node API, and consolidated Python service,
+including reliability scoring.
 
 The usual local addresses are:
 
 - React client: the URL printed by Vite, commonly `http://localhost:3000` or `http://localhost:5173`;
 - Node API: `http://localhost:8080`;
 - Node Swagger UI: `http://localhost:8080/api/docs`;
-- combined Python API: `http://127.0.0.1:5000`; and
-- reliability API: `http://127.0.0.1:8003`.
+- combined Python API: `http://127.0.0.1:5000` (including reliability under `/reliability`).
 
 For a non-reloading local deployment, remove `--reload`:
 
@@ -394,7 +374,7 @@ Charging recommendations and reliability scoring use explicit formulas and rules
 ```bash
 curl --fail http://127.0.0.1:5000/
 curl --fail http://127.0.0.1:5000/pricePrediction/health
-curl --fail http://127.0.0.1:8003/health
+curl --fail http://127.0.0.1:5000/reliability/health
 ```
 
 Only run checks for services that were started.
@@ -430,7 +410,7 @@ curl --fail -X POST http://127.0.0.1:5000/demandForecasting/predict \
 ### 8.4 Reliability scoring smoke test
 
 ```bash
-curl --fail -X POST http://127.0.0.1:8003/score \
+curl --fail -X POST http://127.0.0.1:5000/reliability/score \
   -H "Content-Type: application/json" \
   -d '{"station_id":"test-1","status":"Operational","power_kw":150,"max_power_kw":350}'
 ```
@@ -472,7 +452,7 @@ docker run --rm -it \
   -v "$PWD:/workspace" \
   -w /workspace/server/python-services \
   python:3.11-slim \
-  sh -lc "apt-get update && apt-get install -y --no-install-recommends libgomp1 && rm -rf /var/lib/apt/lists/* && pip install --no-cache-dir -r /workspace/python-requirements.txt && uvicorn main:app --host 0.0.0.0 --port 5000"
+  sh -lc "apt-get update && apt-get install -y --no-install-recommends libgomp1 && rm -rf /var/lib/apt/lists/* && pip install --no-cache-dir -r /workspace/server/python-services/requirements.txt && uvicorn main:app --host 0.0.0.0 --port 5000"
 ```
 
 Windows PowerShell:
@@ -485,7 +465,7 @@ docker run --rm -it `
   -v "${PWD}:/workspace" `
   -w /workspace/server/python-services `
   python:3.11-slim `
-  sh -lc "apt-get update && apt-get install -y --no-install-recommends libgomp1 && rm -rf /var/lib/apt/lists/* && pip install --no-cache-dir -r /workspace/python-requirements.txt && uvicorn main:app --host 0.0.0.0 --port 5000"
+  sh -lc "apt-get update && apt-get install -y --no-install-recommends libgomp1 && rm -rf /var/lib/apt/lists/* && pip install --no-cache-dir -r /workspace/server/python-services/requirements.txt && uvicorn main:app --host 0.0.0.0 --port 5000"
 ```
 
 Verify from the host:
@@ -517,7 +497,7 @@ Fix:
 
 ### Port 5000 is already in use
 
-On macOS, Control Center or AirPlay Receiver commonly owns port 5000. Either disable AirPlay Receiver in System Settings or run Python on another port:
+If port 5000 is already in use, run Python on another port:
 
 ```bash
 cd server/python-services
@@ -578,21 +558,13 @@ Cost comparison trains three candidate models at startup. Wait for the model R²
 
 The weather integration accepts future dates only, up to 16 days ahead. Use a postcode returned by `/demandForecasting/postcodes` and a supported future date. The service falls back to 20°C when Open-Meteo cannot be reached.
 
-### `npm run dev:price` fails
-
-The script currently changes into `server/python-services/price_api`, which does not exist. Price prediction is already mounted under `/pricePrediction/*` in the combined service. Start `npm run dev:python` and use those endpoints.
-
-### `npm run dev:charging-recommendation` fails
-
-The current recommendation module exports `rank_charging_stations` for the combined API but does not define a standalone FastAPI `app`. Use `npm run dev:python` and the combined `/charging-station-recommendations/rank` endpoint. The same mismatch causes `tests/test_main.py` to fail during test collection; the working unit-test command is in Section 8.5.
-
 ### Node returns a Python connection error
 
 Confirm that:
 
 - the combined Python service is running;
 - `PYTHON_API_URL` exactly matches its host and port;
-- reliability uses `RELIABILITY_API_URL` and port 8003;
+- reliability uses `RELIABILITY_API_URL=http://127.0.0.1:5000/reliability`;
 - Docker-hosted services publish their ports; and
 - the environment was loaded before the Node process started.
 
@@ -622,15 +594,10 @@ Before marking an ML deployment change complete:
 source .venv/bin/activate
 
 # Install all current Python dependencies
-python -m pip install -r python-requirements.txt
-python -m pip install -r server/python-services/charging_station_recommendation_api/requirements.txt
-python -m pip install -r server/python-services/reliability_scoring_api/requirements.txt
+python -m pip install -r server/python-services/requirements.txt
 
 # Run combined ML service
 npm run dev:python
-
-# Run standalone reliability scoring
-npm run dev:reliability
 
 # Run the full EVAT application
 npm run dev
@@ -638,7 +605,7 @@ npm run dev
 # Verify
 curl --fail http://127.0.0.1:5000/
 curl --fail http://127.0.0.1:5000/pricePrediction/health
-curl --fail http://127.0.0.1:8003/health
+curl --fail http://127.0.0.1:5000/reliability/health
 
 # Test charging recommendation units (run from repository root)
 PYTHONPATH="$PWD/server/python-services:$PWD/server/python-services/charging_station_recommendation_api" \

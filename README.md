@@ -93,7 +93,7 @@ Because we use NPM workspaces, you do not need to navigate into individual folde
    **Package installation for Global and Virtual Environment**
    Launch a new terminal in the root directory of the project and installing the packages by running:
    ```sh
-   pip install -r python-requirements.txt
+   pip install -r server/python-services/requirements.txt
    ```
 
 
@@ -166,6 +166,8 @@ npm run test:server
 ## 📚 Machine Learning Deployment
 
 For local Python setup, model training support, service deployment, Docker usage, verification, and troubleshooting, see the [Machine Learning Deployment Guide](docs/MACHINE_LEARNING_DEPLOYMENT_GUIDE.md).
+
+For the end-to-end data, training, evaluation, artifact, and prediction architecture, see the [Machine Learning Pipeline Architecture](docs/MACHINE_LEARNING_PIPELINE_ARCHITECTURE.md).
 
 ---
 
