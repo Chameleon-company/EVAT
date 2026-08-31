@@ -9,6 +9,11 @@ import re
 from actions.data_service import data_service
 from actions.constants import ConversationContexts, MainMenuOptions, PreferenceTypes, ActionTypes, Messages
 
+from backend.emergency_charging_service import (
+    infer_connector_from_message as backend_infer_connector_from_message,
+    filter_stations_by_connector as backend_filter_stations_by_connector,
+)
+
 # Import real-time integration
 try:
     from .real_time_integration import real_time_manager
@@ -946,22 +951,19 @@ class ActionHandleEmergencyLocationInput(Action):
                 dispatcher.utter_message(text=Messages.GOODBYE)
                 return [SlotSet("conversation_context", ConversationContexts.ENDED)]
 
-            connector = self._infer_connector_from_message(message)
+            connector = backend_infer_connector_from_message(message)
             start_location = (stored_lat, stored_lng)
             stations = data_service.get_emergency_stations_from_coordinates(
                 start_location)
 
             if stations:
                 if connector:
-                    # Collect all stations with matching connector (up to 3)
-                    matched = [
-                        st for st in stations
-                        if self._connector_matches(
-                            connector,
-                            str(st.get('connection_types', '')).lower(),
-                            str(st.get('power', '')).lower()
+                    # Collect all stations with matching connector (up to 5)
+                    matched = backend_filter_stations_by_connector(
+                        stations,
+                        connector,
+                        limit=5,
                         )
-                    ][:5]
 
                     if matched:
                         closest = matched[0]
@@ -1029,119 +1031,6 @@ class ActionHandleEmergencyLocationInput(Action):
                 text=f"No charging stations found near {current_location}. Please try a different location.")
             return []
 
-    def _infer_connector_from_message(self, message: str) -> Optional[str]:
-        msg = (message or '').lower()
-
-        # Direct connector mentions
-        if 'chademo' in msg:
-            return 'chademo'
-        if 'ccs2' in msg or 'ccs 2' in msg or 'ccs' in msg:
-            return 'ccs'
-        if 'type 2' in msg or 'mennekes' in msg:
-            return 'type 2'
-        if 'tesla' in msg:
-            return 'tesla'
-
-        car_ccs = [
-            # Hyundai/Kia
-            'ioniq', 'kona', 'ev6', 'e-niro', 'niro', 'ev6', 'soul ev',
-            # MG
-            'mg zs', 'mg 4', 'mg 5', 'mg marvel', 'mg cyberster',
-            # Polestar/Volvo
-            'polestar', 'volvo xc40', 'volvo c40', 'volvo ex30', 'volvo ex90',
-            # BYD
-            'byd', 'atto 3', 'dolphin', 'seal', 'tang', 'han',
-            # Volkswagen Group
-            'id.3', 'id.4', 'id.5', 'id.buzz', 'audi e-tron', 'audi q4', 'porsche taycan',
-            # BMW
-            'bmw i3', 'bmw i4', 'bmw ix', 'bmw i7', 'bmw i5',
-            # Mercedes
-            'eqa', 'eqb', 'eqc', 'eqe', 'eqs', 'mercedes ev',
-            # Ford
-            'mustang mach-e', 'f-150 lightning', 'e-transit',
-            # Chevrolet
-            'bolt', 'bolt euv', 'silverado ev', 'blazer ev',
-            # Other popular EVs
-            'rivian r1t', 'rivian r1s', 'lucid air', 'fisker ocean', 'canoo'
-        ]
-
-        car_chademo = [
-            # Nissan
-            'leaf', 'ariya',
-            # Mitsubishi
-            'outlander phev', 'i-miev',
-            # Kia (older models)
-            'soul ev 2014-2019'
-        ]
-
-        car_type2 = [
-            # Tesla (older models in Europe)
-            'tesla model s', 'tesla model x', 'tesla model 3', 'tesla model y',
-            # European EVs
-            'renault zoe', 'peugeot e-208', 'opel corsa-e', 'fiat 500e',
-            # Japanese EVs
-            'toyota bz4x', 'subaru solterra', 'lexus rz'
-        ]
-
-        car_tesla = [
-            # Tesla (North America/Asia)
-            'tesla model s', 'tesla model x', 'tesla model 3', 'tesla model y',
-            'cybertruck', 'roadster'
-        ]
-
-        # Check for car models
-        for kw in car_ccs:
-            if kw in msg:
-                return 'ccs'
-        for kw in car_chademo:
-            if kw in msg:
-                return 'chademo'
-        for kw in car_type2:
-            if kw in msg:
-                return 'type 2'
-        for kw in car_tesla:
-            if kw in msg:
-                return 'tesla'
-
-        return None
-
-    def _connector_matches(self, connector: str, conn_str: str, power_str: str) -> bool:
-        """Check if connector matches station data (including numeric codes)"""
-        connector = connector.lower()
-
-        # Direct text matching
-        if connector in conn_str or connector in power_str:
-            return True
-
-        # Numeric code mapping for Type 2 (Mennekes) — OpenChargeMap ID 25
-        if connector == 'type 2':
-            type2_codes = ['25', '1036']
-            for code in type2_codes:
-                if code in conn_str:
-                    return True
-
-        # Numeric code mapping for CCS — OpenChargeMap ID 33 (CCS2 used in AU)
-        elif connector == 'ccs':
-            ccs_codes = ['33', '1', '21', '31']
-            for code in ccs_codes:
-                if code in conn_str:
-                    return True
-
-        # Numeric code mapping for CHAdeMO — OpenChargeMap ID 2
-        elif connector == 'chademo':
-            chademo_codes = ['2', '4', '24', '34']
-            for code in chademo_codes:
-                if code in conn_str:
-                    return True
-
-        # Numeric code mapping for Tesla — Superchargers use CCS2 (33) in AU
-        elif connector == 'tesla':
-            tesla_codes = ['33', '1036']
-            for code in tesla_codes:
-                if code in conn_str:
-                    return True
-
-        return False
 
 
 class ActionHandlePreferenceCharging(Action):

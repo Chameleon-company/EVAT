@@ -25,6 +25,10 @@ from backend.station_preference_service import (
     get_stations_by_preference as backend_get_stations_by_preference,
 )
 
+from backend.emergency_charging_service import (
+    get_emergency_stations as backend_get_emergency_stations,
+)
+
 # Import the canonical backend implementation. Importing the same file as
 # top-level ``real_time_apis`` can create a second module/global instance.
 try:
@@ -413,19 +417,48 @@ class ChargingStationDataService:
         # Lower score is better (closer to optimal position)
         return min_distance
 
-    def get_emergency_stations(self, location: str) -> List[Dict[str, Any]]:
-        """Get emergency charging stations near a location"""
+    def get_emergency_stations(
+        self,
+        location: str
+    ) -> List[Dict[str, Any]]:
+        """Get emergency stations via reusable backend service."""
+
         coords = self._get_location_coordinates(location)
-        if coords:
-            return self.get_nearby_stations(coords, radius_km=SEARCH_CONFIG['EMERGENCY_RADIUS_KM'])[:SEARCH_CONFIG['EMERGENCY_MAX_RESULTS']]
-        return []
 
-    def get_emergency_stations_from_coordinates(self, coordinates: Tuple[float, float]) -> List[Dict[str, Any]]:
-        """Get emergency charging stations near coordinates"""
-        if coordinates:
-            return self.get_nearby_stations(coordinates, radius_km=SEARCH_CONFIG['EMERGENCY_RADIUS_KM'])[:SEARCH_CONFIG['EMERGENCY_MAX_RESULTS']]
-        return []
+        if not coords:
+            return []
 
+        return self.get_emergency_stations_from_coordinates(coords)
+
+    def get_emergency_stations_from_coordinates(
+        self,
+        coordinates: Tuple[float, float]
+    ) -> List[Dict[str, Any]]:
+        """Get emergency stations from coordinates via reusable backend service."""
+
+        if not coordinates:
+            return []
+
+        try:
+            latitude, longitude = coordinates
+
+            stations = backend_get_emergency_stations(
+                latitude=float(latitude),
+                longitude=float(longitude),
+                radius_km=SEARCH_CONFIG["EMERGENCY_RADIUS_KM"],
+                limit=SEARCH_CONFIG["EMERGENCY_MAX_RESULTS"],
+                max_results=SEARCH_CONFIG["MAX_RESULTS"],
+            )
+
+            self.latest_stations = stations
+            return stations
+
+        except Exception as e:
+            logger.error(
+                f"Unable to retrieve emergency charging stations: {e}"
+            )
+            return []
+        
     def get_station_details(self, station_name: str) -> Optional[Dict[str, Any]]:
         """Get detailed information about a specific station"""
         for station in self.latest_stations:
