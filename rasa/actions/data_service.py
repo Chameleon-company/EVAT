@@ -38,6 +38,9 @@ from backend.station_details_service import (
 from backend.availability_service import (
     get_station_availability as backend_get_station_availability,
 )
+from backend.location_resolution_service import (
+    get_location_coordinates as backend_get_location_coordinates,
+)
 # Import the canonical backend implementation. Importing the same file as
 # top-level ``real_time_apis`` can create a second module/global instance.
 try:
@@ -265,158 +268,18 @@ class ChargingStationDataService:
                 f"Unable to retrieve station details: {e}"
             )
             return None
-    def _get_location_coordinates(self, location_input) -> Optional[Tuple[float, float]]:
-        """Get coordinates using ONLY charger_info_mel.csv (station name, address, or suburb)."""
-        if not location_input:
-            return None
 
-        # If location_input is already coordinates (tuple or list), return it directly
-        if (isinstance(location_input, (tuple, list)) and len(location_input) == 2):
-            try:
-                lat, lng = float(location_input[0]), float(location_input[1])
-                if lat != 0 and lng != 0:
-                    logger.info(f"Using provided coordinates: ({lat}, {lng})")
-                    return (lat, lng)
-            except (ValueError, TypeError):
-                pass
+    def _get_location_coordinates(
+        self,
+        location_input
+    ) -> Optional[Tuple[float, float]]:
+        """Resolve location coordinates via reusable backend service."""
 
-        # Handle string input (suburb names)
-        if isinstance(location_input, str):
-            location_clean = location_input.lower().strip()
-        else:
-            return None
-
-        # Direct lookups against charger_info_mel.csv
-        try:
-            if self.charger_data is None or self.charger_data.empty:
-                return None
-
-            name_col = DATA_CONFIG['CSV_COLUMNS']['CHARGER_NAME']
-            addr_col = DATA_CONFIG['CSV_COLUMNS']['ADDRESS']
-            suburb_col = DATA_CONFIG['CSV_COLUMNS']['SUBURB']
-            lat_col = DATA_CONFIG['CSV_COLUMNS']['LATITUDE']
-            lon_col = DATA_CONFIG['CSV_COLUMNS']['LONGITUDE']
-
-            # 1) Exact/contains match by station name
-            try:
-                mask = self.charger_data[name_col].astype(
-                    str).str.lower().str.contains(location_clean, na=False)
-                rows = self.charger_data[mask]
-                if not rows.empty:
-                    row = rows.iloc[0]
-                    lat = float(row.get(lat_col, 0))
-                    lon = float(row.get(lon_col, 0))
-                    if lat != 0 and lon != 0:
-                        logger.info(
-                            f"Found coordinates from station name: '{row.get(name_col)}' → ({lat}, {lon})")
-                        return (lat, lon)
-            except Exception:
-                pass
-
-            # 2) Contains match by address
-            try:
-                mask = self.charger_data[addr_col].astype(
-                    str).str.lower().str.contains(location_clean, na=False)
-                rows = self.charger_data[mask]
-                if not rows.empty:
-                    row = rows.iloc[0]
-                    lat = float(row.get(lat_col, 0))
-                    lon = float(row.get(lon_col, 0))
-                    if lat != 0 and lon != 0:
-                        logger.info(
-                            f"Found coordinates from address: '{row.get(addr_col)}' → ({lat}, {lon})")
-                        return (lat, lon)
-            except Exception:
-                pass
-
-            # 3) Exact/contains match by suburb
-            try:
-                sub_lower = self.charger_data[suburb_col].astype(
-                    str).str.lower()
-                mask = (sub_lower == location_clean) | sub_lower.str.contains(
-                    location_clean, na=False)
-                rows = self.charger_data[mask]
-                if not rows.empty:
-                    row = rows.iloc[0]
-                    lat = float(row.get(lat_col, 0))
-                    lon = float(row.get(lon_col, 0))
-                    if lat != 0 and lon != 0:
-                        logger.info(
-                            f"Found coordinates from suburb: '{row.get(suburb_col)}' → ({lat}, {lon})")
-                        return (lat, lon)
-            except Exception:
-                pass
-
-            # 4) Fuzzy match against combined candidates (name, address, suburb) within charger_data
-            try:
-                candidates = []
-                try:
-                    candidates.extend(self.charger_data[name_col].dropna().astype(
-                        str).str.lower().tolist())
-                except Exception:
-                    pass
-                try:
-                    candidates.extend(self.charger_data[addr_col].dropna().astype(
-                        str).str.lower().tolist())
-                except Exception:
-                    pass
-                try:
-                    candidates.extend(self.charger_data[suburb_col].dropna().astype(
-                        str).str.lower().tolist())
-                except Exception:
-                    pass
-
-                import difflib as _difflib
-                best = _difflib.get_close_matches(
-                    location_clean, list(set(candidates)), n=1, cutoff=0.6)
-                if best:
-                    best_str = best[0]
-                    mask = (
-                        self.charger_data[name_col].astype(
-                            str).str.lower() == best_str
-                    ) | (
-                        self.charger_data[addr_col].astype(
-                            str).str.lower() == best_str
-                    ) | (
-                        self.charger_data[suburb_col].astype(
-                            str).str.lower() == best_str
-                    )
-                    rows = self.charger_data[mask]
-                    if not rows.empty:
-                        row = rows.iloc[0]
-                        lat = float(row.get(lat_col, 0))
-                        lon = float(row.get(lon_col, 0))
-                        if lat != 0 and lon != 0:
-                            logger.info(
-                                f"Fuzzy-matched '{location_clean}' → '{best_str}' → ({lat}, {lon})")
-                            return (lat, lon)
-            except Exception:
-                pass
-        except Exception:
-            pass
-
-        logger.warning(
-            f"Could not find coordinates for location: '{location_input}'")
-        return None
-
-    def _calculate_distance(self, point1: Tuple[float, float], point2: Tuple[float, float]) -> float:
-        """Calculate distance between two points using Haversine formula"""
-        lat1, lon1 = point1
-        lat2, lon2 = point2
-
-        # Convert to radians
-        lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
-
-        # Haversine formula
-        dlat = lat2 - lat1
-        dlon = lon2 - lon1
-        a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
-        c = 2 * atan2(sqrt(a), sqrt(1-a))
-
-        # Use configuration for Earth's radius
-        radius = LOCATION_CONFIG['EARTH_RADIUS_KM']
-        return radius * c
-
+        return backend_get_location_coordinates(
+            location_input=location_input,
+            charger_data=self.charger_data,
+            csv_columns=DATA_CONFIG["CSV_COLUMNS"],
+        )
     def _get_station_availability(
         self,
         lat: float,
