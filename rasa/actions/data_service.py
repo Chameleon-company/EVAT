@@ -1,7 +1,7 @@
 """
 Data Service for EVAT Chatbot
 Loads and provides access to charging station data from CSV datasets
-Uses ONLY data available in charger_info_mel.csv 
+Uses ONLY data available in charger_info_mel.csv
 """
 
 import pandas as pd
@@ -27,6 +27,10 @@ from backend.station_preference_service import (
 
 from backend.emergency_charging_service import (
     get_emergency_stations as backend_get_emergency_stations,
+)
+
+from backend.route_planning_service import (
+    get_route_stations as backend_get_route_stations,
 )
 
 # Import the canonical backend implementation. Importing the same file as
@@ -111,8 +115,51 @@ class ChargingStationDataService:
             return stations
         except Exception as e:
             logger.error(f"Unable to retrieve nearby stations: {e}")
+            return
+
+    def get_route_stations(
+        self,
+        start_location: str,
+        end_location: str
+    ) -> List[Dict[str, Any]]:
+        """Get charging stations along a route via reusable backend service."""
+
+        logger.info(
+            f"Planning route from '{start_location}' to '{end_location}'"
+        )
+
+        start_coords = self._get_location_coordinates(start_location)
+        end_coords = self._get_location_coordinates(end_location)
+
+        if not start_coords:
+            logger.error(
+                f"Could not find coordinates for start location: {start_location}"
+            )
             return []
 
+        if not end_coords:
+            logger.error(
+                f"Could not find coordinates for end location: {end_location}"
+            )
+            return []
+
+        try:
+            stations, all_candidates = backend_get_route_stations(
+                start_coords=start_coords,
+                end_coords=end_coords,
+                route_radius_km=SEARCH_CONFIG["ROUTE_RADIUS_KM"],
+                max_results=SEARCH_CONFIG["MAX_RESULTS"],
+                earth_radius_km=LOCATION_CONFIG["EARTH_RADIUS_KM"],
+            )
+
+            self.latest_stations = all_candidates
+            return stations
+
+        except Exception as e:
+            logger.error(
+                f"Unable to retrieve route charging stations: {e}"
+            )
+            return []
     def get_stations_by_preference(
         self,
         location: Tuple[float, float],
@@ -148,274 +195,6 @@ class ChargingStationDataService:
                 f"Unable to retrieve stations by preference: {e}"
             )
             return []
-        
-    def get_route_stations(
-        self,
-        start_location: str,
-        end_location: str
-    ) -> List[Dict[str, Any]]:
-        """Get charging stations along a route using one TomTom route request."""
-
-        logger.info(
-            f"Planning route from '{start_location}' to '{end_location}'"
-        )
-
-        # Get coordinates for both locations
-        start_coords = self._get_location_coordinates(start_location)
-        end_coords = self._get_location_coordinates(end_location)
-
-        if not start_coords:
-            logger.error(
-                f"Could not find coordinates for start location: {start_location}"
-            )
-            return []
-
-        if not end_coords:
-            logger.error(
-                f"Could not find coordinates for end location: {end_location}"
-            )
-            return []
-
-        logger.info(
-            f"Route coordinates: {start_location} ({start_coords}) "
-            f"-> {end_location} ({end_coords})"
-        )
-
-        # Make one TomTom request for the main route and its polyline
-        route_info = None
-
-        if REAL_TIME_AVAILABLE and api_manager is not None:
-            try:
-                route_info = api_manager.get_real_time_route(
-                    start_coords,
-                    end_coords
-                )
-
-                if isinstance(route_info, dict):
-                    instructions = route_info.get("instructions") or []
-
-                    logger.info(
-                        f"Real-time route data: "
-                        f"distance_km={route_info.get('distance_km')} "
-                        f"duration_min={route_info.get('duration_minutes')} "
-                        f"delay_min={route_info.get('traffic_delay_minutes')} "
-                        f"instructions_count={len(instructions)}"
-                    )
-                else:
-                    logger.warning(
-                        "TomTom route data unavailable; using fallback route"
-                    )
-
-            except Exception as error:
-                logger.warning(
-                    f"Real-time route data unavailable: {error}"
-                )
-                route_info = None
-
-        # Use TomTom road distance when available
-        if route_info and route_info.get("source") == "tomtom":
-            route_distance = float(route_info.get("distance_km", 0))
-            logger.info(
-                f"Real-time route distance: {route_distance:.1f} km"
-            )
-        else:
-            # Straight-line fallback if TomTom is unavailable
-            route_distance = self._calculate_distance(
-                start_coords,
-                end_coords
-            )
-            logger.info(
-                f"Calculated fallback route distance: "
-                f"{route_distance:.1f} km"
-            )
-
-        # Search Open Charge Map along the TomTom polyline.
-        # CSV backup remains handled by get_charging_stations().
-        route_stations = self._get_stations_along_route(
-            start_coords,
-            end_coords,
-            route_distance,
-            route_info
-        )
-
-        if route_stations:
-            logger.info(
-                f"Found {len(route_stations)} stations along route"
-            )
-            return route_stations
-
-        logger.warning("No stations found along route")
-        return []
-
-    def _get_stations_along_route(self, start_coords: Tuple[float, float],
-                                  end_coords: Tuple[float, float],
-                                  route_distance: float,
-                                  route_info: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
-        """Get stations strategically placed along the route"""
-        # Calculate optimal search radius based on route distance
-        # Add a small floor to avoid too-small radius on short routes
-        search_radius = max(5.0, min(route_distance * 0.3,
-                            SEARCH_CONFIG['ROUTE_RADIUS_KM']))
-        logger.info(
-            f"Route distance={route_distance:.2f} km, search_radius={search_radius:.2f} km")
-
-        # Require real-time polyline to define true route corridor
-        polyline: Optional[List[Tuple[float, float]]] = None
-        try:
-            if route_info and isinstance(route_info.get('polyline'), list):
-                raw_poly = route_info.get('polyline') or []
-                if len(raw_poly) >= 2:
-                    polyline = [(float(lat), float(lon)) for (lat, lon) in raw_poly if isinstance(
-                        lat, (int, float)) and isinstance(lon, (int, float))]
-        except Exception:
-            polyline = None
-
-        if not polyline:
-            logger.warning(
-                "No polyline available from real-time route; using straight-line fallback corridor"
-            )
-            polyline = [start_coords, end_coords]
-
-        # Query stations around sampled points along the route
-        candidates: List[Dict[str, Any]] = []
-        seen = set()
-        # Space searches across the whole driving route. Five fixed samples can
-        # leave large gaps on longer routes, so scale conservatively with route
-        # length while capping external API calls.
-        sample_count = min(
-            len(polyline),
-            max(2, min(12, int(route_distance / max(search_radius, 1.0)) + 2))
-        )
-        sample_indexes = sorted({round(i * (len(polyline) - 1) / (sample_count - 1))
-                                 for i in range(sample_count)}) if sample_count > 1 else [0]
-
-        for index in sample_indexes:
-            try:
-                sample_lat, sample_lon = polyline[index]
-                stations, _ = get_charging_stations(
-                    latitude=sample_lat,
-                    longitude=sample_lon,
-                    distance_km=search_radius,
-                    limit=SEARCH_CONFIG['MAX_RESULTS']
-                )
-                for station in stations:
-                    key = (str(station.get('name', '')).strip().lower(),
-                           round(float(station.get('latitude', 0)), 5),
-                           round(float(station.get('longitude', 0)), 5))
-                    if key not in seen:
-                        seen.add(key)
-                        candidates.append(station)
-            except Exception as e:
-                logger.warning(
-                    f"Unable to retrieve stations at route sample: {e}")
-
-        all_stations = []
-        for station in candidates:
-            try:
-                station_coords = (float(station.get('latitude')),
-                                  float(station.get('longitude')))
-                min_perp = self._min_perpendicular_distance_to_polyline(
-                    polyline, station_coords)
-                if min_perp is not None and min_perp <= search_radius:
-                    station_info = dict(station)
-                    station_info['distance_from_start'] = self._calculate_distance(
-                        start_coords, station_coords)
-                    station_info['distance_from_end'] = self._calculate_distance(
-                        station_coords, end_coords)
-                    all_stations.append(station_info)
-            except (ValueError, TypeError):
-                continue
-
-        self.latest_stations = all_stations
-
-        logger.info(
-            f"Candidate stations within route corridor: {len(all_stations)}")
-
-        if not all_stations:
-            return []
-
-        # Sort stations by optimal placement along route
-        # Prefer stations that are roughly 1/3 and 2/3 along the route
-        for station in all_stations:
-            station['route_position_score'] = self._calculate_route_position_score(
-                station['distance_from_start'], route_distance
-            )
-
-        # Sort by route position score (closer to optimal 1/3 and 2/3 positions)
-        all_stations.sort(key=lambda x: x['route_position_score'])
-
-        # Return top stations with route information
-        return all_stations[:SEARCH_CONFIG['MAX_RESULTS']]
-
-    def _min_perpendicular_distance_to_polyline(self, polyline: List[Tuple[float, float]], point: Tuple[float, float]) -> Optional[float]:
-        """Compute minimum perpendicular distance (km) from point to any segment in the polyline."""
-        if not polyline or len(polyline) < 2:
-            return None
-        try:
-            from math import radians, cos, sqrt
-            R = LOCATION_CONFIG['EARTH_RADIUS_KM']
-            px, py = point
-            pxr, pyr = radians(px), radians(py)
-            # Use global ref lat as average of polyline to reduce distortion
-            ref_lat = sum(radians(lat) for lat, _ in polyline) / len(polyline)
-            cos_ref = cos(ref_lat)
-            # Choose an origin (first vertex)
-            lat0r, lon0r = radians(polyline[0][0]), radians(polyline[0][1])
-            # Project point relative to origin
-            P_x = (pyr - lon0r) * cos_ref * R
-            P_y = (pxr - lat0r) * R
-
-            min_dist = None
-            # Iterate segments
-            prev_lat, prev_lon = polyline[0]
-            for lat, lon in polyline[1:]:
-                a_lat_r, a_lon_r = radians(prev_lat), radians(prev_lon)
-                b_lat_r, b_lon_r = radians(lat), radians(lon)
-                A_x = (a_lon_r - lon0r) * cos_ref * R
-                A_y = (a_lat_r - lat0r) * R
-                B_x = (b_lon_r - lon0r) * cos_ref * R
-                B_y = (b_lat_r - lat0r) * R
-                v_x = B_x - A_x
-                v_y = B_y - A_y
-                w_x = P_x - A_x
-                w_y = P_y - A_y
-                seg_len_sq = v_x * v_x + v_y * v_y
-                if seg_len_sq <= 1e-9:
-                    # Degenerate segment, use distance to A
-                    d_x = P_x - A_x
-                    d_y = P_y - A_y
-                    d = sqrt(d_x * d_x + d_y * d_y)
-                else:
-                    t = (w_x * v_x + w_y * v_y) / seg_len_sq
-                    if t < 0.0:
-                        Q_x, Q_y = A_x, A_y
-                    elif t > 1.0:
-                        Q_x, Q_y = B_x, B_y
-                    else:
-                        Q_x = A_x + t * v_x
-                        Q_y = A_y + t * v_y
-                    d_x = P_x - Q_x
-                    d_y = P_y - Q_y
-                    d = sqrt(d_x * d_x + d_y * d_y)
-                if min_dist is None or d < min_dist:
-                    min_dist = d
-                prev_lat, prev_lon = lat, lon
-            return min_dist
-        except Exception:
-            return None
-
-    def _calculate_route_position_score(self, distance_from_start: float, total_route_distance: float) -> float:
-        """Calculate how well positioned a station is along the route"""
-        if total_route_distance == 0:
-            return 0
-
-        # Calculate position as percentage along route (0 = start, 1 = end)
-        position = distance_from_start / total_route_distance
-        # Optimal positions are around 1/3 and 2/3 of the route
-        optimal_positions = [0.33, 0.67]
-        min_distance = min(abs(position - opt) for opt in optimal_positions)
-        # Lower score is better (closer to optimal position)
-        return min_distance
 
     def get_emergency_stations(
         self,
@@ -458,7 +237,7 @@ class ChargingStationDataService:
                 f"Unable to retrieve emergency charging stations: {e}"
             )
             return []
-        
+
     def get_station_details(self, station_name: str) -> Optional[Dict[str, Any]]:
         """Get detailed information about a specific station"""
         for station in self.latest_stations:
