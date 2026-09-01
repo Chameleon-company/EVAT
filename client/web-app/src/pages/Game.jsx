@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import NavBar from "../components/NavBar";
 import profileImage from "../assets/game-car.png";
 import ChatBubble from "../components/ChatBubble";
+import { Button } from '../components/Button';
 
 function Game() {
   const navigate = useNavigate();
@@ -232,13 +233,14 @@ function Game() {
                   </p>
                 </div>
 
-                <button
+                <Button
                   type="button"
+                  variant="unstyled"
                   onClick={handleAppLogin}
                   className="rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-emerald-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
                 >
                   App Login Check-In
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -254,38 +256,42 @@ function Game() {
               </div>
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <button
+                <Button
                   type="button"
+                  variant="unstyled"
                   onClick={() =>
                     triggerGamificationAction("check_in")
                   }
                   className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-left text-sm font-semibold text-slate-700 transition-all duration-200 hover:-translate-y-0.5 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 hover:shadow-sm"
                 >
                   ✓ Check-In
-                </button>
+                </Button>
 
-                <button
+                <Button
                   type="button"
+                  variant="unstyled"
                   onClick={() =>
                     triggerGamificationAction("report_fault")
                   }
                   className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-left text-sm font-semibold text-slate-700 transition-all duration-200 hover:-translate-y-0.5 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 hover:shadow-sm"
                 >
                   ⚠ Fault Report
-                </button>
+                </Button>
 
-                <button
+                <Button
                   type="button"
+                  variant="unstyled"
                   onClick={() =>
                     triggerGamificationAction("validate_ai_prediction")
                   }
                   className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-left text-sm font-semibold text-slate-700 transition-all duration-200 hover:-translate-y-0.5 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 hover:shadow-sm"
                 >
                   🤖 AI Validation
-                </button>
+                </Button>
 
-                <button
+                <Button
                   type="button"
+                  variant="unstyled"
                   onClick={() =>
                     triggerGamificationAction(
                       "discover_new_station_in_black_spot"
@@ -294,27 +300,29 @@ function Game() {
                   className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-left text-sm font-semibold text-slate-700 transition-all duration-200 hover:-translate-y-0.5 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 hover:shadow-sm"
                 >
                   📍 Black Spot Discovery
-                </button>
+                </Button>
 
-                <button
+                <Button
                   type="button"
+                  variant="unstyled"
                   onClick={() =>
                     triggerGamificationAction("use_route_planner")
                   }
                   className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-left text-sm font-semibold text-slate-700 transition-all duration-200 hover:-translate-y-0.5 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 hover:shadow-sm"
                 >
                   🗺 Route Plan
-                </button>
+                </Button>
 
-                <button
+                <Button
                   type="button"
+                  variant="unstyled"
                   onClick={() =>
                     triggerGamificationAction("ask_chatbot_question")
                   }
                   className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-left text-sm font-semibold text-slate-700 transition-all duration-200 hover:-translate-y-0.5 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 hover:shadow-sm"
                 >
                   💬 Chatbot Question
-                </button>
+                </Button>
               </div>
             </div>
 

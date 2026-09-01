@@ -8,6 +8,7 @@ import { useContext } from "react";
 import NavBar from "../components/NavBar";
 import { FavouritesContext } from "../context/FavouritesContext";
 import ChatBubble from "../components/ChatBubble";
+import { Button } from '../components/Button';
 
 function Favourite() {
   const { favourites, toggleFavourite, loading, error } =
@@ -196,14 +197,15 @@ function Favourite() {
 
                         {/* Unsave */}
                         <td className="px-5 py-4 text-center">
-                          <button
+                          <Button
                             type="button"
+                            variant="unstyled"
                             onClick={() => toggleFavourite(st)}
                             className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-600 transition-all duration-200 hover:-translate-y-0.5 hover:border-red-300 hover:bg-red-50 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-red-200"
                           >
                             <span className="text-sm">♥</span>
                             Unsave
-                          </button>
+                          </Button>
                         </td>
                       </tr>
                     );
