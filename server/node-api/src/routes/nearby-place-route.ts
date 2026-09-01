@@ -1,9 +1,11 @@
 import { Router } from "express";
 import NearbyPlaceController from "../controllers/nearby-place-controller";
 import NearbyPlaceService from "../services/nearby-place-service";
+import { authGuard } from "../middlewares/auth-middleware";
 
 const router = Router();
 const nearbyPlaceController = new NearbyPlaceController(new NearbyPlaceService());
+const requireUserOrAdmin = authGuard(["user", "admin"]);
 
 /**
  * @swagger
@@ -12,6 +14,8 @@ const nearbyPlaceController = new NearbyPlaceController(new NearbyPlaceService()
  *     tags:
  *       - Nearby Places
  *     summary: Find restaurants and stores near a location
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: lat
@@ -36,8 +40,10 @@ const nearbyPlaceController = new NearbyPlaceController(new NearbyPlaceService()
  *     responses:
  *       200:
  *         description: Nearby places retrieved successfully
+ *       401:
+ *         description: Missing or invalid token
  */
-router.get("/", (req, res) => nearbyPlaceController.getNearby(req, res));
+router.get("/", requireUserOrAdmin, (req, res) => nearbyPlaceController.getNearby(req, res));
 
 /**
  * @swagger
@@ -46,6 +52,8 @@ router.get("/", (req, res) => nearbyPlaceController.getNearby(req, res));
  *     tags:
  *       - Nearby Places
  *     summary: Proxy a Google Places photo
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: name
@@ -53,12 +61,14 @@ router.get("/", (req, res) => nearbyPlaceController.getNearby(req, res));
  *         schema:
  *           type: string
  *     responses:
- *       302:
- *         description: Redirects to the photo
+ *       200:
+ *         description: Place photo image
  *       400:
  *         description: Invalid photo name
+ *       401:
+ *         description: Missing or invalid token
  */
-router.get("/photo", (req, res) => nearbyPlaceController.getPhoto(req, res));
+router.get("/photo", requireUserOrAdmin, (req, res) => nearbyPlaceController.getPhoto(req, res));
 
 /**
  * @swagger
@@ -67,6 +77,8 @@ router.get("/photo", (req, res) => nearbyPlaceController.getPhoto(req, res));
  *     tags:
  *       - Nearby Places
  *     summary: Find restaurants and stores near a charging station
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: stationId
@@ -85,10 +97,12 @@ router.get("/photo", (req, res) => nearbyPlaceController.getPhoto(req, res));
  *     responses:
  *       200:
  *         description: Nearby places retrieved successfully
+ *       401:
+ *         description: Missing or invalid token
  *       404:
  *         description: Charging station not found
  */
-router.get("/station/:stationId", (req, res) =>
+router.get("/station/:stationId", requireUserOrAdmin, (req, res) =>
   nearbyPlaceController.getNearbyForStation(req, res)
 );
 

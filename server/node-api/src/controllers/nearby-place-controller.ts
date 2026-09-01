@@ -67,9 +67,10 @@ export default class NearbyPlaceController {
   async getPhoto(req: Request, res: Response): Promise<Response | void> {
     try {
       const photoName = String(req.query.name || "");
-      const photoUri = await this.nearbyPlaceService.getPhotoUri(photoName);
-      res.set("Cache-Control", "public, max-age=86400");
-      return res.redirect(302, photoUri);
+      const photo = await this.nearbyPlaceService.getPhoto(photoName);
+      res.set("Cache-Control", "private, max-age=86400");
+      res.set("Content-Type", photo.contentType);
+      return res.status(200).send(photo.bytes);
     } catch (error: any) {
       const status =
         error.message?.includes("required") ||

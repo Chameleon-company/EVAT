@@ -1,3 +1,4 @@
+import axios from "axios";
 import ChargingStationRepository from "../repositories/station-repository";
 import GoogleNearbyPlacesService, {
   NearbyPlace,
@@ -83,5 +84,19 @@ export default class NearbyPlaceService {
       throw new Error("Photo name is required");
     }
     return GoogleNearbyPlacesService.getPhotoUri(photoName);
+  }
+
+  async getPhoto(
+    photoName: string
+  ): Promise<{ bytes: Buffer; contentType: string }> {
+    const photoUri = await this.getPhotoUri(photoName);
+    const response = await axios.get(photoUri, {
+      responseType: "arraybuffer",
+      timeout: 8000,
+    });
+    return {
+      bytes: Buffer.from(response.data),
+      contentType: String(response.headers["content-type"] || "image/jpeg"),
+    };
   }
 }

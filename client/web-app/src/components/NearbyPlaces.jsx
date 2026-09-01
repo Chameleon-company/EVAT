@@ -1,6 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { MapPin, Store, ExternalLink } from "lucide-react";
-import { getNearbyPlaces, getPlacesForStation, getPlacePhotoUrl } from "../services/nearbyPlaceService";
+import { UserContext } from "../context/user";
+import {
+  getNearbyPlaces,
+  getPlacesForStation,
+  fetchPlacePhotoObjectUrl,
+} from "../services/nearbyPlaceService";
 
 const CATEGORIES = [
   { id: "all", label: "All" },
@@ -19,11 +24,46 @@ function formatDistance(place) {
   return `${(place.distanceMeters / 1000).toFixed(1)} km`;
 }
 
-function PlacePhoto({ place }) {
+function PlacePhoto({ place, token }) {
+  const [src, setSrc] = useState(null);
   const [failed, setFailed] = useState(false);
-  const photoUrl = getPlacePhotoUrl(place.photoName);
 
-  if (!photoUrl || failed) {
+  useEffect(() => {
+    if (!place.photoName) {
+      setSrc(null);
+      setFailed(true);
+      return undefined;
+    }
+
+    const abortController = new AbortController();
+    let objectUrl;
+    let cancelled = false;
+
+    setFailed(false);
+    setSrc(null);
+
+    fetchPlacePhotoObjectUrl(place.photoName, { token, signal: abortController.signal })
+      .then((url) => {
+        if (cancelled) {
+          if (url) URL.revokeObjectURL(url);
+          return;
+        }
+        objectUrl = url;
+        setSrc(url);
+      })
+      .catch((err) => {
+        if (cancelled || err?.name === "AbortError") return;
+        setFailed(true);
+      });
+
+    return () => {
+      cancelled = true;
+      abortController.abort();
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [place.photoName, token]);
+
+  if (!src || failed) {
     return (
       <div className="promo-photo promo-photo-placeholder" aria-hidden="true">
         {CATEGORY_EMOJI[place.category] || "📍"}
@@ -34,7 +74,7 @@ function PlacePhoto({ place }) {
   return (
     <img
       className="promo-photo"
-      src={photoUrl}
+      src={src}
       alt={place.name}
       loading="lazy"
       onError={() => setFailed(true)}
@@ -43,6 +83,8 @@ function PlacePhoto({ place }) {
 }
 
 export default function NearbyPlaces({ station }) {
+  const { user } = useContext(UserContext);
+  const token = user?.token;
   const [places, setPlaces] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -50,13 +92,19 @@ export default function NearbyPlaces({ station }) {
   const [expanded, setExpanded] = useState(true);
 
   useEffect(() => {
-    if (!station) return;
+    if (!station) {
+      setPlaces([]);
+      return undefined;
+    }
+
+    const abortController = new AbortController();
+    let cancelled = false;
 
     const loadPlaces = async () => {
       setLoading(true);
       setError("");
       try {
-        const options = { category };
+        const options = { category, token, signal: abortController.signal };
         let response;
 
         if (station._id) {
@@ -70,17 +118,24 @@ export default function NearbyPlaces({ station }) {
           response = await getNearbyPlaces(latitude, longitude, options);
         }
 
+        if (cancelled) return;
         setPlaces(response.data?.places || []);
       } catch (err) {
+        if (cancelled || err?.name === "AbortError") return;
         setPlaces([]);
         setError(err.message || "Unable to load nearby places.");
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
     loadPlaces();
-  }, [station, category]);
+
+    return () => {
+      cancelled = true;
+      abortController.abort();
+    };
+  }, [station, category, token]);
 
   return (
     <div>
@@ -129,7 +184,7 @@ export default function NearbyPlaces({ station }) {
           {!loading &&
             places.map((place) => (
               <div key={place.id} className="promo-card">
-                <PlacePhoto place={place} />
+                <PlacePhoto place={place} token={token} />
                 <div className="promo-card-header">
                   <span className="promo-emoji">
                     {CATEGORY_EMOJI[place.category] || "📍"}
