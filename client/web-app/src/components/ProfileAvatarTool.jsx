@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useContext  } from 'react';
 import { UserContext } from "../context/user";
 import ErrorMessage from '../components/ErrorMessage';
 import SuccessMessage from '../components/SuccessMessage';
+import { Button } from './Button';
 
 // a small list of provided profile images
 const DEFAULT_AVATARS = [
@@ -269,9 +270,15 @@ const ProfileAvatarTool = ({
       <div className="avatar-tool-content avatar-tool">
         <div className="avatar-tool-header">
           <h4>Choose Profile Picture</h4>
-          <button className="btn btn-danger filter-btn-close" onClick={handleClose}>
+          <Button
+            type="button"
+            variant="unstyled"
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 bg-white text-red-600 transition-colors hover:bg-red-50"
+            onClick={handleClose}
+            aria-label="Close profile picture chooser"
+          >
             <X size={20} />
-          </button>
+          </Button>
         </div>
 
         <div className="avatar-grid">
@@ -307,13 +314,14 @@ const ProfileAvatarTool = ({
                     if (e.key === 'Enter' && !isAcceptDisabled) handleAcceptCustomUrl();
                   }}
                 />
-                <button 
-                  className="btn btn-primary btn-small"
+                <Button
+                  type="button"
+                  size="small"
                   onClick={handleAcceptCustomUrl}
                   disabled={isAcceptDisabled || !customUrl.trim()}
                 >
                   {isAcceptDisabled ? "Wait 5s..." : "Accept"}
-                </button>
+                </Button>
               </div>
               {/* Failed Upload Error Message  */}
               {urlError && <ErrorMessage error={urlError}/>}
@@ -349,18 +357,23 @@ const ProfileAvatarTool = ({
         </div>
 
         <div className="avatar-tool-actions">
-          <button 
-            className="btn btn-transparent btn-small one-hundred-50-width" 
+          <Button
+            type="button"
+            variant="transparent"
+            size="small"
+            className="w-[150px]"
             onClick={handleClose}
           >
             Cancel
-          </button>
-          <button 
-            className="btn btn-primary btn-small one-hundred-50-width" 
+          </Button>
+          <Button
+            type="button"
+            size="small"
+            className="w-[150px]"
             onClick={handleSave}
           >
             Save Picture
-          </button>
+          </Button>
         </div>
       </div>
     </div>

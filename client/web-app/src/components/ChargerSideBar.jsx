@@ -9,6 +9,7 @@ import {
 } from '../services/chargerReviewService';
 import { toast } from "react-toastify";
 import { getChargerCongestion } from '../services/chargerCongestionService';
+import { Button } from './Button';
 
 
 export default function ChargerSideBar({ station, onClose }) {
@@ -240,9 +241,15 @@ export default function ChargerSideBar({ station, onClose }) {
   return (
     <div className="sidebar">
       <div>
-        <button className="btn btn-danger sidebar-btn-close" onClick={onClose}>
+        <Button
+          type="button"
+          variant="unstyled"
+          className="absolute right-4 top-1 flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 bg-white text-red-600 transition-colors hover:bg-red-50"
+          onClick={onClose}
+          aria-label="Close charger details"
+        >
           <X size={20} />
-        </button>
+        </Button>
       </div>
 
       <div className="sidebar-content">
@@ -274,7 +281,9 @@ export default function ChargerSideBar({ station, onClose }) {
         {/* save favourite button */}
         <div className="sidebar-linebreak" />
         <div className="action-buttons">
-          <button
+          <Button
+            type="button"
+            variant="unstyled"
             onClick={async () => {
               if (!user?.token) {
                 alert('Please sign in to save favorites.');
@@ -296,14 +305,20 @@ export default function ChargerSideBar({ station, onClose }) {
                 alert('Failed to save favorite. Please try again.');
               }
             }}
-            className={`btn favourite-btn btn-small ${isFav ? 'saved' : ''}`}
+            className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors ${
+              isFav
+                ? 'border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+            }`}
           >
             <Heart className={`heart-${isFav ? 'full' : 'empty'}`} size={18} />
             <span>{isFav ? 'Saved' : 'Save'}</span>
-          </button>
+          </Button>
 
           {/* review button */}
-          <button
+          <Button
+            type="button"
+            variant="unstyled"
             onClick={() => {
               if (!user?.token) {
                 alert('Please sign in to review this charger.');
@@ -321,11 +336,15 @@ export default function ChargerSideBar({ station, onClose }) {
               }
               setShowReviewForm(!showReviewForm);
             }}
-            className={`btn review-btn btn-small ${userHasReviewed ? 'reviewed' : ''}`}
+            className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors ${
+              userHasReviewed
+                ? 'border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100'
+                : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+            }`}
           >
             <Star className={`star-${userHasReviewed ? 'full' : 'empty'}`} size={18} />
             <span>{userHasReviewed ? 'Edit Review' : 'Review'}</span>
-          </button>
+          </Button>
           {/* </div> */}
         </div>
 
@@ -381,16 +400,17 @@ export default function ChargerSideBar({ station, onClose }) {
             <p className={(userReview.comment.length <= 4) ? "review-charCount-invalid" : "review-charCount-valid"}>
               {userReview.comment.length}/255
             </p>
-            <button
-              className="btn btn-primary btn-small full-width uppercase"
+            <Button
+              type="button"
+              size="small"
+              className="w-full uppercase"
               onClick={handleSubmitReview}
-              disabled={isSubmittingReview || !userReview.rating || userReview.comment.length <= 4 || userReview.comment.length >= 255}
+              disabled={!userReview.rating || userReview.comment.length <= 4 || userReview.comment.length >= 255}
+              loading={isSubmittingReview}
+              loadingLabel={userHasReviewed ? 'Updating...' : 'Submitting...'}
             >
-              {isSubmittingReview
-                ? (userHasReviewed ? 'Updating...' : 'Submitting...')
-                : (userHasReviewed ? 'Update Review' : 'Submit Review')
-              }
-            </button>
+              {userHasReviewed ? 'Update Review' : 'Submit Review'}
+            </Button>
           </div>
         )}
 
