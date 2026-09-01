@@ -8,10 +8,7 @@ def test_combined_application_imports(monkeypatch):
 
     from main import app
 
-    assert app is not None
+    route_paths = set(app.openapi()["paths"])
 
-
-def test_reliability_application_imports():
-    from reliability_scoring_api.main import app
-
-    assert app is not None
+    assert "/reliability/health" in route_paths
+    assert "/reliability/score" in route_paths
