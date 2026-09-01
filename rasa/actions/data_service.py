@@ -32,6 +32,9 @@ from backend.emergency_charging_service import (
 from backend.route_planning_service import (
     get_route_stations as backend_get_route_stations,
 )
+from backend.station_details_service import (
+    get_station_details as backend_get_station_details,
+)
 
 # Import the canonical backend implementation. Importing the same file as
 # top-level ``real_time_apis`` can create a second module/global instance.
@@ -238,67 +241,28 @@ class ChargingStationDataService:
             )
             return []
 
-    def get_station_details(self, station_name: str) -> Optional[Dict[str, Any]]:
-        """Get detailed information about a specific station"""
-        for station in self.latest_stations:
-            if station_name.lower() in str(station.get('name', '')).lower():
-                power_str = str(station.get('power', '22'))
-                numbers = re.findall(r'\d+\.?\d*', power_str)
-                power = float(numbers[0]) if numbers else 22.0
-                charging_time = "Unknown"
-                for _, (min_power, max_power, time_estimate) in CHARGING_CONFIG['CHARGING_TIME_ESTIMATES'].items():
-                    if min_power <= power <= max_power:
-                        charging_time = time_estimate
-                        break
-                details = dict(station)
-                details.update({
-                    'power': f"{power}kW",
-                    'points': f"{station.get('points', 'Unknown')} points",
-                    'charging_time': charging_time,
-                    'trip_time': "Calculating..."
-                })
-                return details
+    def get_station_details(
+        self,
+        station_name: str
+    ) -> Optional[Dict[str, Any]]:
+        """Get station details via reusable backend service."""
 
-        if self.charger_data.empty:
-            return None
-
-        # Search by name (case insensitive)
-        mask = self.charger_data[DATA_CONFIG['CSV_COLUMNS']['CHARGER_NAME']].str.lower().str.contains(
-            station_name.lower(), na=False
-        )
-        station = self.charger_data[mask]
-
-        if station.empty:
-            return None
-
-        station = station.iloc[0]
-
-        # Calculate estimated charging time based on power from CSV
-        power_str = str(station.get(
-            DATA_CONFIG['CSV_COLUMNS']['POWER_KW'], '22'))
         try:
-            numbers = re.findall(r'\d+\.?\d*', power_str)
-            power = float(numbers[0]) if numbers else 22.0
-        except:
-            power = 22.0
+            return backend_get_station_details(
+                station_name=station_name,
+                latest_stations=self.latest_stations,
+                charger_data=self.charger_data,
+                csv_columns=DATA_CONFIG["CSV_COLUMNS"],
+                charging_time_estimates=CHARGING_CONFIG[
+                    "CHARGING_TIME_ESTIMATES"
+                ],
+            )
 
-        # Use configuration-based charging time estimates
-        charging_time = "Unknown"
-        for power_range, (min_power, max_power, time_estimate) in CHARGING_CONFIG['CHARGING_TIME_ESTIMATES'].items():
-            if min_power <= power <= max_power:
-                charging_time = time_estimate
-                break
-
-        return {
-            'name': station.get(DATA_CONFIG['CSV_COLUMNS']['CHARGER_NAME'], 'Unknown'),
-            'address': station.get(DATA_CONFIG['CSV_COLUMNS']['ADDRESS'], 'Address not available'),
-            'power': f"{power}kW",
-            'points': f"{station.get(DATA_CONFIG['CSV_COLUMNS']['NUMBER_OF_POINTS'], 'Unknown')} points",
-            'cost': station.get(DATA_CONFIG['CSV_COLUMNS']['USAGE_COST'], 'Cost not available'),
-            'charging_time': charging_time,
-            'trip_time': "Calculating..."
-        }
-
+        except Exception as e:
+            logger.error(
+                f"Unable to retrieve station details: {e}"
+            )
+            return None
     def _get_location_coordinates(self, location_input) -> Optional[Tuple[float, float]]:
         """Get coordinates using ONLY charger_info_mel.csv (station name, address, or suburb)."""
         if not location_input:
