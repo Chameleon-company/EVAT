@@ -35,7 +35,9 @@ from backend.route_planning_service import (
 from backend.station_details_service import (
     get_station_details as backend_get_station_details,
 )
-
+from backend.availability_service import (
+    get_station_availability as backend_get_station_availability,
+)
 # Import the canonical backend implementation. Importing the same file as
 # top-level ``real_time_apis`` can create a second module/global instance.
 try:
@@ -415,34 +417,17 @@ class ChargingStationDataService:
         radius = LOCATION_CONFIG['EARTH_RADIUS_KM']
         return radius * c
 
-    def _get_station_availability(self, lat: float, lon: float):
-        """
-        Thin wrapper to get EV charging station availability.
-        Returns: (status_str, updated_at, data_dict_or_str)
-        """
-        try:
-            result = api_manager.get_charging_availability(lat, lon)
+    def _get_station_availability(
+        self,
+        lat: float,
+        lon: float
+    ):
+        """Get station availability via reusable backend service."""
 
-            if not isinstance(result, dict):
-                return "Unknown", None, "No structured availability payload returned."
-
-            status = "Unknown"
-            if result.get("available") is True:
-                status = "Yes"
-            elif result.get("available") is False:
-                status = "No"
-
-            updated_at = result.get("updated_at")
-
-            data = result.get("data", {})
-            if not isinstance(data, dict):
-                data = {"raw": data}
-
-            return status, updated_at, data
-
-        except Exception as e:
-            return "Unknown", None, f"Error fetching availability: {e}"
-
+        return backend_get_station_availability(
+            lat,
+            lon,
+        )
 
 # Global instance
 data_service = ChargingStationDataService()
