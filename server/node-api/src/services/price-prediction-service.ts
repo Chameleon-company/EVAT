@@ -19,7 +19,7 @@ export default class PricePredictionService {
     const baseUrl = this.getBaseUrl();
     return (
       `Price prediction ML service is not reachable at ${baseUrl}. ` +
-      `Start it with: npm run dev:price`
+      `Start it with: npm run dev:python`
     );
   }
 

@@ -1,33 +1,23 @@
-# Charging Station Recommendation API
+# Charging Station Recommendation
 
-FastAPI service that filters and ranks EV charging-station candidates.
+Feature package that filters and ranks EV charging-station candidates. Its
+endpoint is exposed by the combined Python API in `server/python-services/main.py`.
 
 ## Setup
 
-```powershell
-cd server/python-services/charging_station_recommendation_api
-python -m venv .venv
-.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
+```sh
+npm run python:sync
 ```
 
 ## Run
 
-From the repository root:
-
-```powershell
-npm run dev:charging-recommendation
+```sh
+npm run dev:python
 ```
 
-Or from this service folder:
+Health: [http://127.0.0.1:5000/](http://127.0.0.1:5000/)
 
-```powershell
-uvicorn main:app --reload --port 8002
-```
-
-Health: [http://127.0.0.1:8002/health](http://127.0.0.1:8002/health)
-
-Swagger docs: [http://127.0.0.1:8002/docs](http://127.0.0.1:8002/docs)
+Swagger docs: [http://127.0.0.1:5000/docs](http://127.0.0.1:5000/docs)
 
 ## Endpoint
 
@@ -40,6 +30,6 @@ reasons.
 
 ## Tests
 
-```powershell
-pytest
+```sh
+npm run test:python
 ```

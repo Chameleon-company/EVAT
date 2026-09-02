@@ -107,19 +107,34 @@ function normaliseOperatorName(name) {
   return name;
 }
 
+function roundBbox(bbox) {
+  return bbox.map((value) => Number(Number(value).toFixed(5)));
+}
+
+function sameBbox(a, b) {
+  return Boolean(a && b && a.length === b.length && a.every((value, index) => value === b[index]));
+}
+
 // Watches map bounds (bbox) and reports them upward
 function BoundsWatcher({ onChange }) {
+  const lastBbox = useRef(null);
   const map = useMapEvents({
     moveend() {
-      const b = map.getBounds();
-      onChange([b.getWest(), b.getSouth(), b.getEast(), b.getNorth()]);
+      reportBounds();
     }
   });
 
-  useEffect(() => {
+  const reportBounds = () => {
     const b = map.getBounds();
-    onChange([b.getWest(), b.getSouth(), b.getEast(), b.getNorth()]);
-  }, [map, onChange]);
+    const next = roundBbox([b.getWest(), b.getSouth(), b.getEast(), b.getNorth()]);
+    if (sameBbox(lastBbox.current, next)) return;
+    lastBbox.current = next;
+    onChange(next);
+  };
+
+  useEffect(() => {
+    reportBounds();
+  }, [map]);
 
   return null;
 }
@@ -319,10 +334,10 @@ export default function Map() {
     };
   }, [isDark]);
 
-  // Fetch chargers only when token available and bbox changes
+  // Fetch chargers once per login. The API ignores bbox, so refetching on every
+  // map pan floods the browser/server and blocks nearby places from loading.
   useEffect(() => {
     let mounted = true;
-    let id;
 
     if (!user?.token) {
       setLoading(false);
@@ -333,21 +348,10 @@ export default function Map() {
     const load = async () => {
       try {
         setErr('');
-
-        // need bbox to fetch chargers
-        if (!bbox) {
-          if (mounted) {
-            setLoading(false);
-            setErr('');
-          }
-          return;
-        }
-
         setLoading(true);
-        const data = await getChargers(user, { bbox });
+        const data = await getChargers(user);
         if (mounted) {
           setStations(Array.isArray(data) ? data : []);
-          console.log("Stations:", data);
           setLoading(false);
         }
       } catch (e) {
@@ -359,12 +363,10 @@ export default function Map() {
     };
 
     load();
-    id = setInterval(load, 15000);
     return () => {
       mounted = false;
-      clearInterval(id);
     };
-  }, [bbox, user?.token]);
+  }, [user?.token]);
 
   // Automatically select a station for Congestion Prediction
 useEffect(() => {

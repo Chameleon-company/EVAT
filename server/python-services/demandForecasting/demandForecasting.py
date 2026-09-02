@@ -9,6 +9,7 @@ import pandas as pd
 import joblib
 import requests
 from datetime import datetime, date
+from pathlib import Path
 import holidays
 
 from fastapi import HTTPException
@@ -19,18 +20,20 @@ from pydantic import BaseModel, field_validator
 # ------------------------------------------------------------------------------
 print("Loading application assets...")
 
+SERVICE_DIR = Path(__file__).resolve().parent
+
 try:
     # Load the trained LightGBM model
-    model = joblib.load("demandForecasting/ev_demand_model.pkl")
+    model = joblib.load(SERVICE_DIR / "ev_demand_model.pkl")
     print("Model loaded")
 
     # Load the postcode baseline data
-    postcode_baseline = pd.read_csv("demandForecasting/postcode_baseline.csv")
+    postcode_baseline = pd.read_csv(SERVICE_DIR / "postcode_baseline.csv")
     postcode_baseline['Postcode'] = postcode_baseline['Postcode'].astype(str)
     print("Postcode baseline loaded")
 
     # Load the postcode coordinates as a dictionary
-    coords_df = pd.read_csv("demandForecasting/postcode_coords.csv")
+    coords_df = pd.read_csv(SERVICE_DIR / "postcode_coords.csv")
     coords_df['Postcode'] = coords_df['Postcode'].astype(str)
     postcode_coords = {
         row['Postcode']: (row['lat'], row['lon']) 
@@ -39,7 +42,7 @@ try:
     print("Postcode coordinates loaded")
 
     # Load the feature columns
-    with open("demandForecasting/feature_columns.txt", "r") as f:
+    with (SERVICE_DIR / "feature_columns.txt").open(encoding="utf-8") as f:
         feature_columns = f.read().strip().split(",")
     print(f"Feature columns loaded: {feature_columns}")
 
@@ -51,7 +54,7 @@ try:
 
 except FileNotFoundError as e:
     print(f"FATAL ERROR: Missing required file - {e}")
-    print("Please ensure all asset files are in the same directory as api.py")
+    print(f"Please ensure all asset files are present under {SERVICE_DIR}")
     raise SystemExit(1)
 
 # ------------------------------------------------------------------------------

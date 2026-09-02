@@ -35,6 +35,7 @@ import userStatsRoutes from "./src/routes/user-stats-route";
 import achievementRoutes from "./src/routes/achievement-route";
 import personalisedEVInsightsRoutes from "./src/routes/personalised-ev-insights-routes";
 import weatherAwareRoutes from "./src/routes/weather-aware-routing-routes";
+import NearbyPlaceRoutes from "./src/routes/nearby-place-route";
 
 const app: Application = express();
 const PORT = env.PORT;
@@ -129,6 +130,7 @@ app.use("/api/user-stats", userStatsRoutes);
 app.use("/api/achievements", achievementRoutes);
 app.use("/api/personalised-ev-insights", personalisedEVInsightsRoutes);
 app.use("/api/weather-aware-routing", weatherAwareRoutes);
+app.use("/api/nearby-places", NearbyPlaceRoutes);
 
 // Serve React frontend
 const buildPath = path.join(__dirname, "/build");

@@ -4,7 +4,9 @@ Python FastAPI service for the EVAT Reliability Scoring use case from
 [EVAT-Data-Science](https://github.com/Chameleon-company/EVAT-Data-Science)
 (`Use_Cases/Reliability Scoring`).
 
-**Layout:** one app module `main.py` plus `data/EVAT-Final-Enriched.csv`.
+**Layout:** one router module, `main.py`, plus
+`data/EVAT-Final-Enriched.csv`. The router is mounted by the consolidated
+application in `server/python-services/main.py`.
 
 ## What it does
 
@@ -18,11 +20,10 @@ Python FastAPI service for the EVAT Reliability Scoring use case from
 
 ## Setup
 
-```powershell
-cd server/python-services/reliability_scoring_api
-python -m venv .venv
-.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
+From the repository root:
+
+```sh
+npm run python:sync
 ```
 
 ## Run
@@ -30,7 +31,7 @@ pip install -r requirements.txt
 Reliability scoring is mounted in the consolidated Python API. From the
 repository root:
 
-```powershell
+```sh
 npm run dev:python
 ```
 
@@ -40,25 +41,28 @@ Swagger: [http://127.0.0.1:5000/docs](http://127.0.0.1:5000/docs)
 
 ## Endpoints
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/health` | Service + data load status |
-| GET | `/suburbs` | Distinct suburbs for filters |
-| GET | `/summary` | KPI summary (optional `?suburb=`) |
-| GET | `/stations` | Filtered station list (`suburb`, `sentiment`, `min_score`, `limit`, `offset`) |
-| GET | `/stations/{charger_id}` | Single station by id |
-| GET | `/top` | Top stations by `kind` = positive \| negative \| neutral \| reliability |
-| POST | `/score` | Score one station from status + power_kw |
-| POST | `/score/batch` | Batch scoring (shared max power normalization) |
-| POST | `/sentiment` | VADER label for free-text feedback |
+The paths below are mounted under `/reliability`. For example, `/health` is
+available at `http://127.0.0.1:5000/reliability/health`.
+
+| Method | Path                     | Description                                                                   |
+| ------ | ------------------------ | ----------------------------------------------------------------------------- |
+| GET    | `/health`                | Service + data load status                                                    |
+| GET    | `/suburbs`               | Distinct suburbs for filters                                                  |
+| GET    | `/summary`               | KPI summary (optional `?suburb=`)                                             |
+| GET    | `/stations`              | Filtered station list (`suburb`, `sentiment`, `min_score`, `limit`, `offset`) |
+| GET    | `/stations/{charger_id}` | Single station by id                                                          |
+| GET    | `/top`                   | Top stations by `kind` = positive \| negative \| neutral \| reliability       |
+| POST   | `/score`                 | Score one station from status + power_kw                                      |
+| POST   | `/score/batch`           | Batch scoring (shared max power normalization)                                |
+| POST   | `/sentiment`             | VADER label for free-text feedback                                            |
 
 Node proxies this via `RELIABILITY_API_URL` (default
-`http://localhost:8000/reliability`) under `/api/reliability/*`.
+`http://localhost:5000/reliability`) under `/api/reliability/*`.
 
 ## Optional env
 
-| Variable | Default | Purpose |
-|----------|---------|---------|
-| `RELIABILITY_DATA_PATH` | `data/EVAT-Final-Enriched.csv` | CSV path |
-| `RELIABILITY_STATUS_WEIGHT` | `0.6` | Status weight |
-| `RELIABILITY_POWER_WEIGHT` | `0.4` | Power weight |
+| Variable                    | Default                        | Purpose       |
+| --------------------------- | ------------------------------ | ------------- |
+| `RELIABILITY_DATA_PATH`     | `data/EVAT-Final-Enriched.csv` | CSV path      |
+| `RELIABILITY_STATUS_WEIGHT` | `0.6`                          | Status weight |
+| `RELIABILITY_POWER_WEIGHT`  | `0.4`                          | Power weight  |

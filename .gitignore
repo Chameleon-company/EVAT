@@ -40,6 +40,8 @@ __pycache__/
 *.pyo
 *.pyd
 .Python
+.venv/
+**/.venv/
 .ipynb_checkpoints/
 
 # =========================
