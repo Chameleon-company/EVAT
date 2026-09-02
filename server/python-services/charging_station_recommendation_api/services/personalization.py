@@ -55,7 +55,7 @@ CHARGING_POINTS_SCALE = 6.0
 # "unknown" could win a mode() vote just because it's a common
 # default/fallback string across many sessions, and get treated as if the
 # user actually prefers "unknown" as an operator/congestion level/etc.
-_MISSING_VALUES = {"", "unknown", "none", "null", "nan", "n/a", "na"}
+_MISSING_TEXT_VALUES = {"", "unknown", "none", "null", "nan", "n/a", "na"}
 
 
 class PreferenceProfile(BaseModel):
@@ -96,11 +96,15 @@ def _selected_candidates(
     return selected
 
 
-def _mode(values: List[str]) -> Optional[str]:
-    present = [
-        value for value in values
-        if value and value.strip().lower() not in _MISSING_VALUES
-    ]
+def _known_text(value: Optional[str]) -> Optional[str]:
+    if value is None:
+        return None
+    value = value.strip()
+    return None if value.lower() in _MISSING_TEXT_VALUES else value
+
+
+def _mode(values: List[Optional[str]]) -> Optional[str]:
+    present = [known for value in values if (known := _known_text(value)) is not None]
     if not present:
         return None
     return Counter(present).most_common(1)[0][0]
