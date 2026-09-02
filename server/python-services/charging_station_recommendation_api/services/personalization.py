@@ -1,3 +1,26 @@
+"""Per-user personalisation layer -- a small, in-memory adjustment on top of
+the global ranking score.
+
+The trained preference model (services/preference_model.py) and the
+fixed-weight heuristic (services/scoring.py) are both *global*: every user
+gets the same prediction for the same candidate. This module adds a light,
+per-request personalisation step on top of that global score, using the
+specific user's own recent selection history -- sent up by the Node API as
+part of the request (RankChargingStationsRequest.userProfile.userHistory).
+
+Design, matching what Tom described: once we have the base score (from the
+model or the heuristic), nudge it slightly toward stations that resemble
+what *this* user has actually picked before. This is computed fresh from
+the request payload every time -- nothing is trained or persisted -- so it's
+cheap, always up to date with the user's latest history, and safe to skip
+entirely if a user has no history yet (new users just get the plain global
+ranking, unmodified).
+
+Deliberately self-contained (no imports from services/scoring.py or
+training/*): personalisation is a narrow, easily-reasoned-about layer, and
+keeping it independent means a change to the global scoring logic can never
+silently change what "matches the user's history" means, and vice versa.
+"""
 
 import re
 from collections import Counter
@@ -26,6 +49,13 @@ MIN_SELECTIONS = 3
 DISTANCE_SCALE_KM = 15.0
 COST_SCALE = 0.20
 CHARGING_POINTS_SCALE = 6.0
+
+# Placeholder strings that represent "no real value", not an actual
+# preference. Without filtering these out of _mode(), a value like
+# "unknown" could win a mode() vote just because it's a common
+# default/fallback string across many sessions, and get treated as if the
+# user actually prefers "unknown" as an operator/congestion level/etc.
+_MISSING_VALUES = {"", "unknown", "none", "null", "nan", "n/a", "na"}
 
 
 class PreferenceProfile(BaseModel):
@@ -67,7 +97,10 @@ def _selected_candidates(
 
 
 def _mode(values: List[str]) -> Optional[str]:
-    present = [value for value in values if value]
+    present = [
+        value for value in values
+        if value and value.strip().lower() not in _MISSING_VALUES
+    ]
     if not present:
         return None
     return Counter(present).most_common(1)[0][0]
