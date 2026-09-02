@@ -2130,9 +2130,9 @@ class ActionNearbyStations(Action):
             if location:
                 coords = data_service._get_location_coordinates(location)
                 if coords:
-                    stations = data_service.get_emergency_stations_from_coordinates(coords)
+                    stations = data_service.get_nearby_stations(coords)
             elif user_lat is not None and user_lng is not None:
-                stations = data_service.get_emergency_stations_from_coordinates((user_lat, user_lng))
+                stations = data_service.get_nearby_stations((user_lat, user_lng))
         except Exception as e:
             dispatcher.utter_message(text=f"Error finding nearby stations: {str(e)}")
             return []
