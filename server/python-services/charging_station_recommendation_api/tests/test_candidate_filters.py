@@ -1,5 +1,7 @@
-from models.request import ChargingStationCandidate
-from services.candidate_filters import filter_eligible_candidates
+from charging_station_recommendation_api.models.request import ChargingStationCandidate
+from charging_station_recommendation_api.services.candidate_filters import (
+    filter_eligible_candidates,
+)
 
 
 def candidate(**overrides):
