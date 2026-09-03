@@ -2,7 +2,7 @@
 
 **Company:** Chameleon  
 **Project:** EV Adoption Tools  
-**Team:** Web/App  
+**Team:** Web/App
 
 This repository is a **Monorepo** containing the Vite + React frontend web application, the Express + Node.js backend API, and consolidated Python services. The JavaScript packages are managed through npm workspaces, while the Python environment and dependencies are managed through uv.
 
@@ -19,6 +19,7 @@ This repository is a **Monorepo** containing the Vite + React frontend web appli
 ## 📦 Prerequisites
 
 Before you begin, ensure you have the following installed:
+
 - [Node.js](https://nodejs.org/) 20.19+ or 22.12+
 - [npm](https://www.npmjs.com/)
 - MongoDB (See Database Setup inside handbook)
@@ -30,12 +31,14 @@ Before you begin, ensure you have the following installed:
 Since this is a monorepo, you need to manage **multiple `.env`** files.
 
 ### Environment Variable Rules
+
 - Root `.env`: Store shared, non-secret local configuration here.
 - `server/node-api/.env`: Store backend-only secrets and backend-specific configuration here (these will override any duplicate variables found in the root .env).
 - `client/web-app/.env`: Any configuration exposed to the frontend must begin with the `VITE_*` prefix.
 - `**/.env.example`: Add any newly introduced variables to the corresponding `.env.example` file with an empty / placeholder value.
 
 #### 1. Shared Environment Variables
+
 Create a `.env` file in the root directory.
 This file controls the shared variables (for both frontend and backend).
 For now, it only contains which PORT the server should listen, and where the frontend should send the request to.
@@ -47,7 +50,8 @@ VITE_API_URL="http://localhost:${PORT}/api"
 ```
 
 #### 2. Frontend Environment Variables
-Create a separate `.env` file in `client/web-app/.env`. 
+
+Create a separate `.env` file in `client/web-app/.env`.
 This file is dedicated exclusively to the frontend client and must use the `VITE_` prefix for any variables exposed to the application.
 There's an `.env.example` file provided that you can copy.
 
@@ -64,7 +68,8 @@ VITE_GA_TRACKING_ID=XXX
 > app will ship without them.
 
 #### 3. Backend Environment Variables
-Create a separate .env file in `/server/node-api/.env`. 
+
+Create a separate .env file in `/server/node-api/.env`.
 There's an `.env.example` file provided that you can follow.
 
 ```env
@@ -79,6 +84,7 @@ ADMIN_EMAIL = "receiver@example.com"
 PYTHON_API_URL = "http://127.0.0.1:5000"
 RELIABILITY_API_URL = "http://127.0.0.1:5000/reliability"
 ```
+
 ### IMPORTANT: Ensure .env and your .json credential files are never committed to version control!
 
 ---
@@ -115,25 +121,25 @@ Because we use NPM workspaces, you do not need to navigate into individual folde
 
 3. Start the dev stack:
    From the root of the repository, run:
+
    ```sh
    npm run dev
    ```
 
    or alternatively,
-
    - Start the Backend API:
-      ```sh
-      npm run dev:server
-      ```
+     ```sh
+     npm run dev:server
+     ```
    - Start the Frontend Web App:
-      ```sh
-      npm run dev:client
-      ```
+     ```sh
+     npm run dev:client
+     ```
    - Start the Python ML services:
-      ```sh
-      npm run dev:python
-      ```
-   Run the Python tests with `npm run test:python`.
+     ```sh
+     npm run dev:python
+     ```
+     Run the Python tests with `npm run test:python`.
 
 ---
 
@@ -150,21 +156,22 @@ docker compose build                                    # first build: 5-15 min
 docker compose up -d
 ```
 
-| Service | URL |
-|---|---|
-| Web app | http://localhost:3000 |
-| Node API (Swagger) | http://localhost:8081/api/docs |
-| Python ML service | http://localhost:5000/docs |
+| Service            | URL                            |
+| ------------------ | ------------------------------ |
+| Web app            | http://localhost:3000          |
+| Node API (Swagger) | http://localhost:8080/api/docs |
+| Python ML service  | http://localhost:5000/docs     |
 
-The API publishes on **8081**, not 8080, because a local Jenkins commonly owns
-8080. Override any host port from the root `.env` with `WEB_HOST_PORT`,
-`API_HOST_PORT` or `PY_HOST_PORT`.
+The API publishes on **8080** by default. Override any host port from the
+root `.env` with `WEB_HOST_PORT`, `API_HOST_PORT` or `PY_HOST_PORT` if it
+clashes with something else on your machine.
 
 ---
 
 ## 🔑 Authentication & API Setup
 
 ### Google Maps & AI
+
 1. Go to the Google Cloud Console and create a project with billing enabled.
 2. Under 'API & Services', enable:
    - Places API (New),
@@ -180,6 +187,7 @@ The API publishes on **8081**, not 8080, because a local Jenkins commonly owns
 7. Ensure this path matches the GOOGLE_APPLICATION_CREDENTIALS variable in your backend .env.
 
 ### Nodemailer (Admin 2FA)
+
 1. EVAT uses Nodemailer for sending admin email 2FA codes. Currently, it is set up for a fixed Gmail sender address (EMAIL_USER) to an admin (ADMIN_EMAIL).
 2. To set up your Gmail account, follow Nodemailer's Gmail Instructions.
 3. Generate an 'App Password' (a 16-character string like abcd efgh ijkl mnop) and paste it into EMAIL_PASS.
