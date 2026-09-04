@@ -1,9 +1,14 @@
+from pathlib import Path
+
 import joblib
 import pandas as pd
 
+MODEL_PATH = Path(__file__).resolve().parent / "co2_savings_model.pkl"
+
+
 def load_model():
     """Loads the trained Gradient Boosting pipeline."""
-    return joblib.load("co2_savings_model.pkl")
+    return joblib.load(MODEL_PATH)
 
 def predict_savings(input_dict: dict) -> dict:
     """

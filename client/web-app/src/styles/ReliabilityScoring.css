@@ -1,0 +1,370 @@
+.reliability-scoring-page .rs-container {
+  position: relative;
+  z-index: 1;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 100px 20px 60px;
+}
+
+.reliability-scoring-page .rs-header {
+  margin-bottom: 28px;
+}
+
+.reliability-scoring-page .rs-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 180, 130, 0.35);
+  color: #00b482;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+
+.reliability-scoring-page .rs-title {
+  color: #fff;
+  margin: 0 0 8px;
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.reliability-scoring-page .rs-subtitle {
+  color: rgba(255, 255, 255, 0.55);
+  margin: 0;
+  max-width: 640px;
+  line-height: 1.55;
+}
+
+.reliability-scoring-page .rs-health {
+  font-size: 12px;
+  margin-top: 10px;
+}
+
+.reliability-scoring-page .rs-health--ok {
+  color: #34d399;
+}
+
+.reliability-scoring-page .rs-health--down {
+  color: #f87171;
+}
+
+.reliability-scoring-page .rs-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.reliability-scoring-page .rs-kpi {
+  background: rgba(15, 35, 24, 0.85);
+  border: 1px solid rgba(0, 180, 130, 0.2);
+  border-radius: 14px;
+  padding: 16px 18px;
+  backdrop-filter: blur(8px);
+}
+
+.reliability-scoring-page .rs-kpi-label {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.reliability-scoring-page .rs-kpi-value {
+  color: #fff;
+  font-size: 26px;
+  font-weight: 700;
+}
+
+.reliability-scoring-page .rs-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.reliability-scoring-page .rs-panel {
+  background: rgba(15, 35, 24, 0.85);
+  border: 1px solid rgba(0, 180, 130, 0.2);
+  border-radius: 16px;
+  padding: 24px;
+  backdrop-filter: blur(8px);
+}
+
+.reliability-scoring-page .rs-panel-title {
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 16px;
+}
+
+.reliability-scoring-page .rs-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.reliability-scoring-page .rs-field {
+  margin-bottom: 4px;
+}
+
+.reliability-scoring-page .rs-field--full {
+  grid-column: 1 / -1;
+}
+
+.reliability-scoring-page .rs-label {
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.reliability-scoring-page .rs-input {
+  width: 100%;
+  margin-bottom: 4px;
+  box-sizing: border-box;
+}
+
+.reliability-scoring-page .rs-error {
+  color: #f87171;
+  font-size: 13px;
+  margin: 10px 0 0;
+}
+
+.reliability-scoring-page .rs-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+.reliability-scoring-page .rs-submit {
+  margin-top: 4px;
+  background: #00b482;
+  color: #04140e;
+  font-weight: 700;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 16px;
+  cursor: pointer;
+}
+
+.reliability-scoring-page .rs-submit:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.reliability-scoring-page .rs-secondary {
+  margin-top: 4px;
+  background: transparent;
+  color: #00b482;
+  font-weight: 700;
+  border: 1px solid rgba(0, 180, 130, 0.45);
+  border-radius: 10px;
+  padding: 12px 16px;
+  cursor: pointer;
+}
+
+.reliability-scoring-page .rs-secondary:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.reliability-scoring-page .rs-score-block {
+  margin-top: 8px;
+}
+
+.reliability-scoring-page .rs-score-value {
+  color: #fff;
+  font-size: 40px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.reliability-scoring-page .rs-cards {
+  display: grid;
+  gap: 10px;
+}
+
+.reliability-scoring-page .rs-card {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+.reliability-scoring-page .rs-card--ok {
+  background: rgba(0, 180, 130, 0.08);
+  border: 1px solid rgba(0, 180, 130, 0.25);
+}
+
+.reliability-scoring-page .rs-card--muted {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.reliability-scoring-page .rs-card-value {
+  color: #fff;
+  font-size: 15px;
+}
+
+.reliability-scoring-page .rs-meta {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.reliability-scoring-page .rs-placeholder {
+  color: rgba(255, 255, 255, 0.45);
+  margin: 0;
+}
+
+.reliability-scoring-page .rs-sentiment {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.reliability-scoring-page .rs-sentiment--positive {
+  background: rgba(0, 180, 130, 0.15);
+  color: #34d399;
+}
+
+.reliability-scoring-page .rs-sentiment--neutral {
+  background: rgba(251, 191, 36, 0.12);
+  color: #fbbf24;
+}
+
+.reliability-scoring-page .rs-sentiment--negative {
+  background: rgba(248, 113, 113, 0.12);
+  color: #f87171;
+}
+
+.reliability-scoring-page .rs-table-wrap {
+  overflow-x: auto;
+}
+
+.reliability-scoring-page .rs-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.reliability-scoring-page .rs-table th {
+  text-align: left;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 10px 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  white-space: nowrap;
+}
+
+.reliability-scoring-page .rs-table td {
+  color: rgba(255, 255, 255, 0.85);
+  padding: 12px 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  vertical-align: top;
+}
+
+.reliability-scoring-page .rs-table tr:hover td {
+  background: rgba(0, 180, 130, 0.05);
+}
+
+.reliability-scoring-page .rs-station-name {
+  color: #fff;
+  font-weight: 600;
+  display: block;
+}
+
+.reliability-scoring-page .rs-station-id {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 11px;
+}
+
+.reliability-scoring-page .rs-feedback {
+  max-width: 220px;
+  color: rgba(255, 255, 255, 0.65);
+  line-height: 1.4;
+}
+
+.reliability-scoring-page .rs-section-note {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 12px;
+  margin: 0 0 14px;
+}
+
+.reliability-scoring-page .rs-top-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 24px;
+}
+
+.reliability-scoring-page .rs-top-card {
+  background: rgba(15, 35, 24, 0.85);
+  border: 1px solid rgba(0, 180, 130, 0.2);
+  border-radius: 14px;
+  padding: 16px;
+  backdrop-filter: blur(8px);
+}
+
+.reliability-scoring-page .rs-top-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.reliability-scoring-page .rs-top-item {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.reliability-scoring-page .rs-top-name {
+  color: #fff;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.reliability-scoring-page .rs-top-meta {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.reliability-scoring-page .rs-empty {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 13px;
+  margin: 0;
+}
+
+@media (max-width: 960px) {
+  .reliability-scoring-page .rs-kpis,
+  .reliability-scoring-page .rs-top-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .reliability-scoring-page .rs-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .reliability-scoring-page .rs-kpis,
+  .reliability-scoring-page .rs-top-grid,
+  .reliability-scoring-page .rs-fields {
+    grid-template-columns: 1fr;
+  }
+}

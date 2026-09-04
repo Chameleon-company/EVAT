@@ -70,7 +70,7 @@ export default class WeatherAwareRoutingService {
   ): Promise<WeatherAwareRoutingResult> {
     try {
       console.log("Sending")
-      const response = await axios.post(`${PYTHON_API}/predict`, {
+      const response = await axios.post(`${PYTHON_API}/weatherAwareRouting/predict`, {
         origin: payload.origin,
         destination: payload.destination,
         ac_on: payload.ac_on,

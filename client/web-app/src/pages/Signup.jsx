@@ -14,6 +14,8 @@ import '../styles/Sidebar.css';
 import '../styles/Tables.css';
 import '../styles/Validation.css';
 
+import logo from '../assets/logo.png';
+
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 const url = `${API_URL}/auth/register`;
 
@@ -151,7 +153,7 @@ function Signup() {
 
   return (
     <div className="container vertical center">
-      <img src="../src/assets/logo.png" alt="EV Adoption Tool" className="logo-image" />
+      <img src={logo} alt="EV Adoption Tool" className="logo-image" />
 
       <form onSubmit={handleSubmit} className="form-section signin-width">
         {/* Submit Error and Success Messages */}

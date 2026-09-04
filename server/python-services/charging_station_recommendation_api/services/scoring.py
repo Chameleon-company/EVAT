@@ -4,7 +4,7 @@ import re
 from statistics import median
 from typing import Dict, List, Optional
 
-from models.request import ChargingStationCandidate
+from charging_station_recommendation_api.models.request import ChargingStationCandidate
 
 
 # Initial transparent ranking weights. A learned model can replace these later

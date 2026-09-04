@@ -15,6 +15,8 @@ import '../styles/Sidebar.css';
 import '../styles/Tables.css';
 import '../styles/Validation.css';
 
+import logo from '../assets/logo.png';
+
 const API_URL = import.meta.env.VITE_API_URL;
 const url = `${API_URL}/auth/login`;
 const jwtUrl = `${API_URL}/auth/jwt-login`;
@@ -146,7 +148,7 @@ function Signin() {
   //UI Rendering
   return (
     <div className="container vertical center">
-      <img src="../src/assets/logo.png" alt="EV Adoption Tool" className="logo-image" />
+      <img src={logo} alt="EV Adoption Tool" className="logo-image" />
 
       <form onSubmit={handleValidation} className="form-section signin-width">
         {/* Submit Error and Success Messages */}

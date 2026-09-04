@@ -2,10 +2,10 @@
 
 from typing import List
 
-from models.request import ChargingStationCandidate
-from models.response import ChargingStationRecommendation
-from services.reasons import build_reasons
-from services.scoring import score_candidates
+from charging_station_recommendation_api.models.request import ChargingStationCandidate
+from charging_station_recommendation_api.models.response import ChargingStationRecommendation
+from charging_station_recommendation_api.services.reasons import build_reasons
+from charging_station_recommendation_api.services.scoring import score_candidates
 
 
 def rank_candidates(

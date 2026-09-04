@@ -1,0 +1,52 @@
+{
+    "modelType": "LogisticRegression",
+    "modelVersion": "1.0",
+    "labelDefinition": {
+        "selectedStation": 1,
+        "notSelectedStation": 0
+    },
+    "trainingData": {
+        "completedSessions": 35,
+        "trainingSessions": 26,
+        "testingSessions": 9,
+        "candidateRows": 326,
+        "trainingRows": 240,
+        "testingRows": 86,
+        "positiveRows": 35,
+        "negativeRows": 291
+    },
+    "trainingConfiguration": {
+        "splitMethod": "GroupShuffleSplit by sessionId",
+        "testSize": 0.25,
+        "randomState": 42,
+        "classWeight": "balanced",
+        "maxIterations": 2000
+    },
+    "metrics": {
+        "accuracy": 0.8255813953488372,
+        "precision": 0.36363636363636365,
+        "recall": 0.8888888888888888,
+        "f1": 0.5161290322580644,
+        "rocAuc": 0.8455988455988455
+    },
+    "intercept": -0.505309814168281,
+    "weights": {
+        "numeric__distanceKm": 0.27515586034235734,
+        "numeric__durationMin": -1.83731700674205,
+        "numeric__durationInTrafficMin": 0.8933111212631526,
+        "numeric__energyNeededKwh": -0.03797279957379473,
+        "numeric__chargingPoints": -0.00438676127187354,
+        "numeric__temperatureC": -0.4019485677559375,
+        "numeric__windSpeedMs": 0.6005661708763257,
+        "categorical__roadTrafficCondition_light": -0.9323513554998903,
+        "categorical__roadTrafficCondition_moderate": 1.0716198340184584,
+        "categorical__roadTrafficCondition_unknown": -0.1402815568817274,
+        "categorical__payAtLocation_no": 1.2676605767849767,
+        "categorical__payAtLocation_unknown": -1.2686736551481357,
+        "categorical__operator_(unknown operator)": 1.0367180089304884,
+        "categorical__operator_chargefox": 0.25009883090331547,
+        "categorical__operator_evie networks": -0.4814955394267113,
+        "categorical__operator_tesla (including non-tesla)": -1.0607178406022602,
+        "categorical__operator_unknown": 0.2543834618320054
+    }
+}

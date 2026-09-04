@@ -2,8 +2,8 @@
 
 from typing import Dict, List
 
-from models.request import ChargingStationCandidate
-from services.scoring import WEIGHTS
+from charging_station_recommendation_api.models.request import ChargingStationCandidate
+from charging_station_recommendation_api.services.scoring import WEIGHTS
 
 
 def build_reasons(
