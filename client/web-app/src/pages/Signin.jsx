@@ -169,7 +169,7 @@ function Signin() {
         </div>
         <div className="spacer-small">  </div>
         {/* Email Error Message */}
-        {isEmailEmpty && <ErrorMessage error='required'/>}
+        {isEmailEmpty && <ErrorMessage error="Email is required."/>}
 
         {/* Enter Password */}
         <label className='form-label required'>Password</label>
@@ -193,7 +193,7 @@ function Signin() {
         </div>
         <div className="spacer-small">  </div>
         {/* Password Error Message */}
-        {isPasswordEmpty && <ErrorMessage error='required'/>}
+        {isPasswordEmpty && <ErrorMessage error="Password is required."/>}
 
 
         <div className="spacer-small">  </div>

@@ -17,6 +17,14 @@ import '../styles/Validation.css';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 const url = `${API_URL}/auth/register`;
 
+const getSignupErrorMessage = (message) => {
+  if (typeof message === 'string' && message.toLowerCase().includes('already exist')) {
+    return 'An account with that email already exists.';
+  }
+
+  return 'Sign up failed. Please try again.';
+};
+
 function Signup() {
   const [form, setForm] = useState({
     firstName: '',
@@ -134,7 +142,7 @@ function Signup() {
         alert(`Sign Up successful: ${data.message}, welcome ${form.firstName}`);
         navigate('/signin');
       } else {
-        setErrorMessage(data.message || "Sign up failed");
+        setErrorMessage(getSignupErrorMessage(data?.message));
       }
     } catch (err) {
       console.error('Error signing up:', err);
