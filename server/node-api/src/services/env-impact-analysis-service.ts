@@ -1,4 +1,3 @@
-import fetch from "node-fetch";
 
 import EnvImpactAnalysisRepository from "../repositories/env-impact-analysis-repository";
 import { IVehicle } from "../models/vehicle-model";
