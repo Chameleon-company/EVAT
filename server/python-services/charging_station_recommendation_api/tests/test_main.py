@@ -13,11 +13,6 @@ from charging_station_recommendation_api.models.response import (
 app = FastAPI()
 
 
-@app.get("/health")
-def health():
-    return {"status": "ok"}
-
-
 @app.post(
     "/charging-station-recommendations/rank",
     response_model=RankChargingStationsResponse,

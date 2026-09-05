@@ -96,10 +96,10 @@ Environment findings:
 Combined Standardised Test Run
 
 Current result:
-- 23 automated tests passing across three EVAT Python/ML services
+- 22 automated tests passing across three EVAT Python/ML services
 
 Services covered:
-- Charging Station Recommendation API – 8 tests
+- Charging Station Recommendation API – 7 tests
 - Environmental Impact Analysis – 4 tests
 - Price Prediction – 11 tests
 
