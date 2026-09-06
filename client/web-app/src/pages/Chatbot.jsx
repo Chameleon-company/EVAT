@@ -4,7 +4,10 @@ import { UserContext } from "../context/user";
 
 const CHATBOT_URL = "https://evat-rasa-rajs2z2qwq-ts.a.run.app/webhooks/rest/webhook";
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+// "latest" rather than a pinned version: gemini-2.0-flash was retired and broke this
+// tab silently, and nobody owns tracking model deprecations on this project.
+const GEMINI_MODEL = "gemini-flash-latest";
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
 const getSessionId = () => {
   const s = localStorage.getItem("evat_chat_session");
