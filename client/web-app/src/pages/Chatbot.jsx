@@ -66,6 +66,55 @@ const storeMessages = (key, messages) => {
   }
 };
 
+/**
+ * Render a conversation as plain text. Station Assistant replies are not all text,
+ * so cards and option lists are summarised rather than dropped silently.
+ */
+const formatConversation = (messages, botLabel) => {
+  const header = [
+    `EVAT ${botLabel} conversation`,
+    `Exported ${new Date().toLocaleString()}`,
+    "",
+  ];
+
+  const body = messages.map((message) => {
+    const who = (message.sender || message.from) === "user" ? "You" : botLabel;
+    const time = message.time ? `[${message.time}] ` : "";
+    let text = message.text;
+
+    if (!text) {
+      if (message.type === "chips") {
+        text = `(options offered: ${(message.chips || []).join(", ")})`;
+      } else if (message.type === "stations") {
+        const names = (message.payload?.stations || []).map((s) => s.name || "unnamed").join(", ");
+        text = names ? `(charging stations: ${names})` : "(charging stations)";
+      } else if (message.type === "directions") {
+        text = `(directions: ${message.payload?.origin ?? "?"} to ${message.payload?.destination ?? "?"})`;
+      } else if (message.type === "traffic") {
+        text = "(traffic update)";
+      } else {
+        text = "(attachment)";
+      }
+    }
+
+    // Indent wrapped lines so a multi-paragraph reply still reads as one message.
+    return `${time}${who}: ${String(text).split("\n").join("\n    ")}`;
+  });
+
+  return [...header, ...body, ""].join("\n");
+};
+
+const downloadTextFile = (filename, contents) => {
+  const url = URL.createObjectURL(new Blob([contents], { type: "text/plain;charset=utf-8" }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+};
+
 const GEMINI_SUGGESTIONS = [
   "How far can an EV travel on a full charge?",
   "What is the cheapest EV to own in Australia?",
@@ -313,6 +362,20 @@ export default function Chatbot() {
 
   const stopRasa = () => rasaAbortRef.current?.controller.abort();
   const stopGemini = () => geminiAbortRef.current?.controller.abort();
+
+  /** Download the conversation the user is currently looking at. */
+  const exportableMessages = activeTab === "station" ? rasaMessages : geminiMessages;
+
+  const handleExportChat = () => {
+    if (exportableMessages.length === 0) return;
+    const isStation = activeTab === "station";
+    const label = isStation ? "Station Assistant" : "EVAT-AI";
+    const date = new Date().toISOString().slice(0, 10);
+    downloadTextFile(
+      `evat-${isStation ? "station" : "ai"}-chat-${date}.txt`,
+      formatConversation(exportableMessages, label)
+    );
+  };
 
   // Drop any in-flight request if the page is closed mid-answer.
   useEffect(() => () => {
@@ -617,9 +680,34 @@ export default function Chatbot() {
             <button className={`tab-btn ${activeTab === "station" ? "active" : ""}`} onClick={() => setActiveTab("station")}>⚡ Station Assistant</button>
             <button className={`tab-btn ${activeTab === "ai" ? "active" : ""}`} onClick={() => setActiveTab("ai")}>✨ EVAT-AI</button>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-            <span style={{ width: 7, height: 7, borderRadius: "50%", backgroundColor: location ? "#10b981" : "#f87171", display: "inline-block" }} />
-            <span style={{ color: "#bbb", fontSize: "11px" }}>{location ? "GPS on" : "GPS off"}</span>
+          <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+            <button
+              type="button"
+              onClick={handleExportChat}
+              disabled={exportableMessages.length === 0}
+              aria-label="Download this conversation as a text file"
+              title={exportableMessages.length === 0 ? "Nothing to export yet" : "Download this conversation"}
+              style={{
+                display: "flex", alignItems: "center", gap: "5px",
+                background: "none",
+                border: "1px solid #e8e8f0",
+                borderRadius: "8px",
+                padding: "5px 10px",
+                fontSize: "11px",
+                fontWeight: 600,
+                color: exportableMessages.length === 0 ? "#ddd" : "#6366f1",
+                cursor: exportableMessages.length === 0 ? "not-allowed" : "pointer",
+              }}
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              Export
+            </button>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <span style={{ width: 7, height: 7, borderRadius: "50%", backgroundColor: location ? "#10b981" : "#f87171", display: "inline-block" }} />
+              <span style={{ color: "#bbb", fontSize: "11px" }}>{location ? "GPS on" : "GPS off"}</span>
+            </div>
           </div>
         </div>
 
