@@ -19,14 +19,14 @@ framework is introduced.
 | Reliability Scoring API | Yes | No | Needs review |
 | Weather Route API | No | No | Needs review |
 
-## Current Findings
+## Initial Findings
 
-- Charging Station Recommendation is the only service with an automated test suite.
-- Most services do not have a documented test command.
-- There is no shared test configuration for Python services.
-- Some services do not have a requirements file.
-- Model loading, prediction output and invalid input behaviour are not tested consistently.
-- API error responses may differ between services.
+- Charging Station Recommendation was initially the only service with an automated test suite.
+- Most services did not have a documented test command.
+- There was no shared test configuration for Python services.
+- Some services did not have a requirements file.
+- Model loading, prediction output and invalid input behaviour were not tested consistently.
+- API error responses differed between services.
 
 ## Proposed Testing Standard
 
@@ -113,7 +113,7 @@ Key findings:
 
 | Service | Tests | Current status |
 |---|---:|---|
-| Charging Station Recommendation | 8 | Passing |
+| Charging Station Recommendation | 7 | Passing |
 | Environmental Impact Analysis | 4 | Passing |
 | Price Prediction | 11 | Passing |
 | Demand Forecasting | 0 | Future work |
