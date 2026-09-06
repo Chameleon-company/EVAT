@@ -41,6 +41,8 @@ from backend.availability_service import (
 from backend.location_resolution_service import (
     get_location_coordinates as backend_get_location_coordinates,
 )
+from backend.data_loader import load_datasets
+
 # Import the canonical backend implementation. Importing the same file as
 # top-level ``real_time_apis`` can create a second module/global instance.
 try:
@@ -66,38 +68,9 @@ class ChargingStationDataService:
         self._load_datasets()
 
     def _load_datasets(self):
-        """Load all CSV datasets"""
+        """Load EVAT datasets via the shared backend data loader."""
         try:
-            # Get the path to the data directory
-            current_dir = os.path.dirname(os.path.abspath(__file__))
-            data_dir = os.path.join(
-                current_dir, '..', '..', 'data', 'raw')
-
-            # Load charger information dataset - PRIMARY DATA SOURCE
-            charger_path = os.path.join(
-                data_dir, DATA_CONFIG['CHARGER_CSV_PATH'].split('/')[-1])
-            if os.path.exists(charger_path):
-                self.charger_data = pd.read_csv(charger_path)
-                logger.info(
-                    f"Loaded {len(self.charger_data)} charging stations from dataset")
-            else:
-                logger.error(f"Charger dataset not found at {charger_path}")
-                self.charger_data = pd.DataFrame()
-
-            # Load coordinates dataset (optional - for location lookup)
-            coords_path = os.path.join(
-                data_dir, DATA_CONFIG['COORDINATES_CSV_PATH'].split('/')[-1])
-            if os.path.exists(coords_path):
-                self.coordinates_data = pd.read_csv(coords_path)
-                logger.info(
-                    f"Loaded {len(self.coordinates_data)} suburb coordinates from dataset")
-            else:
-                logger.warning(
-                    "Coordinates dataset not found - will use charger data for coordinates")
-                self.coordinates_data = pd.DataFrame()
-
-            # ML dataset loading removed (unused)
-
+            self.charger_data, self.coordinates_data = load_datasets()
         except Exception as e:
             logger.error(f"Error loading datasets: {e}")
             self.charger_data = pd.DataFrame()
