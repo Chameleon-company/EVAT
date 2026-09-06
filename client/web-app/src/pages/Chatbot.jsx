@@ -19,6 +19,9 @@ const getSessionId = () => {
 
 const timestamp = () => new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
+// Give up on a request that has not answered by now, so the tab cannot hang forever.
+const REQUEST_TIMEOUT_MS = 30000;
+
 const GEMINI_SUGGESTIONS = [
   "How far can an EV travel on a full charge?",
   "What is the cheapest EV to own in Australia?",
@@ -231,6 +234,45 @@ export default function Chatbot() {
   const rasaBottomRef = useRef(null);
   const geminiBottomRef = useRef(null);
   const rasaInputRef = useRef(null);
+  const rasaAbortRef = useRef(null);
+  const geminiAbortRef = useRef(null);
+
+  /**
+   * Track the in-flight request for a tab so it can be cancelled, either by the
+   * user pressing stop or by the timeout below when a service stops responding.
+   */
+  const beginRequest = (ref) => {
+    ref.current?.controller.abort();
+    const entry = { controller: new AbortController(), timedOut: false };
+    entry.timer = setTimeout(() => {
+      entry.timedOut = true;
+      entry.controller.abort();
+    }, REQUEST_TIMEOUT_MS);
+    ref.current = entry;
+    return entry;
+  };
+
+  const endRequest = (ref, entry) => {
+    clearTimeout(entry.timer);
+    if (ref.current === entry) ref.current = null;
+  };
+
+  /** Message to show when a request did not finish normally. */
+  const cancelledMessage = (error, entry) => {
+    if (error?.name !== "AbortError") return null;
+    return entry.timedOut
+      ? "That took longer than expected. Please try again."
+      : "Stopped.";
+  };
+
+  const stopRasa = () => rasaAbortRef.current?.controller.abort();
+  const stopGemini = () => geminiAbortRef.current?.controller.abort();
+
+  // Drop any in-flight request if the page is closed mid-answer.
+  useEffect(() => () => {
+    rasaAbortRef.current?.controller.abort();
+    geminiAbortRef.current?.controller.abort();
+  }, []);
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -250,6 +292,7 @@ export default function Chatbot() {
   };
 
   const sendToRasa = async (text) => {
+    const entry = beginRequest(rasaAbortRef);
     setRasaLoading(true);
     try {
       const res = await fetch(CHATBOT_URL, {
@@ -260,12 +303,18 @@ export default function Chatbot() {
           message: text,
           metadata: location || {},
         }),
+        signal: entry.controller.signal,
       });
       const data = await res.json();
       handleRasaResponse(data || []);
-    } catch {
-      addRasaMessage({ type: "text", sender: "bot", text: "Server error. Please try again." });
+    } catch (error) {
+      addRasaMessage({
+        type: "text",
+        sender: "bot",
+        text: cancelledMessage(error, entry) || "Server error. Please try again.",
+      });
     } finally {
+      endRequest(rasaAbortRef, entry);
       setRasaLoading(false);
     }
   };
@@ -346,6 +395,7 @@ export default function Chatbot() {
     if (!msg || geminiLoading) return;
     setGeminiInput("");
     setGeminiMessages(prev => [...prev, { from: "user", text: msg, time: timestamp() }]);
+    const entry = beginRequest(geminiAbortRef);
     setGeminiLoading(true);
     try {
       if (!GEMINI_API_KEY) {
@@ -363,14 +413,19 @@ export default function Chatbot() {
           system_instruction: { parts: [{ text: "You are EVAT-AI, an EV assistant for the EVAT platform in Australia. Answer questions about electric vehicles, charging, range, costs, and sustainability. Keep answers concise and helpful." }] },
           contents: [...ctx, { role: "user", parts: [{ text: msg }] }]
         }),
+        signal: entry.controller.signal,
       });
       const data = await res.json();
       const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I couldn't generate a response.";
       setGeminiMessages(prev => [...prev, { from: "bot", text: reply, time: timestamp() }]);
       setHistory(prev => [{ id: Date.now(), title: msg.slice(0, 40), tab: "ai", date: new Date().toISOString() }, ...prev.slice(0, 19)]);
-    } catch {
-      setGeminiMessages(prev => [...prev, { from: "bot", text: "Something went wrong. Please try again.", time: timestamp() }]);
-    } finally { setGeminiLoading(false); }
+    } catch (error) {
+      const text = cancelledMessage(error, entry) || "Something went wrong. Please try again.";
+      setGeminiMessages(prev => [...prev, { from: "bot", text, time: timestamp() }]);
+    } finally {
+      endRequest(geminiAbortRef, entry);
+      setGeminiLoading(false);
+    }
   };
 
   const renderRasaMessage = (msg) => {
@@ -556,9 +611,15 @@ export default function Chatbot() {
                     disabled={!started}
                     style={{ flex: 1, background: "none", border: "none", color: "#1a1a2e", fontSize: "14px", outline: "none", padding: "8px 0" }}
                   />
-                  <button className="send-btn" onClick={handleRasaSubmit} disabled={rasaLoading || !rasaInput.trim() || !started}
-                    style={{ background: rasaLoading || !rasaInput.trim() || !started ? "#ddd" : "linear-gradient(135deg,#6366f1,#4f46e5)", color: "#fff", border: "none", borderRadius: "10px", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center", cursor: rasaLoading || !rasaInput.trim() || !started ? "not-allowed" : "pointer", transition: "all 0.2s" }}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                  <button className="send-btn"
+                    onClick={rasaLoading ? stopRasa : handleRasaSubmit}
+                    disabled={rasaLoading ? false : (!rasaInput.trim() || !started)}
+                    aria-label={rasaLoading ? "Stop the current request" : "Send message"}
+                    title={rasaLoading ? "Stop" : "Send"}
+                    style={{ background: rasaLoading ? "#ef4444" : (!rasaInput.trim() || !started ? "#ddd" : "linear-gradient(135deg,#6366f1,#4f46e5)"), color: "#fff", border: "none", borderRadius: "10px", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center", cursor: rasaLoading ? "pointer" : (!rasaInput.trim() || !started ? "not-allowed" : "pointer"), transition: "all 0.2s" }}>
+                    {rasaLoading
+                      ? <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>
+                      : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>}
                   </button>
                 </div>
                 <p style={{ color: "#bbb", fontSize: "11px", textAlign: "center", marginTop: "6px" }}>Powered by Rasa · {location ? "GPS enabled" : "Enable GPS for nearby stations"}</p>
@@ -631,9 +692,15 @@ export default function Chatbot() {
                     placeholder='Ask anything about EVs...'
                     style={{ flex: 1, background: "none", border: "none", color: "#1a1a2e", fontSize: "14px", outline: "none", padding: "8px 0" }}
                   />
-                  <button className="send-btn" onClick={() => handleGeminiSend()} disabled={geminiLoading || !geminiInput.trim()}
-                    style={{ background: geminiLoading || !geminiInput.trim() ? "#ddd" : "linear-gradient(135deg,#6366f1,#10b981)", color: "#fff", border: "none", borderRadius: "10px", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center", cursor: geminiLoading || !geminiInput.trim() ? "not-allowed" : "pointer", transition: "all 0.2s" }}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                  <button className="send-btn"
+                    onClick={geminiLoading ? stopGemini : () => handleGeminiSend()}
+                    disabled={geminiLoading ? false : !geminiInput.trim()}
+                    aria-label={geminiLoading ? "Stop the current request" : "Send message"}
+                    title={geminiLoading ? "Stop" : "Send"}
+                    style={{ background: geminiLoading ? "#ef4444" : (!geminiInput.trim() ? "#ddd" : "linear-gradient(135deg,#6366f1,#10b981)"), color: "#fff", border: "none", borderRadius: "10px", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center", cursor: geminiLoading ? "pointer" : (!geminiInput.trim() ? "not-allowed" : "pointer"), transition: "all 0.2s" }}>
+                    {geminiLoading
+                      ? <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>
+                      : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>}
                   </button>
                 </div>
                 <p style={{ color: "#bbb", fontSize: "11px", textAlign: "center", marginTop: "6px" }}>Powered by EVAT-AI · EV-focused assistant</p>
