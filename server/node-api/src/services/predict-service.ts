@@ -296,7 +296,7 @@ export default class PredictService {
         } catch (error: any) {
             // If the Python service responded with an error (i.e. 400 Bad Request)
             if (error.response) {
-                throw new Error(error.response.data.detail || "Model validation failed.");
+                throw error;
             }
 
             // Fallback: return a 'safe' average baseline if Python/Open-Meteo hangs for some reason

@@ -147,6 +147,27 @@ describe("PredictController", () => {
                 })
             );
         });
+
+        test("Should forward Python validation errors with their status", async () => {
+            // Arrange
+            const validDate = getValidFutureDate();
+            mockRequest = { body: { postcode: "3999", date: validDate } };
+            mockService.getDemandForecast.mockRejectedValue({
+                response: {
+                    status: 400,
+                    data: { detail: "Postcode is not supported." }
+                }
+            });
+
+            // Act
+            await controller.getDemandForecast(mockRequest as Request, mockResponse as Response);
+
+            // Assert
+            expect(mockResponse.status).toHaveBeenCalledWith(400);
+            expect(mockResponse.json).toHaveBeenCalledWith({
+                message: "Postcode is not supported."
+            });
+        });
     });
 
     describe("getCongestionLevels", () => {
