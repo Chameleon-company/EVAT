@@ -21,8 +21,12 @@
     "test:python": "cd \"server/python-services\" && uv run --locked python -m pytest"
   },
   "devDependencies": {
+    "@types/axios": "^0.9.36",
     "concurrently": "^10.0.4",
     "eslint": "^10.8.0",
     "typescript-eslint": "^8.65.0"
+  },
+  "dependencies": {
+    "axios": "^1.19.0"
   }
 }

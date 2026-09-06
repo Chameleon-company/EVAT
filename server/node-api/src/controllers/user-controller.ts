@@ -55,25 +55,17 @@ export default class UserController {
 
             const token = authHeader.split(" ")[1];
 
+            let decoded: JwtPayload;
             try {
-                const decoded = jwt.verify(token, process.env.JWT_SECRET) as JwtPayload;
-                const user = await this.userService.getUserById(decoded.id);
-                if (!user) {
-                    return res.status(404).json({ message: "User not found" });
-                }
+              decoded = jwt.verify(token, process.env.JWT_SECRET) as JwtPayload;
+            } catch (error) {
+              const isExpiredToken =
+                error instanceof Error &&
+                (error.name === "TokenExpiredError" || error.message === "TokenExpiredError");
 
-                // Update last login
-                //user.lastLogin = new Date();
-                await user.save();
-
-                return res.status(200).json({
-                    message: "Automatic Login Successful",
-                    data: {
-                        user,
-                        accessToken: token, // same one, still valid
-                    },
-                });
-            } catch (err) {
+              if (!isExpiredToken) {
+                return res.status(401).json({ message: "Invalid token" });
+              }
 
                 const decoded = jwt.decode(token) as JwtPayload;
                 if (!decoded?.id) {
@@ -111,6 +103,21 @@ export default class UserController {
                     return res.status(401).json({ message: "Refresh token expired, please log in again" });
                 }
             }
+
+              const user = await this.userService.getUserById(decoded.id);
+              if (!user) {
+                return res.status(404).json({ message: "User not found" });
+              }
+
+              await user.save();
+
+              return res.status(200).json({
+                message: "Automatic Login Successful",
+                data: {
+                  user,
+                  accessToken: token,
+                },
+              });
         } catch (error: any) {
             console.error("jwtLogin error:", error);
             return res.status(500).json({ message: "Internal server error", error: error.message });

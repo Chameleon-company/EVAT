@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import ChargerSessionRepository from '../../src/repositories/charger-session-repository';
-import User from '../../src/models/profile-model';  // Import User model
+import User from '../../src/models/user-model';  // Import User model
 import Station from '../../src/models/station-model'; // Import Station model
 import ChargerSession from '../../src/models/charger-session-model';  // Import ChargerSession model
 

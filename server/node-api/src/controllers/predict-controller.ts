@@ -4,6 +4,10 @@ import PredictService from "../services/predict-service";
 export default class PredictController {
     constructor(private readonly predictService: PredictService) { }
 
+    /**
+     * Get congestion levels for specified charger IDs
+     * POST /api/predict/congestion-levels
+     */
     async getCongestionLevels(req: Request, res: Response): Promise<Response> {
         try {
             const chargerIDs = req.body.stationIds;
@@ -23,6 +27,10 @@ export default class PredictController {
         }
     }
 
+    /**
+     * Delete a congestion level by charger ID
+     * DELETE /api/predict/congestion-level
+     */
     async deleteCongestionLevel(req: Request, res: Response): Promise<Response> {
         try {
             const chargerID = req.query.id;
@@ -41,6 +49,10 @@ export default class PredictController {
         }
     }
 
+    /**
+     * Update or set a congestion level for a charger
+     * PUT /api/predict/congestion-level
+     */
     async putCongestionLevel(req: Request, res: Response): Promise<Response> {
         try {
             const chargerID = req.query.id;
@@ -64,6 +76,10 @@ export default class PredictController {
         }
     }
 
+    /**
+     * Post a batch of congestion levels
+     * POST /api/predict/congestion-levels/batch
+     */
     async postCongestionLevelsBatch(req: Request, res: Response): Promise<Response> {
         try {
             const levels = req.body.predictions;
@@ -88,6 +104,10 @@ export default class PredictController {
         }
     }
 
+    /**
+     * Get a cost comparison between EV and ICE vehicles
+     * POST /api/predict/cost-comparison
+     */
     async getCostComparison(req: Request, res: Response): Promise<Response> {
         try {
             const {
@@ -132,6 +152,10 @@ export default class PredictController {
         }
     }
 
+    /**
+     * Get cost charts data for comparison
+     * POST /api/predict/cost-charts
+     */
     async getCostCharts(req: Request, res: Response): Promise<Response> {
         try {
             const {
@@ -168,6 +192,10 @@ export default class PredictController {
         }
     }
 
+    /**
+     * Get a list of available EV vehicles
+     * GET /api/predict/ev-vehicles
+     */
     async getEvVehicles(req: Request, res: Response): Promise<Response> {
         try {
             const result = await this.predictService.getEvVehicles();
@@ -177,6 +205,10 @@ export default class PredictController {
         }
     }
 
+    /**
+     * Get a list of available ICE vehicles
+     * GET /api/predict/ice-vehicles
+     */
     async getIceVehicles(req: Request, res: Response): Promise<Response> {
         try {
             const result = await this.predictService.getIceVehicles();
@@ -186,6 +218,10 @@ export default class PredictController {
         }
     }
 
+    /**
+     * Get efficiency ratings for a specific EV vehicle
+     * POST /api/predict/ev-efficiency
+     */
     async getEvEfficiency(req: Request, res: Response): Promise<Response> {
         try {
             const { make, model, variant } = req.body;
@@ -199,6 +235,10 @@ export default class PredictController {
         }
     }
 
+    /**
+     * Get efficiency ratings for a specific ICE vehicle
+     * POST /api/predict/ice-efficiency
+     */
     async getIceEfficiency(req: Request, res: Response): Promise<Response> {
         try {
             const { make, model, variant } = req.body;
@@ -212,38 +252,96 @@ export default class PredictController {
         }
     }
 
+    /**
+     * Predicts demand based on the given Australian postcode and date
+     * POST /api/predict/demand
+     */
     async getDemandForecast(req: Request, res: Response): Promise<Response> {
-    try {
-        const { postcode, date } = req.body;
-        if (!postcode || !date) {
-            return res.status(400).json({ message: "Missing required fields: postcode, date" });
-        }
-        const result = await this.predictService.getDemandForecast(postcode, date);
-        return res.status(200).json(result);
-    } catch (error: any) {
-        return res.status(500).json({ message: error.message });
-    }
-}
+        try {
+            const { postcode, date } = req.body;
+            
+            // Validation for Australian 4-digit postcode
+            const auPostcodeRegex = /^\d{4}$/;
+            const cleanPostcode = String(postcode || "").trim();
 
-async getDemandPostcodes(req: Request, res: Response): Promise<Response> {
-    try {
-        const result = await this.predictService.getDemandPostcodes();
-        return res.status(200).json(result);
-    } catch (error: any) {
-        return res.status(500).json({ message: error.message });
-    }
-}
+            if (!auPostcodeRegex.test(cleanPostcode)) {
+                return res.status(400).json({
+                message: "Invalid Postcode: Must be a 4-digit Australian postcode string (i.e. '2000')."
+                });
+            }
 
-async getDemandCoords(req: Request, res: Response): Promise<Response> {
-    try {
-        const { postcode } = req.params;
-        if (!postcode) {
-            return res.status(400).json({ message: "Postcode is required" });
+            // Validation fpr YYYY-MM-DD date format
+            const isoDateRegex = /^\d{4}-\d{2}-\d{2}$/;
+            if (!date || !isoDateRegex.test(date) || isNaN(Date.parse(date))) {
+                return res.status(400).json({
+                message: "Invalid Date: Must be in YYYY-MM-DD format."
+                });
+            }
+
+            // Validation for Open-Meteo API date range (1-16 days from today)
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const target = new Date(date);
+            target.setHours(0, 0, 0, 0);
+
+            const diffTime = target.getTime() - today.getTime();
+            const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays < 1 || diffDays > 16) {
+                return res.status(400).json({
+                    message: "AI Limitation: Date must be between 1 and 16 days from today."
+                });
+            }
+
+            // Call to predictService method
+            const forecast = await this.predictService.getDemandForecast(cleanPostcode, date);
+
+            // Return forecast obj for top level (expect keys (postcode, date, predictedDemandKwh))
+            return res.status(200).json(forecast);
+        } catch (error: any) {
+            console.error("PredictController error:", error);
+
+            // Client/model errors from Python (e.g., 400 Bad Request)
+            if (error.response) {
+                return res.status(error.response.status || 400).json({
+                    message: error.response.data?.detail || error.message
+                });
+            }
+
+            return res.status(500).json({
+                message: "Error retrieving demand forecast",
+                error: error.message
+            });
         }
-        const result = await this.predictService.getDemandCoords(postcode);
-        return res.status(200).json(result);
-    } catch (error: any) {
-        return res.status(500).json({ message: error.message });
     }
-}
+
+    /**
+     * Get postcodes for demand forecasting
+     * GET /api/predict/postcodes
+     */
+    async getDemandPostcodes(req: Request, res: Response): Promise<Response> {
+        try {
+            const postcodes = await this.predictService.getDemandPostcodes();
+            return res.status(200).json({ data: postcodes });
+        } catch (error: any) {
+            return res.status(500).json({ message: error.message });
+        }
+    }
+
+    /**
+     * Get coordinates for a postcode
+     * GET /api/predict/coords/:postcode
+     */
+    async getDemandCoords(req: Request, res: Response): Promise<Response> {
+        try {
+            const { postcode } = req.params;
+            if (!postcode) {
+                return res.status(400).json({ message: "Postcode is required" });
+            }
+            const coords = await this.predictService.getDemandCoords(postcode);
+            return res.status(200).json({ data: coords });
+        } catch (error: any) {
+            return res.status(500).json({ message: error.message });
+        }
+    }
 }

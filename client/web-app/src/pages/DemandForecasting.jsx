@@ -164,7 +164,7 @@ export default function DemandForecasting() {
         }).then((r) => r.json())
       )
     );
-    const firstError = results.find((r) => r.status === "error" || r.message);
+    const firstError = results.find((r) => r.status === "error");
     if (firstError) throw new Error(`${postcode}: ${firstError.error || firstError.message}`);
     return results;
   };
@@ -238,7 +238,7 @@ export default function DemandForecasting() {
         const avgDemand = stats[pc].avg;
         const color = getMarkerColor(avgDemand, gMin, gMax);
         const level = getDemandLevel(avgDemand, gMin, gMax);
-        return coords ? { postcode: pc, lat: coords.lat, lon: coords.lon, avgDemand, color, level, lineColor: LINE_COLORS[idx], stats: stats[pc] } : null;
+        return coords && coords.data ? { postcode: pc, lat: coords.data.lat, lon: coords.data.lon, avgDemand, color, level, lineColor: LINE_COLORS[idx], stats: stats[pc] } : null;
       }).filter(Boolean);
 
       setMergedData(merged);

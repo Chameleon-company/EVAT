@@ -69,7 +69,10 @@ export default class PersonalisedEVInsightsService {
   private async getClusterPrediction(
     payload: PersonalisedEVInsightsPayload
   ): Promise<number> {
-    const response = await axios.post(`${PYTHON_API}/personalisedEVInsights/predict`, payload);
+    const response = await axios.post<{ cluster?: number }>(
+      `${PYTHON_API}/personalisedEVInsights/predict`,
+      payload
+    );
 
     if (response.data?.cluster === undefined || response.data?.cluster === null) {
       throw new Error("Invalid cluster response from Flask API");

@@ -30,4 +30,9 @@ export const env = {
   EMAIL_USER: process.env.EMAIL_USER!,
   EMAIL_PASS: process.env.EMAIL_PASS!,
   ADMIN_EMAIL: process.env.ADMIN_EMAIL!,
+
+  // Demand forecasting service to reach the Python backend, with a fallback to localhost
+  // PYTHON_API_URL: process.env.PYTHON_API_URL || "http://127.0.0.1:5000",
+  COST_API_URL: process.env.COST_API_URL || process.env.PYTHON_API_URL || "http://localhost:5000",
+  DEMAND_API_URL: process.env.DEMAND_API_URL || process.env.PYTHON_API_URL || "http://127.0.0.1:5000",
 };

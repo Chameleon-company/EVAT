@@ -5,12 +5,14 @@ import VehicleService from "../../src/services/vehicle-service";
 import UserService from "../../src/services/user-service";
 import ChargingStationService from "../../src/services/station-service";
 import { UserProfileResponse } from "../../src/dtos/user-profile-response";
+import { UserStatsService }  from "../../src/services/user-stats-service";
 
 // Mock services
 jest.mock("../../src/services/profile-service");
 jest.mock("../../src/services/vehicle-service");
 jest.mock("../../src/services/user-service");
 jest.mock("../../src/services/station-service");
+jest.mock("../../src/services/user-stats-service");
 
 describe("ProfileController", () => {
   let profileController: ProfileController;
@@ -18,6 +20,7 @@ describe("ProfileController", () => {
   let mockProfileService: jest.Mocked<ProfileService>;
   let mockVehicleService: jest.Mocked<VehicleService>;
   let mockStationService: jest.Mocked<ChargingStationService>;
+  let mockUserStatsService: jest.Mocked<UserStatsService>;
   let mockRequest: Partial<Request>;
   let mockResponse: Partial<Response>;
 
@@ -27,12 +30,22 @@ describe("ProfileController", () => {
     mockProfileService = new ProfileService() as jest.Mocked<ProfileService>;
     mockVehicleService = new VehicleService() as jest.Mocked<VehicleService>;
     mockStationService = new ChargingStationService() as jest.Mocked<ChargingStationService>;
+    mockUserStatsService = new UserStatsService() as jest.Mocked<UserStatsService>;
+    mockUserStatsService.markProfileVehicleSet = jest.fn().mockResolvedValue({
+      stats: {},
+      newAchievements: [],
+    });
+    mockUserStatsService.markFavouriteChargeSaved = jest.fn().mockResolvedValue({
+      stats: {},
+      newAchievements: [],
+    });
 
     profileController = new ProfileController(
       mockUserService,
       mockProfileService,
       mockVehicleService,
-      mockStationService
+      mockStationService,
+      mockUserStatsService
     );
 
     // Common response setup with jest spies
@@ -181,7 +194,10 @@ describe("ProfileController", () => {
       expect(mockResponse.status).toHaveBeenCalledWith(201);
       expect(mockResponse.json).toHaveBeenCalledWith({
         message: "Update user vehicle model successfully",
-        data: mockUpdatedProfile,
+        data: {
+          profile: mockUpdatedProfile,
+          newAchievements: [],
+        },
       });
     });
 
@@ -276,7 +292,10 @@ describe("ProfileController", () => {
       expect(mockResponse.status).toHaveBeenCalledWith(201);
       expect(mockResponse.json).toHaveBeenCalledWith({
         message: "Add favourite station successfully",
-        data: mockUpdatedProfile,
+        data: {
+          profile: mockUpdatedProfile,
+          newAchievements: [],
+        },
       });
     });
 

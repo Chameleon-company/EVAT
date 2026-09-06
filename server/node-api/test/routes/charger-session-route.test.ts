@@ -4,12 +4,14 @@ import request from 'supertest';
 import express from 'express';
 import ChargerSessionController from '../../src/controllers/charger-session-controller';
 import ChargerSessionService from '../../src/services/charger-session-service';
+import { UserStatsService } from '../../src/services/user-stats-service';
 import { Types } from 'mongoose';
 import { IChargerSessionDocument, SessionStatus, SessionOperationType } from '../../src/models/charger-session-model';
 
 describe('ChargerSession Routes', () => {
     let app: express.Application;
     let service: jest.Mocked<ChargerSessionService>;
+    let userStatsService: jest.Mocked<UserStatsService>;
 
     beforeEach(() => {
         // Mock the service layer
@@ -22,9 +24,12 @@ describe('ChargerSession Routes', () => {
             createSession: jest.fn(),
             endSession: jest.fn(),
         } as unknown as jest.Mocked<ChargerSessionService>;
+        userStatsService = {
+            recordChargingSession: jest.fn(),
+        } as unknown as jest.Mocked<UserStatsService>;
 
         // Setup express app
-        const controller = new ChargerSessionController(service);
+        const controller = new ChargerSessionController(service, userStatsService);
         app = express();
         app.use(express.json());
 
@@ -139,7 +144,7 @@ describe('ChargerSession Routes', () => {
         };
 
         // Act
-        const controller = new ChargerSessionController(service);
+        const controller = new ChargerSessionController(service, userStatsService);
         controller.streamSessions(req, res)
 
         // Assert
@@ -175,7 +180,7 @@ describe('ChargerSession Routes', () => {
             const req: any = {};
 
             // Act
-            const controller = new ChargerSessionController(service);
+            const controller = new ChargerSessionController(service, userStatsService);
             controller.streamSessions(req, res);
 
             // Assert
