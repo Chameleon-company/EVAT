@@ -23,6 +23,12 @@ const timestamp = () => new Date().toLocaleTimeString([], { hour: "2-digit", min
 // Give up on a request that has not answered by now, so the tab cannot hang forever.
 const REQUEST_TIMEOUT_MS = 30000;
 
+// Conversations survive a refresh. Keep a bounded number of messages: AI answers are
+// long and localStorage is a few megabytes per origin.
+const RASA_STORE_KEY = "evat_chat_rasa";
+const GEMINI_STORE_KEY = "evat_chat_gemini";
+const MAX_STORED_MESSAGES = 50;
+
 /**
  * Turn a failed HTTP response into something the user can act on. Without this a
  * busy service, a rate limit and a bad key all look identical.
@@ -40,6 +46,24 @@ const describeHttpFailure = async (res, serviceName) => {
   if (res.status === 401 || res.status === 403) return `${serviceName} rejected the request. The API key may be missing or invalid.`;
   if (res.status === 404) return detail || `${serviceName} could not be reached at the configured address.`;
   return detail || `${serviceName} returned an error (${res.status}).`;
+};
+
+const loadStoredMessages = (key) => {
+  try {
+    const raw = localStorage.getItem(key);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
+const storeMessages = (key, messages) => {
+  try {
+    localStorage.setItem(key, JSON.stringify(messages.slice(-MAX_STORED_MESSAGES)));
+  } catch {
+    // Storage can be full or blocked; losing the saved copy must not break the chat.
+  }
 };
 
 const GEMINI_SUGGESTIONS = [
@@ -237,12 +261,14 @@ export default function Chatbot() {
   const [showHistory, setShowHistory] = useState(false);
 
   // Messages — each: { id, type, sender, text, payload, chips, time }
-  const [rasaMessages, setRasaMessages] = useState([]);
+  const [rasaMessages, setRasaMessages] = useState(() => loadStoredMessages(RASA_STORE_KEY));
   const [rasaInput, setRasaInput] = useState("");
   const [rasaLoading, setRasaLoading] = useState(false);
-  const [started, setStarted] = useState(false);
+  // A restored conversation is already started, otherwise the input stays locked
+  // behind "Click Start Chat to begin" with the previous messages visible above it.
+  const [started, setStarted] = useState(() => loadStoredMessages(RASA_STORE_KEY).length > 0);
 
-  const [geminiMessages, setGeminiMessages] = useState([]);
+  const [geminiMessages, setGeminiMessages] = useState(() => loadStoredMessages(GEMINI_STORE_KEY));
   const [geminiInput, setGeminiInput] = useState("");
   const [geminiLoading, setGeminiLoading] = useState(false);
 
@@ -306,6 +332,8 @@ export default function Chatbot() {
   useEffect(() => { rasaBottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [rasaMessages, rasaLoading]);
   useEffect(() => { geminiBottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [geminiMessages, geminiLoading]);
   useEffect(() => { localStorage.setItem("evat_chat_history", JSON.stringify(history)); }, [history]);
+  useEffect(() => { storeMessages(RASA_STORE_KEY, rasaMessages); }, [rasaMessages]);
+  useEffect(() => { storeMessages(GEMINI_STORE_KEY, geminiMessages); }, [geminiMessages]);
 
   const addRasaMessage = (msg) => {
     setRasaMessages(prev => [...prev, { id: Date.now() + Math.random(), time: timestamp(), ...msg }]);
@@ -552,8 +580,11 @@ export default function Chatbot() {
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
             <p style={{ color: "#999", fontSize: "10px", fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", margin: 0 }}>Recent Chats</p>
             <button onClick={() => {
+              stopRasa(); stopGemini();
               setStarted(false); setRasaMessages([]); setGeminiMessages([]);
               localStorage.removeItem("evat_chat_session");
+              localStorage.removeItem(RASA_STORE_KEY);
+              localStorage.removeItem(GEMINI_STORE_KEY);
               setHistory(prev => prev.map(h => ({ ...h, active: false })));
             }} style={{ background: "linear-gradient(135deg,#6366f1,#4f46e5)", color: "#fff", border: "none", borderRadius: "8px", padding: "5px 10px", fontSize: "11px", fontWeight: 600, cursor: "pointer" }}>+ New</button>
           </div>
