@@ -27,3 +27,6 @@ flake8>=5.0.0
 
 # Environment Management
 python-dotenv>=0.19.0 
+
+# LLM
+httpx>=0.24.0,<1.0.0
