@@ -15,6 +15,8 @@ import '../styles/Sidebar.css';
 import '../styles/Tables.css';
 import '../styles/Validation.css';
 
+import logo from '../assets/logo.png';
+
 const API_URL = import.meta.env.VITE_API_URL;
 const url = `${API_URL}/auth/login`;
 const jwtUrl = `${API_URL}/auth/jwt-login`;
@@ -146,7 +148,7 @@ function Signin() {
   //UI Rendering
   return (
     <div className="container vertical center">
-      <img src="../src/assets/logo.png" alt="EV Adoption Tool" className="logo-image" />
+      <img src={logo} alt="EV Adoption Tool" className="logo-image" />
 
       <form onSubmit={handleValidation} className="form-section signin-width">
         {/* Submit Error and Success Messages */}
@@ -169,7 +171,7 @@ function Signin() {
         </div>
         <div className="spacer-small">  </div>
         {/* Email Error Message */}
-        {isEmailEmpty && <ErrorMessage error='required'/>}
+        {isEmailEmpty && <ErrorMessage error="Email is required."/>}
 
         {/* Enter Password */}
         <label className='form-label required'>Password</label>
@@ -193,7 +195,7 @@ function Signin() {
         </div>
         <div className="spacer-small">  </div>
         {/* Password Error Message */}
-        {isPasswordEmpty && <ErrorMessage error='required'/>}
+        {isPasswordEmpty && <ErrorMessage error="Password is required."/>}
 
 
         <div className="spacer-small">  </div>

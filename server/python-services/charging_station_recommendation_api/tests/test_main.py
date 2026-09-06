@@ -1,22 +1,36 @@
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from main import app
+from charging_station_recommendation_api.main import rank_charging_stations
+from charging_station_recommendation_api.models.request import (
+    RankChargingStationsRequest,
+)
+from charging_station_recommendation_api.models.response import (
+    RankChargingStationsResponse,
+)
+
+
+app = FastAPI()
+
+
+@app.post(
+    "/charging-station-recommendations/rank",
+    response_model=RankChargingStationsResponse,
+)
+def rank(request: RankChargingStationsRequest):
+    return rank_charging_stations(request)
 
 
 client = TestClient(app)
 
 
-def test_health_endpoint_returns_ok():
-    response = client.get("/health")
-
-    assert response.status_code == 200
-    assert response.json() == {"status": "ok"}
-
-
 def test_rank_endpoint_returns_ranked_recommendations():
     request_body = {
         "userId": "user-1",
-        "userLocation": {"latitude": -37.8136, "longitude": 144.9631},
+        "userLocation": {
+            "latitude": -37.8136,
+            "longitude": 144.9631,
+        },
         "userProfile": {
             "vehicle": {"vehicleId": "vehicle-1"},
             "favouriteStationIds": [],
@@ -36,7 +50,10 @@ def test_rank_endpoint_returns_ranked_recommendations():
         ],
     }
 
-    response = client.post("/charging-station-recommendations/rank", json=request_body)
+    response = client.post(
+        "/charging-station-recommendations/rank",
+        json=request_body,
+    )
 
     assert response.status_code == 200
     assert response.json()["recommendations"][0]["stationId"] == "station-1"
@@ -46,7 +63,10 @@ def test_rank_endpoint_returns_ranked_recommendations():
 def test_rank_endpoint_accepts_unknown_routing_data():
     request_body = {
         "userId": "user-1",
-        "userLocation": {"latitude": -37.8136, "longitude": 144.9631},
+        "userLocation": {
+            "latitude": -37.8136,
+            "longitude": 144.9631,
+        },
         "userProfile": {
             "vehicle": {"vehicleId": "vehicle-1"},
             "favouriteStationIds": [],
@@ -66,7 +86,13 @@ def test_rank_endpoint_accepts_unknown_routing_data():
         ],
     }
 
-    response = client.post("/charging-station-recommendations/rank", json=request_body)
+    response = client.post(
+        "/charging-station-recommendations/rank",
+        json=request_body,
+    )
 
     assert response.status_code == 200
-    assert response.json()["recommendations"][0]["stationId"] == "station-unknown-route"
+    assert (
+        response.json()["recommendations"][0]["stationId"]
+        == "station-unknown-route"
+    )

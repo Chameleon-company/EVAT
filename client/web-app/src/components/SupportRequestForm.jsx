@@ -167,7 +167,7 @@ export default function SupportRequestForm() {
         </div>
         <div className="spacer-small">  </div>
         {/* Name Error Message */}
-        {isNameEmpty && <ErrorMessage error='required'/>}
+        {isNameEmpty && <ErrorMessage error="Name is required." />}
 
         {/* Enter Email */}
         <label className='form-label required'>Email</label>
@@ -185,7 +185,7 @@ export default function SupportRequestForm() {
         </div>
         <div className="spacer-small">  </div>
         {/* Email Error Message */}
-        {isEmailEmpty && <ErrorMessage error='required'/>}
+        {isEmailEmpty && <ErrorMessage error="Email is required." />}
 
         {/* Enter Issue */}
         <label className='form-label required'>Issue Type</label>
@@ -202,7 +202,7 @@ export default function SupportRequestForm() {
         </select>
         <div className="spacer-small">  </div>
         {/* Issue Error Message */}
-        {isIssueEmpty && <ErrorMessage error='required'/>}
+        {isIssueEmpty && <ErrorMessage error="Issue type is required." />}
 
         {/* Enter Description */}
         <label className='form-label required'>Description of Issue</label>
@@ -215,7 +215,7 @@ export default function SupportRequestForm() {
         />
         <div className="spacer-small">  </div>
         {/* Description Error Message */}
-        {isDescriptionEmpty && <ErrorMessage error='required'/>}
+        {isDescriptionEmpty && <ErrorMessage error="Description is required." />}
 
         <div className="spacer-small" />
         <button 
