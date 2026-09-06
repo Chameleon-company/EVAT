@@ -23,6 +23,25 @@ const timestamp = () => new Date().toLocaleTimeString([], { hour: "2-digit", min
 // Give up on a request that has not answered by now, so the tab cannot hang forever.
 const REQUEST_TIMEOUT_MS = 30000;
 
+/**
+ * Turn a failed HTTP response into something the user can act on. Without this a
+ * busy service, a rate limit and a bad key all look identical.
+ */
+const describeHttpFailure = async (res, serviceName) => {
+  let detail = "";
+  try {
+    const body = await res.json();
+    detail = body?.error?.message || body?.message || "";
+  } catch {
+    // The error body was not JSON; fall back to the status code below.
+  }
+  if (res.status === 503) return `${serviceName} is busy right now. Please try again in a moment.`;
+  if (res.status === 429) return `Too many requests. Please wait a moment before asking ${serviceName} again.`;
+  if (res.status === 401 || res.status === 403) return `${serviceName} rejected the request. The API key may be missing or invalid.`;
+  if (res.status === 404) return detail || `${serviceName} could not be reached at the configured address.`;
+  return detail || `${serviceName} returned an error (${res.status}).`;
+};
+
 const GEMINI_SUGGESTIONS = [
   "How far can an EV travel on a full charge?",
   "What is the cheapest EV to own in Australia?",
@@ -306,6 +325,14 @@ export default function Chatbot() {
         }),
         signal: entry.controller.signal,
       });
+      if (!res.ok) {
+        addRasaMessage({
+          type: "text",
+          sender: "bot",
+          text: await describeHttpFailure(res, "The station assistant"),
+        });
+        return;
+      }
       const data = await res.json();
       handleRasaResponse(data || []);
     } catch (error) {
@@ -416,6 +443,11 @@ export default function Chatbot() {
         }),
         signal: entry.controller.signal,
       });
+      if (!res.ok) {
+        const failure = await describeHttpFailure(res, "EVAT-AI");
+        setGeminiMessages(prev => [...prev, { from: "bot", text: failure, time: timestamp() }]);
+        return;
+      }
       const data = await res.json();
       const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I couldn't generate a response.";
       setGeminiMessages(prev => [...prev, { from: "bot", text: reply, time: timestamp() }]);
