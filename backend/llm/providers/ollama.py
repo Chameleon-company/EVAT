@@ -1,4 +1,4 @@
-from typing import Any, Dict, Sequence
+from typing import Any, Dict, Optional, Sequence
 
 import httpx
 
@@ -8,7 +8,7 @@ from backend.llm.exceptions import (
     LLMModelNotFoundError,
     LLMTimeoutError,
 )
-from backend.llm.models import LLMMessage, LLMResponse
+from backend.llm.models import LLMMessage, LLMResponse, LLMToolCall
 from backend.llm.providers.base import LLMProvider
 
 
@@ -35,6 +35,7 @@ class OllamaProvider(LLMProvider):
         self,
         messages: Sequence[LLMMessage],
         temperature: float = 0.2,
+        tools: Optional[Sequence[Dict[str, Any]]] = None,
     ) -> LLMResponse:
         payload: Dict[str, Any] = {
             "model": self._model,
@@ -50,6 +51,9 @@ class OllamaProvider(LLMProvider):
                 "temperature": temperature,
             },
         }
+
+        if tools:
+            payload["tools"] = list(tools)
 
         try:
             async with httpx.AsyncClient(
@@ -92,13 +96,55 @@ class OllamaProvider(LLMProvider):
         try:
             data = response.json()
             message = data["message"]
-            content = message["content"]
+            content = message.get("content", "")
+            raw_tool_calls = message.get("tool_calls", [])
         except (KeyError, TypeError, ValueError) as exc:
             raise LLMInvalidResponseError(
                 "Ollama returned an unexpected response."
             ) from exc
 
-        if not isinstance(content, str) or not content.strip():
+        if not isinstance(content, str):
+            raise LLMInvalidResponseError(
+                "Ollama returned invalid message content."
+            )
+
+        tool_calls = []
+
+        if raw_tool_calls:
+            if not isinstance(raw_tool_calls, list):
+                raise LLMInvalidResponseError(
+                    "Ollama returned invalid tool calls."
+                )
+
+            for raw_call in raw_tool_calls:
+                try:
+                    function = raw_call["function"]
+                    name = function["name"]
+                    arguments = function.get("arguments", {})
+                except (KeyError, TypeError) as exc:
+                    raise LLMInvalidResponseError(
+                        "Ollama returned an invalid tool call."
+                    ) from exc
+
+                if not isinstance(name, str) or not name.strip():
+                    raise LLMInvalidResponseError(
+                        "Ollama returned a tool call without a valid name."
+                    )
+
+                if not isinstance(arguments, dict):
+                    raise LLMInvalidResponseError(
+                        "Ollama returned invalid tool arguments."
+                    )
+
+                tool_calls.append(
+                    LLMToolCall(
+                        name=name.strip(),
+                        arguments=arguments,
+                        id=raw_call.get("id"),
+                    )
+                )
+
+        if not content.strip() and not tool_calls:
             raise LLMInvalidResponseError(
                 "Ollama returned an empty response."
             )
@@ -110,6 +156,7 @@ class OllamaProvider(LLMProvider):
             finish_reason=data.get("done_reason"),
             prompt_tokens=data.get("prompt_eval_count"),
             completion_tokens=data.get("eval_count"),
+            tool_calls=tool_calls,
         )
 
     async def health_check(self) -> bool:
