@@ -40,7 +40,20 @@ function Avatar({ type }) {
   );
 }
 
-function Bubble({ sender, children, time }) {
+function Bubble({ sender, children, time, copyText }) {
+  const [copied, setCopied] = useState(false);
+  const showCopy = sender === "bot" && Boolean(copyText);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(copyText);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // Clipboard is unavailable outside a secure context; leave the label unchanged.
+    }
+  };
+
   return (
     <div style={{ display: "flex", gap: "10px", alignItems: "flex-start", marginBottom: "14px", flexDirection: sender === "user" ? "row-reverse" : "row" }}>
       <Avatar type={sender} />
@@ -55,7 +68,34 @@ function Bubble({ sender, children, time }) {
         fontSize: "14px", lineHeight: "1.6",
       }}>
         {children}
-        <div style={{ fontSize: "10px", color: sender === "user" ? "rgba(255,255,255,0.6)" : "#bbb", marginTop: "4px", textAlign: "right" }}>{time}</div>
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: showCopy ? "space-between" : "flex-end",
+          gap: "10px",
+          marginTop: "4px",
+        }}>
+          {showCopy && (
+            <button
+              type="button"
+              onClick={handleCopy}
+              aria-label={copied ? "Message copied to clipboard" : "Copy message"}
+              title={copied ? "Copied" : "Copy message"}
+              style={{
+                border: "none",
+                background: "transparent",
+                padding: 0,
+                cursor: "pointer",
+                fontSize: "10px",
+                fontWeight: 600,
+                color: copied ? "#16a34a" : "#bbb",
+              }}
+            >
+              {copied ? "Copied" : "Copy"}
+            </button>
+          )}
+          <span style={{ fontSize: "10px", color: sender === "user" ? "rgba(255,255,255,0.6)" : "#bbb" }}>{time}</span>
+        </div>
       </div>
     </div>
   );
@@ -336,7 +376,7 @@ export default function Chatbot() {
   const renderRasaMessage = (msg) => {
     if (msg.type === "text") {
       return (
-        <Bubble key={msg.id} sender={msg.sender} time={msg.time}>
+        <Bubble key={msg.id} sender={msg.sender} time={msg.time} copyText={msg.text}>
           <span style={{ whiteSpace: "pre-wrap" }}>{msg.text}</span>
         </Bubble>
       );
@@ -554,7 +594,7 @@ export default function Chatbot() {
                 )}
 
                 {geminiMessages.map((msg, i) => (
-                  <Bubble key={i} sender={msg.from} time={msg.time}>
+                  <Bubble key={i} sender={msg.from} time={msg.time} copyText={msg.text}>
                     {msg.from === "bot" ? (
                       <>
                         <p style={{ color: "#6366f1", fontSize: "10px", fontWeight: 700, letterSpacing: "1px", margin: "0 0 6px 0" }}>EVAT-AI</p>
