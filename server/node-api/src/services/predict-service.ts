@@ -1,12 +1,8 @@
 import PredictRepository from "../repositories/predict-repository";
 import Congestion, { ICongestion } from "../models/congestion-model";
 import mongoose from "mongoose";
-// import fetch from "node-fetch";
-// Replaced fetch/node-fetch with axios for timeout and error handling
 import axios from 'axios';
-// Format response
 import { PredictionRequestPayload, PythonPredictionResponse, FormattedPredictionResponse } from '../types/predict';
-// Import environment variables
 import { env } from "../config/env";
 
 export default class PredictService {
@@ -246,7 +242,6 @@ export default class PredictService {
 
     /**
      * Get efficiency specifications for a specific ICE vehicle
-     * Fetches efficiency specifications for a specific ICE vehicle
      * 
      * @param make - The manufacturer of the ICE vehicle
      * @param model - The model of the ICE vehicle
