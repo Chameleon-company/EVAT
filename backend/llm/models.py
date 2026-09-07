@@ -6,16 +6,19 @@ MessageRole = Literal["system", "user", "assistant", "tool"]
 
 
 @dataclass(frozen=True)
-class LLMMessage:
-    role: MessageRole
-    content: str
-
-
-@dataclass(frozen=True)
 class LLMToolCall:
     name: str
     arguments: Dict[str, Any]
     id: Optional[str] = None
+
+
+@dataclass(frozen=True)
+class LLMMessage:
+    role: MessageRole
+    content: str = ""
+    tool_calls: List[LLMToolCall] = field(default_factory=list)
+    tool_name: Optional[str] = None
+    tool_call_id: Optional[str] = None
 
 
 @dataclass(frozen=True)

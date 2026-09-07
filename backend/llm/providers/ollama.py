@@ -37,16 +37,39 @@ class OllamaProvider(LLMProvider):
         temperature: float = 0.2,
         tools: Optional[Sequence[Dict[str, Any]]] = None,
     ) -> LLMResponse:
+        serialized_messages = []
+
+        for message in messages:
+            serialized_message: Dict[str, Any] = {
+                "role": message.role,
+                "content": message.content,
+            }
+
+            # Preserve assistant tool calls when sending the
+            # conversation back to Ollama.
+            if message.tool_calls:
+                serialized_message["tool_calls"] = [
+                    {
+                        "type": "function",
+                        "function": {
+                            "name": tool_call.name,
+                            "arguments": tool_call.arguments,
+                        },
+                    }
+                    for tool_call in message.tool_calls
+                ]
+
+            # Tool result messages need the name of the tool
+            # that produced the result.
+            if message.role == "tool" and message.tool_name:
+                serialized_message["tool_name"] = message.tool_name
+
+            serialized_messages.append(serialized_message)
+
         payload: Dict[str, Any] = {
             "model": self._model,
             "stream": False,
-            "messages": [
-                {
-                    "role": message.role,
-                    "content": message.content,
-                }
-                for message in messages
-            ],
+            "messages": serialized_messages,
             "options": {
                 "temperature": temperature,
             },
@@ -144,6 +167,7 @@ class OllamaProvider(LLMProvider):
                     )
                 )
 
+        # A tool call can legitimately have empty text content.
         if not content.strip() and not tool_calls:
             raise LLMInvalidResponseError(
                 "Ollama returned an empty response."
