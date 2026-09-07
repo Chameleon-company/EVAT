@@ -1,12 +1,14 @@
 import os
 import pickle
+from pathlib import Path
 import numpy as np
 import pandas as pd
 from typing import Union, List
 from fastapi import HTTPException
 
 # Load the bundle (model + metadata)
-with open("personalisedEVInsights/kproto_bundle.pkl", "rb") as f:
+SERVICE_DIR = Path(__file__).resolve().parent
+with (SERVICE_DIR / "kproto_bundle.pkl").open("rb") as f:
     bundle = pickle.load(f)
 
 kproto = bundle["model"]

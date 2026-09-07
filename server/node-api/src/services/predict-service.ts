@@ -1,10 +1,7 @@
 import PredictRepository from "../repositories/predict-repository";
 import Congestion, { ICongestion } from "../models/congestion-model";
 import mongoose from "mongoose";
-// import fetch from "node-fetch";
-// Replaced fetch/node-fetch with axios for timeout and error handling
 import axios from 'axios';
-// Format response
 import { PredictionRequestPayload, PythonPredictionResponse, FormattedPredictionResponse } from '../types/predict';
 
 

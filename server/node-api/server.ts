@@ -36,6 +36,7 @@ import achievementRoutes from "./src/routes/achievement-route";
 import personalisedEVInsightsRoutes from "./src/routes/personalised-ev-insights-routes";
 import weatherAwareRoutes from "./src/routes/weather-aware-routing-routes";
 import chargingInsightsRoutes from "./src/routes/charging-insights-route";
+import NearbyPlaceRoutes from "./src/routes/nearby-place-route";
 
 const app: Application = express();
 const PORT = env.PORT;
@@ -44,7 +45,6 @@ const DOMAIN_URL = env.DOMAIN_URL;
 // Mongoose deprecation warning for 'strictQuery'
 mongoose.set('strictQuery', true);
 
-connectDB();
 
 import Admin from './src/models/admin';
 
@@ -55,9 +55,6 @@ const createDefaultAdmin = async () => {
     console.log('✅ Default admin created');
   }
 };
-
-createDefaultAdmin();
-
 
 app.use(cors());
 app.use(express.json());
@@ -86,7 +83,9 @@ const options = {
         bearerAuth: [],
       },
     ],
-    servers: [{ url: `${DOMAIN_URL}:${PORT}` }],
+    // PUBLIC_API_URL wins when set (Docker publishes the API on a different
+    // host port than the one the process listens on).
+    servers: [{ url: process.env.PUBLIC_API_URL ?? `${DOMAIN_URL}:${PORT}` }],
   },
   apis: ["./src/routes/*.ts", "./src/routes/*.js"],
 };
@@ -133,6 +132,7 @@ app.use("/api/achievements", achievementRoutes);
 app.use("/api/personalised-ev-insights", personalisedEVInsightsRoutes);
 app.use("/api/weather-aware-routing", weatherAwareRoutes);
 app.use("/api/v1/insights", chargingInsightsRoutes);
+app.use("/api/nearby-places", NearbyPlaceRoutes);
 
 // Serve React frontend
 const buildPath = path.join(__dirname, "/build");
@@ -148,7 +148,19 @@ app.get("*", (req, res) => {
 app.use(notFound);
 app.use(errorHandler);
 
+const startServer = async () => {
+try {
+await connectDB();
+await createDefaultAdmin();
+
 app.listen(PORT, () => {
-  console.log(`Server is running on ${DOMAIN_URL}:${PORT}`);
-  console.log(`Swagger UI is available on ${DOMAIN_URL}:${PORT}/api/docs`);
+console.log(`Server is running on ${DOMAIN_URL}:${PORT}`);
+console.log(`Swagger UI is available on ${DOMAIN_URL}:${PORT}/api/docs`);
 });
+} catch (error) {
+console.error("Server startup error:", error);
+process.exit(1);
+}
+};
+
+startServer();
