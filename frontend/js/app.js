@@ -1,520 +1,200 @@
-/**
- * EVAT CHATBOT APP
- * Main application controller.
- *
- * UI rendering is handled by the modular files:
- * - chat/messages.js
- * - chat/chips.js
- * - cards/*.js
- * - ui/*.js
- * - location/location.js
- * - js/chatbot-api.js
- */
-
-
-/* =========================================================
-   DOM ELEMENTS
-   ========================================================= */
-
 const chat = document.getElementById("chat");
 const form = document.getElementById("chat-form");
 const userInput = document.getElementById("user-input");
 const typingIndicator = document.getElementById("typing-indicator");
 const clearBtn = document.getElementById("clear-btn");
 
-
-/* =========================================================
-   INPUT STATE
-   ========================================================= */
-
 let baseInputHeight = null;
 
 const MAX_INPUT_HEIGHT = 120;
 
-
-/* =========================================================
-   RASA RESPONSE HANDLER
-   ========================================================= */
-
 function handleChatbotResponse(messages) {
-
     if (!Array.isArray(messages)) {
-        console.warn(
-            "Invalid Rasa response:",
-            messages
-        );
-
+        console.warn("Invalid chatbot response:", messages);
         return;
     }
 
-
     messages.forEach((msg) => {
-
-        /* -------------------------------------------------
-           NORMAL TEXT RESPONSE
-           ------------------------------------------------- */
-
         if (msg.text) {
-
-            addMessage(
-                msg.text,
-                "bot"
-            );
+            addMessage(msg.text, "bot");
         }
-
-
-        /* -------------------------------------------------
-           CUSTOM RESPONSE PAYLOAD
-           ------------------------------------------------- */
 
         const payload =
             msg.custom ||
             msg.json_message ||
             null;
 
-
-        if (
-            !payload ||
-            typeof payload !== "object"
-        ) {
+        if (!payload || typeof payload !== "object") {
             return;
         }
 
-
-        /* -------------------------------------------------
-           DIRECTIONS CARD
-           ------------------------------------------------- */
-
-        if (
-            payload.type === "directions"
-        ) {
-
-            if (
-                typeof addDirectionsCard ===
-                "function"
-            ) {
-
-                addDirectionsCard(
-                    payload
-                );
-
+        if (payload.type === "directions") {
+            if (typeof addDirectionsCard === "function") {
+                addDirectionsCard(payload);
             } else {
-
-                console.warn(
-                    "addDirectionsCard() is not available."
-                );
+                console.warn("addDirectionsCard() is not available.");
             }
 
             return;
         }
 
-
-        /* -------------------------------------------------
-           TRAFFIC CARD
-           ------------------------------------------------- */
-
-        if (
-            payload.type === "traffic"
-        ) {
-
-            if (
-                typeof addTrafficCard ===
-                "function"
-            ) {
-
-                addTrafficCard(
-                    payload
-                );
-
+        if (payload.type === "traffic") {
+            if (typeof addTrafficCard === "function") {
+                addTrafficCard(payload);
             } else {
-
-                console.warn(
-                    "addTrafficCard() is not available."
-                );
+                console.warn("addTrafficCard() is not available.");
             }
 
             return;
         }
 
-
-        /* -------------------------------------------------
-           STATION CARDS
-           ------------------------------------------------- */
-
-        if (
-            Array.isArray(
-                payload.stations
-            )
-        ) {
-
-            if (
-                typeof addStationCards ===
-                "function"
-            ) {
-
+        if (Array.isArray(payload.stations)) {
+            if (typeof addStationCards === "function") {
                 addStationCards(
                     payload.stations,
                     {
-                        show_availability:
-                            !!payload.show_availability
+                        show_availability: !!payload.show_availability
                     }
                 );
-
             } else {
-
-                console.warn(
-                    "addStationCards() is not available."
-                );
+                console.warn("addStationCards() is not available.");
             }
         }
-
     });
 }
 
-
-/* =========================================================
-   SEND MESSAGE
-   ========================================================= */
-
 async function sendMessage(message) {
-
     if (!message) {
         return;
     }
 
-
-    /* Show typing indicator */
-
     if (typingIndicator) {
-
-        typingIndicator.classList.remove(
-            "hidden"
-        );
+        typingIndicator.classList.remove("hidden");
     }
 
-
     try {
-
-        /* Send message to Rasa */
-
-        const data =
-            await sendChatMessage(
-                message,
-                "user",
-                userLocation || {}
-            );
-
-
-        /* Handle empty response */
-
-        if (
-            !Array.isArray(data) ||
-            data.length === 0
-        ) {
-
-            addMessage(
-                "Sorry, I didn’t understand that.",
-                "bot"
-            );
-
-        } else {
-
-            /* Process Rasa response */
-
-            handleChatbotResponse(
-                data
-            );
-        }
-
-
-    } catch (error) {
-
-        console.error(
-            "Error sending chatbot message:",
-            error
+        const data = await sendChatMessage(
+            message,
+            "user",
+            userLocation || {}
         );
 
+        if (!Array.isArray(data) || data.length === 0) {
+            addMessage(
+                "Sorry, I didn't understand that.",
+                "bot"
+            );
+        } else {
+            handleChatbotResponse(data);
+        }
+    } catch (error) {
+        console.error("Error sending chatbot message:", error);
 
         addMessage(
             "Server error. Please try again.",
             "bot"
         );
-
-
     } finally {
-
-        /* Hide typing indicator */
-
         if (typingIndicator) {
-
-            typingIndicator.classList.add(
-                "hidden"
-            );
+            typingIndicator.classList.add("hidden");
         }
     }
 }
 
+window.addEventListener("load", async () => {
+    console.log("EVAT frontend starting...");
 
-/* =========================================================
-   INITIAL CHAT
-   ========================================================= */
+    if (chat) {
+        chat.innerHTML = "";
+    }
 
-async function sendLocation() {
+    if (userInput) {
+        userInput.style.height = "auto";
+        baseInputHeight = userInput.scrollHeight;
+    }
 
     try {
-
-        const data =
-            await sendChatMessage(
-                "hello",
-                "user",
-                userLocation || {}
-            );
-
-
-        if (
-            Array.isArray(data) &&
-            data.length > 0
-        ) {
-
-            handleChatbotResponse(
-                data
-            );
-        }
-
-
-    } catch (error) {
-
-        console.error(
-            "Error sending initial chatbot request:",
-            error
-        );
-
-
-        addMessage(
-            "Unable to connect to EVAT right now.",
-            "bot"
-        );
-    }
-}
-
-
-/* =========================================================
-   PAGE INITIALISATION
-   ========================================================= */
-
-window.addEventListener(
-    "load",
-    async () => {
+        await resolveUserLocation();
 
         console.log(
-            "EVAT frontend starting..."
+            "User location:",
+            userLocation
         );
-
-
-        /* -----------------------------------------------
-           Start with empty chat
-           ----------------------------------------------- */
-
-        if (chat) {
-
-            chat.innerHTML = "";
-        }
-
-
-        /* -----------------------------------------------
-           Input height
-           ----------------------------------------------- */
-
-        if (userInput) {
-
-            userInput.style.height =
-                "auto";
-
-            baseInputHeight =
-                userInput.scrollHeight;
-        }
-
-
-        /* -----------------------------------------------
-           Resolve browser location
-           ----------------------------------------------- */
-
-        try {
-
-            await resolveUserLocation();
-
-            console.log(
-                "User location:",
-                userLocation
-            );
-
-        } catch (error) {
-
-            console.warn(
-                "Location unavailable. Rasa will ask for suburb.",
-                error
-            );
-        }
-
-
-        /* -----------------------------------------------
-           Start chatbot
-           ----------------------------------------------- */
-
-        await sendLocation();
+    } catch (error) {
+        console.warn(
+            "Location unavailable.",
+            error
+        );
     }
-);
 
+    addMessage(
+        "⚡ Hello! I'm EVAT, your EV charging assistant. How can I help you today?",
+        "bot"
+    );
+});
 
-/* =========================================================
-   FORM SUBMIT
-   ========================================================= */
+form.addEventListener("submit", async (event) => {
+    event.preventDefault();
 
-form.addEventListener(
-    "submit",
-    async (event) => {
+    const message = userInput.value.trim();
 
+    if (!message) {
+        return;
+    }
+
+    addMessage(message, "user");
+
+    userInput.value = "";
+
+    userInput.style.height =
+        baseInputHeight
+            ? `${baseInputHeight}px`
+            : "auto";
+
+    await sendMessage(message);
+});
+
+userInput.addEventListener("input", () => {
+    if (baseInputHeight == null) {
+        userInput.style.height = "auto";
+        baseInputHeight = userInput.scrollHeight;
+    }
+
+    userInput.style.height = `${baseInputHeight}px`;
+
+    const needed = Math.min(
+        MAX_INPUT_HEIGHT,
+        userInput.scrollHeight
+    );
+
+    if (needed > baseInputHeight + 2) {
+        userInput.style.height = `${needed}px`;
+    }
+});
+
+userInput.addEventListener("keydown", (event) => {
+    if (
+        event.key === "Enter" &&
+        !event.shiftKey
+    ) {
         event.preventDefault();
+        form.requestSubmit();
+    }
+});
 
-
-        const message =
-            userInput.value.trim();
-
-
-        if (!message) {
-
+if (clearBtn) {
+    clearBtn.addEventListener("click", () => {
+        if (!confirm("Clear all chat messages?")) {
             return;
         }
 
+        chat.innerHTML = "";
 
-        /* -----------------------------------------------
-           Display user message
-           ----------------------------------------------- */
+        localStorage.removeItem("chatHistory");
 
         addMessage(
-            message,
-            "user"
+            "Chat cleared. How can I help you now?",
+            "bot"
         );
-
-
-        /* -----------------------------------------------
-           Clear input
-           ----------------------------------------------- */
-
-        userInput.value = "";
-
-        userInput.style.height =
-            baseInputHeight
-                ? `${baseInputHeight}px`
-                : "auto";
-
-
-        /* -----------------------------------------------
-           Send message
-           ----------------------------------------------- */
-
-        await sendMessage(
-            message
-        );
-    }
-);
-
-
-/* =========================================================
-   TEXTAREA RESIZE
-   ========================================================= */
-
-userInput.addEventListener(
-    "input",
-    () => {
-
-        if (
-            baseInputHeight == null
-        ) {
-
-            userInput.style.height =
-                "auto";
-
-            baseInputHeight =
-                userInput.scrollHeight;
-        }
-
-
-        userInput.style.height =
-            `${baseInputHeight}px`;
-
-
-        const needed =
-            Math.min(
-                MAX_INPUT_HEIGHT,
-                userInput.scrollHeight
-            );
-
-
-        if (
-            needed >
-            baseInputHeight + 2
-        ) {
-
-            userInput.style.height =
-                `${needed}px`;
-        }
-    }
-);
-
-
-/* =========================================================
-   ENTER TO SEND
-   ========================================================= */
-
-userInput.addEventListener(
-    "keydown",
-    (event) => {
-
-        if (
-            event.key === "Enter" &&
-            !event.shiftKey
-        ) {
-
-            event.preventDefault();
-
-            form.requestSubmit();
-        }
-    }
-);
-
-
-/* =========================================================
-   CLEAR CHAT
-   ========================================================= */
-
-if (clearBtn) {
-
-    clearBtn.addEventListener(
-        "click",
-        () => {
-
-            if (
-                !confirm(
-                    "Clear all chat messages?"
-                )
-            ) {
-
-                return;
-            }
-
-
-            chat.innerHTML = "";
-
-            localStorage.removeItem(
-                "chatHistory"
-            );
-
-
-            addMessage(
-                "Chat cleared. How can I help you now?",
-                "bot"
-            );
-        }
-    );
+    });
 }
