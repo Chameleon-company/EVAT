@@ -2,13 +2,14 @@ import e, { Request, Response } from "express";
 import UserService from "../services/user-service";
 import { UserItemResponse } from "../dtos/user-item-response";
 import jwt from "jsonwebtoken";
-import generateToken from "../utils/generate-token";
+import generateAccessToken from "../utils/generate-token";
 
 interface JwtPayload {
     id: string;
     email?: string;
     role?: string;
     admin?: boolean;
+    type?: string;
 }
 
 export default class UserController {
@@ -57,6 +58,7 @@ export default class UserController {
 
             try {
                 const decoded = jwt.verify(token, process.env.JWT_SECRET) as JwtPayload;
+                if (decoded.type !== "access") throw new Error("Token is not an access token");
                 const user = await this.userService.getUserById(decoded.id);
                 if (!user) {
                     return res.status(404).json({ message: "User not found" });
@@ -92,7 +94,7 @@ export default class UserController {
 
                 if (refreshTokenExpiryUnix > nowUnix) {
                     // if still valid, make a new AccessToken
-                    const newAccessToken = generateToken(user, "1h");
+                    const newAccessToken = generateAccessToken(user);
 
                     // Update last login
                     //user.lastLogin = new Date();

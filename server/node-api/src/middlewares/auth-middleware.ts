@@ -12,6 +12,7 @@ interface JwtPayload {
   email?: string;
   role?: string;
   admin?: boolean;
+  type?: string;
 }
 
 export const authGuard = (allowedRoles: string[]) => {
@@ -24,6 +25,10 @@ export const authGuard = (allowedRoles: string[]) => {
 
       const token = authHeader.split(" ")[1];
       const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+
+      if (decoded.type !== 'access'){
+        return res.status(401).json({ message: "Invalid token: must be an access token"});
+      }
 
       // ✅ Admin token path
       if (decoded.admin) {

@@ -1,18 +1,35 @@
 import jwt from "jsonwebtoken";
 import { IUser } from "../models/user-model";
 
-const generateToken = (user: IUser, period?: string) => {
-  const secret = process.env.JWT_SECRET;
+const secret = process.env.JWT_SECRET;
+
+const generateAccessToken = (user: IUser) => {
+
   if (!secret) {
     throw new Error("JWT_SECRET is not defined in the environment variables.");
   }
 
   const token = jwt.sign(
-    { id: user.id, email: user.email, role: user.role },
+    { id: user.id, email: user.email, role: user.role, type: 'access' },
     secret as string,
-    { expiresIn: period ? period : "1d" }
+    { expiresIn: "15m" }
   );
   return token;
 };
 
-export default generateToken;
+const generateRefreshToken = (user: IUser) => {
+
+  if (!secret) {
+    throw new Error("JWT_SECRET is not defined in the environment variables.");
+  }
+
+  const token = jwt.sign(
+    { id: user.id, email: user.email, role: user.role, type: 'refresh' },
+    secret as string,
+    { expiresIn: "7d" }
+  );
+  return token;
+};
+
+
+export default generateAccessToken; generateRefreshToken;
