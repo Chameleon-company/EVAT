@@ -1,8 +1,7 @@
 import User from "../models/user-model";
 import UserRepository from "../repositories/user-repository";
 import bcrypt from "bcryptjs";
-import generateAccessToken from "../utils/generate-token";
-import generateRefreshToken from "../utils/generate-token";
+import { generateAccessToken, generateRefreshToken } from "../utils/generate-token";
 import jwt from "jsonwebtoken";
 
 export default class UserService {

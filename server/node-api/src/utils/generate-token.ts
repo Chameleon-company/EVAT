@@ -3,7 +3,7 @@ import { IUser } from "../models/user-model";
 
 const secret = process.env.JWT_SECRET;
 
-const generateAccessToken = (user: IUser) => {
+export const generateAccessToken = (user: IUser) => {
 
   if (!secret) {
     throw new Error("JWT_SECRET is not defined in the environment variables.");
@@ -17,7 +17,7 @@ const generateAccessToken = (user: IUser) => {
   return token;
 };
 
-const generateRefreshToken = (user: IUser) => {
+export const generateRefreshToken = (user: IUser) => {
 
   if (!secret) {
     throw new Error("JWT_SECRET is not defined in the environment variables.");
@@ -32,4 +32,3 @@ const generateRefreshToken = (user: IUser) => {
 };
 
 
-export default generateAccessToken; generateRefreshToken;

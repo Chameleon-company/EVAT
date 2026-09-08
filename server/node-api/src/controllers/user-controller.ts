@@ -2,7 +2,7 @@ import e, { Request, Response } from "express";
 import UserService from "../services/user-service";
 import { UserItemResponse } from "../dtos/user-item-response";
 import jwt from "jsonwebtoken";
-import generateAccessToken from "../utils/generate-token";
+import { generateAccessToken } from "../utils/generate-token";
 
 interface JwtPayload {
     id: string;
