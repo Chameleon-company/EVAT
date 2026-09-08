@@ -1,10 +1,4 @@
-@import 'tailwindcss';
-
-@custom-variant dark (&:where(.dark, .dark *));
-
-html, body, #root {
-  @apply h-screen w-screen;
-}
+@import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -12,11 +6,9 @@ html, body, #root {
   --color-primary: var(--primary);
   --color-secondary: var(--secondary);
   --color-muted: var(--muted);
-
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-error: var(--error);
-
   --color-background: var(--background);
   --color-surface-50: var(--surface-50);
   --color-surface-100: var(--surface-100);
@@ -29,11 +21,21 @@ html, body, #root {
   --color-surface-800: var(--surface-800);
   --color-surface-900: var(--surface-900);
   --color-surface-950: var(--surface-950);
-
   --color-foreground: var(--foreground);
 
-  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', Arial, sans-serif;
-  /* --font-brand: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"; */
+  --font-sans:
+    "Inter",
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
 
   --header-height: --spacing(18);
   --content-height: calc(100% - var(--header-height));
@@ -43,12 +45,13 @@ html, body, #root {
   --primary: var(--color-indigo-600);
   --secondary: var(--color-stone-600);
   --muted: var(--color-stone-600);
-  
+
   --success: var(--color-emerald-600);
   --warning: var(--color-yellow-600);
   --error: var(--color-red-600);
 
   --background: var(--color-stone-50);
+
   --surface-50: var(--color-stone-50);
   --surface-100: var(--color-stone-100);
   --surface-200: var(--color-stone-200);
@@ -65,40 +68,103 @@ html, body, #root {
 }
 
 .dark {
-  --primary: var(--color-indigo-500);
-  --secondary: var(--color-stone-500);
-  --muted: var(--color-stone-500);
-  
+  --primary: var(--color-emerald-500);
+  --secondary: #9bb8aa;
+  --muted: #789487;
+
   --success: var(--color-emerald-500);
-  --warning: var(--color-yellow-500);
-  --error: var(--color-red-500);
+  --warning: var(--color-amber-400);
+  --error: var(--color-red-400);
 
-  --background: var(--color-stone-900);
-  --surface-50: var(--color-stone-950);
-  --surface-100: var(--color-stone-900);
-  --surface-200: var(--color-stone-800);
-  --surface-300: var(--color-stone-700);
-  --surface-400: var(--color-stone-600);
-  --surface-500: var(--color-stone-500);
-  --surface-600: var(--color-stone-400);
-  --surface-700: var(--color-stone-300);
-  --surface-800: var(--color-stone-200);
-  --surface-900: var(--color-stone-100);
-  --surface-950: var(--color-stone-50);
+  --background: #000000;
 
-  --foreground: var(--color-stone-100);
+  --surface-50: #020504;
+  --surface-100: #040806;
+  --surface-200: #07100b;
+  --surface-300: #0a1710;
+  --surface-400: #0e2117;
+  --surface-500: #122b1e;
+  --surface-600: #183a29;
+  --surface-700: #205039;
+  --surface-800: #2b694b;
+  --surface-900: #559274;
+  --surface-950: #e8fff2;
+
+  --foreground: #f2fff7;
 }
 
-/* body {
+html,
+body,
+#root {
+  @apply h-screen w-screen;
+}
+
+html {
+  background-color: var(--background);
+  color: var(--foreground);
+  color-scheme: light;
+}
+
+html.dark {
+  background:
+    radial-gradient(
+      circle at 12% 18%,
+      rgba(16, 185, 129, 0.11),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 88% 72%,
+      rgba(16, 185, 129, 0.08),
+      transparent 32%
+    ),
+    radial-gradient(
+      circle at 50% 110%,
+      rgba(5, 150, 105, 0.07),
+      transparent 38%
+    ),
+    #000000;
+
+  color: #f2fff7;
+  color-scheme: dark;
+}
+
+body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  min-width: 320px;
+
+  background-color: var(--background);
+  color: var(--foreground);
+
+  font-family: var(--font-sans);
+
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
-} */
+.dark body {
+  background:
+    radial-gradient(
+      circle at 10% 15%,
+      rgba(16, 185, 129, 0.08),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 90% 80%,
+      rgba(16, 185, 129, 0.06),
+      transparent 30%
+    ),
+    #000000;
+
+  color: #f2fff7;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}

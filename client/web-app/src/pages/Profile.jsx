@@ -1,99 +1,119 @@
-// NOTE: For security reasons, card payment details are NOT stored in the backend.
-
-// This section only saves card information locally in the browser.
-// Full backend integration can be implemented
-// in the future when actual payments need to be made.
-
-import { useState, useEffect, useContext  } from 'react';
+import { useState, useEffect, useContext } from "react";
 import { UserContext } from "../context/user";
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Mail, House, KeyRound, CalendarDays, User, CreditCard, Phone, CircleUserRound, Car, BookText, LogOut, Pencil, Check, X, ArrowLeft } from 'lucide-react';
-import NavBar from '../components/NavBar';
+import { useNavigate, useLocation } from "react-router-dom";
+import {
+  Mail,
+  House,
+  KeyRound,
+  CalendarDays,
+  User,
+  CreditCard,
+  Phone,
+  BookText,
+  Pencil,
+  Check,
+  X,
+  ArrowLeft,
+} from "lucide-react";
+import { toast } from "react-toastify";
+
+import NavBar from "../components/NavBar";
 import ChatBubble from "../components/ChatBubble";
 import BookingHistoryTable from "../components/BookingHistoryTable";
 import EnvironmentalImpact from "../components/EnvironmentalImpact";
-import ErrorMessage from '../components/ErrorMessage';
-import SuccessMessage from '../components/SuccessMessage';
-import ProfileAvatarTool from '../components/ProfileAvatarTool';
-import { Button } from '../components/Button';
-
-import '../styles/Root.css';
-import '../styles/Buttons.css';
-import '../styles/Elements.css';
-import '../styles/Fonts.css';
-import '../styles/Forms.css';
-import '../styles/NavBar.css';
-import '../styles/Sidebar.css';
-import '../styles/Tables.css';
-import '../styles/Validation.css';
-import '../styles/Achievements.css';
+import ErrorMessage from "../components/ErrorMessage";
+import SuccessMessage from "../components/SuccessMessage";
+import ProfileAvatarTool from "../components/ProfileAvatarTool";
+import { Button } from "../components/Button";
 
 const API_URL = import.meta.env.VITE_API_URL;
-const RECENT_SUCCESS_MESSAGE_LINGER = 5000; // 5 seconds * 1000
+const RECENT_SUCCESS_MESSAGE_LINGER = 5000;
+
+const inputClass = `
+  w-full max-w-[220px] rounded-lg border px-3 py-2
+  text-sm outline-none transition
+  border-slate-300 bg-white text-slate-900
+  placeholder:text-slate-400
+  focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20
+  dark:border-gray-700 dark:bg-gray-950
+  dark:text-white dark:placeholder:text-gray-600
+`;
+
+const sectionClass = `
+  rounded-2xl border p-5 sm:p-6
+  border-slate-200 bg-white
+  shadow-sm
+  dark:border-gray-800 dark:bg-[#050806]
+  dark:shadow-[0_8px_30px_rgba(0,0,0,0.4)]
+`;
+
+const secondaryTextClass = "text-sm text-slate-500 dark:text-gray-400";
 
 function Profile() {
   const navigate = useNavigate();
   const location = useLocation();
-  // Get user from Context
-  const { user: contextUser, setUser: setContextUser, updateUser: updateContextUser } = useContext(UserContext);
 
-  // Local editable copy for forms
+  const {
+    user: contextUser,
+    setUser: setContextUser,
+    updateUser: updateContextUser,
+  } = useContext(UserContext);
+
   const [localUser, setLocalUser] = useState(null);
   const [originalUser, setOriginalUser] = useState(null);
-  // Local state management
+
   const [errors, setErrors] = useState({});
   const [activeTab, setActiveTab] = useState("dashboard");
+
   const [editingCar, setEditingCar] = useState(false);
   const [editingPayment, setEditingPayment] = useState(false);
   const [editingAbout, setEditingAbout] = useState(false);
+
   const [history, setHistory] = useState([]);
   const [successMessage, setSuccessMessage] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
-  // New state for car dropdowns
+
   const [loadingVehicles, setLoadingVehicles] = useState(false);
   const [allVehicles, setAllVehicles] = useState([]);
   const [makes, setMakes] = useState([]);
   const [models, setModels] = useState([]);
   const [years, setYears] = useState([]);
-  // Payment information
+
   const [paymentErrors, setPaymentErrors] = useState({});
   const [paymentSuccessMessage, setPaymentSuccessMessage] = useState("");
   const [isPaymentSuccess, setIsPaymentSuccess] = useState(false);
-  // success and failure messages
+
   const [recentSuccess, setRecentSuccess] = useState(false);
-  const [success, setSuccess] = useState('');
-  // profile image tool
+  const [success, setSuccess] = useState("");
+
   const [showAvatarTool, setShowAvatarTool] = useState(false);
-  // achievement information
+
   const [recentAchievements, setRecentAchievements] = useState([]);
   const [achievementsLoading, setAchievementsLoading] = useState(true);
-  // user stats information
+
   const [userStats, setUserStats] = useState(null);
   const [statsLoading, setStatsLoading] = useState(true);
 
-  // Sync context user and local user
   useEffect(() => {
     if (contextUser) {
       setLocalUser(contextUser);
     }
   }, [contextUser]);
 
-  // format a given date
   const formatDate = (date) => {
     if (!date) return "N/A";
-    return new Date(date).toLocaleDateString('en-AU', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+
+    return new Date(date).toLocaleDateString("en-AU", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
   const handleChangeImage = () => {
-    // display profile pic options that are provided by the app
     setShowAvatarTool(true);
   };
 
-  // Reset tab to "dashboard" if user navigates back with reset flag
   useEffect(() => {
     if (location.pathname === "/profile" && location.state?.resetDashboard) {
       setActiveTab("dashboard");
@@ -101,21 +121,21 @@ function Profile() {
     }
   }, [location, navigate]);
 
-  // get token from context if available, otherwise get from local storage
-  const token = contextUser?.token || JSON.parse(localStorage.getItem("currentUser"))?.token;
+  const token =
+    contextUser?.token ||
+    JSON.parse(localStorage.getItem("currentUser"))?.token;
 
-  // auto-clear the warning after 5 seconds
   useEffect(() => {
     if (isPaymentSuccess) {
       const timer = setTimeout(() => {
         setIsPaymentSuccess(false);
-        setPaymentSuccessMessage(false);
+        setPaymentSuccessMessage("");
       }, RECENT_SUCCESS_MESSAGE_LINGER);
+
       return () => clearTimeout(timer);
     }
   }, [isPaymentSuccess]);
 
-  // Fetch user profile on load
   useEffect(() => {
     if (!token) {
       navigate("/signin");
@@ -124,31 +144,42 @@ function Profile() {
 
     const fetchUserProfile = async () => {
       try {
-        // Fetch basic user profile (id, name, email, mobile, role)
         const authRes = await fetch(`${API_URL}/auth/profile`, {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         });
-        if (!authRes.ok) throw new Error("Failed to fetch auth profile");
+
+        if (!authRes.ok) {
+          throw new Error("Failed to fetch auth profile");
+        }
+
         const authData = await authRes.json();
 
-        // Fetch detailed profile (car model, favourite stations)
         const profileRes = await fetch(`${API_URL}/profile/user-profile`, {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         });
-        if (!profileRes.ok)
+
+        if (!profileRes.ok) {
           throw new Error("Failed to fetch user profile details");
+        }
+
         const profileData = await profileRes.json();
 
-        // Normalize car for the UI
         let car = profileData?.data?.user_car_model ?? null;
 
         if (car && typeof car === "string") {
-          // car is an ID - fetch full vehicle
           const vRes = await fetch(`${API_URL}/vehicle/${car}`, {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
           });
+
           if (vRes.ok) {
             const v = await vRes.json();
+
             car = {
               ...v,
               id: v.id || v._id,
@@ -158,7 +189,6 @@ function Profile() {
             car = null;
           }
         } else if (car && typeof car === "object") {
-          // car is an object - normalize fields
           car = {
             ...car,
             id: car.id || car._id,
@@ -177,7 +207,7 @@ function Profile() {
           car,
           favourites: profileData.data.favourite_stations || [],
           avatarURL: profileData.data.avatarURL,
-          token: token,
+          token,
         };
 
         setLocalUser(nextUser);
@@ -189,28 +219,29 @@ function Profile() {
     };
 
     fetchUserProfile();
-  }, [navigate, token]);
+  }, [navigate, token, setContextUser]);
 
-  // Fetch user stats when profile loads
   useEffect(() => {
     if (token) {
       fetchUserStats();
     }
   }, [token]);
 
-  // Fetch user stats
   const fetchUserStats = async () => {
     if (!token) return;
 
     try {
       setStatsLoading(true);
+
       const res = await fetch(`${API_URL}/user-stats/me`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      if (!res.ok) throw new Error("Failed to fetch stats");
+      if (!res.ok) {
+        throw new Error("Failed to fetch stats");
+      }
 
       const data = await res.json();
       setUserStats(data.data || null);
@@ -222,25 +253,27 @@ function Profile() {
     }
   };
 
-  // Fetch recent achievements when profile loads
   useEffect(() => {
     if (token) {
       fetchRecentAchievements();
     }
   }, [token]);
-  
-  // Fetch recent achievements
+
   const fetchRecentAchievements = async () => {
     if (!token) return;
 
     try {
       setAchievementsLoading(true);
-      const res = await fetch(`${API_URL}/achievements/me-recent?limit=6`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
+
+      const res = await fetch(
+        `${API_URL}/achievements/me-recent?limit=6`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       if (!res.ok) {
         const errorText = await res.text();
@@ -257,26 +290,30 @@ function Profile() {
     }
   };
 
-  // Fetch vehicles when editing car OR when opening Environmental Impact tab
   useEffect(() => {
     if (editingCar || activeTab === "env-impact") {
       fetchAllVehicles();
     }
   }, [activeTab, editingCar, localUser?.token]);
 
-  // Reusable function to load all vehicles
   const fetchAllVehicles = async () => {
     if (!localUser?.token || loadingVehicles) return;
 
     setLoadingVehicles(true);
+
     try {
       const res = await fetch(`${API_URL}/vehicle`, {
-        headers: { Authorization: `Bearer ${localUser.token}` },
+        headers: {
+          Authorization: `Bearer ${localUser.token}`,
+        },
       });
 
-      if (!res.ok) throw new Error("Failed to fetch vehicles");
+      if (!res.ok) {
+        throw new Error("Failed to fetch vehicles");
+      }
 
       const data = await res.json();
+
       const items = (data.data || []).map((v) => ({
         ...v,
         id: v.id || v._id,
@@ -292,19 +329,24 @@ function Profile() {
     }
   };
 
-  // Fetch all vehicles when editing starts (to populate dropdown list)
   useEffect(() => {
     if (localUser?.car?.make) {
       const filteredModels = allVehicles
         .filter((v) => v.make === localUser.car.make)
         .map((v) => v.model);
+
       setModels(["Select", ...new Set(filteredModels)]);
 
       if (localUser?.car?.model) {
         const filteredYears = allVehicles
-          .filter((v) => v.make === localUser.car.make && v.model === localUser.car.model)
+          .filter(
+            (v) =>
+              v.make === localUser.car.make &&
+              v.model === localUser.car.model
+          )
           .map((v) => v.year)
           .filter(Boolean);
+
         setYears(["Select", ...new Set(filteredYears.map(String))]);
       } else {
         setYears(["Select"]);
@@ -315,7 +357,6 @@ function Profile() {
     }
   }, [localUser?.car?.make, localUser?.car?.model, allVehicles]);
 
-  // Reset editing states when switching tabs
   useEffect(() => {
     if (activeTab !== "payment") setEditingPayment(false);
     if (activeTab !== "car") setEditingCar(false);
@@ -327,12 +368,11 @@ function Profile() {
     navigate("/signin");
   };
 
-  // To make sure mobile follows Au format
   const isValidMobile = (mobile) => {
-    // Starts with 04 and has 10 digits total
     const regex = /^04\d{8}$/;
     return regex.test(mobile);
   };
+
   const validateAboutForm = () => {
     const newErrors = {};
 
@@ -357,46 +397,54 @@ function Profile() {
     }
 
     setErrors(newErrors);
+
     return Object.keys(newErrors).length === 0;
   };
 
   const validatePaymentForm = () => {
-    const errors = {};
+    const newErrors = {};
 
     const cardNum = (localUser.cardNumber || "").replace(/\s+/g, "");
+
     if (!cardNum) {
-      errors.cardNumber = "Card number is required";
+      newErrors.cardNumber = "Card number is required";
     } else if (!/^\d{16}$/.test(cardNum)) {
-      errors.cardNumber = "Card number must be 16 digits";
+      newErrors.cardNumber = "Card number must be 16 digits";
     }
 
     if (!localUser.expiryDate) {
-      errors.expiryDate = "Expiry date is required";
-    } else if (!/^(0[1-9]|1[0-2])\/([0-9]{2})$/.test(localUser.expiryDate)) {
-      errors.expiryDate = "Expiry must be in MM/YY format";
+      newErrors.expiryDate = "Expiry date is required";
+    } else if (
+      !/^(0[1-9]|1[0-2])\/([0-9]{2})$/.test(localUser.expiryDate)
+    ) {
+      newErrors.expiryDate = "Expiry must be in MM/YY format";
     } else {
       const [mm, yy] = localUser.expiryDate.split("/").map(Number);
       const now = new Date();
       const currentYear = now.getFullYear() % 100;
       const currentMonth = now.getMonth() + 1;
 
-      if (yy < currentYear || (yy === currentYear && mm < currentMonth)) {
-        errors.expiryDate = "Card has expired";
+      if (
+        yy < currentYear ||
+        (yy === currentYear && mm < currentMonth)
+      ) {
+        newErrors.expiryDate = "Card has expired";
       }
     }
 
     if (!localUser.cvv) {
-      errors.cvv = "CVV is required";
+      newErrors.cvv = "CVV is required";
     } else if (!/^\d{3}$/.test(localUser.cvv)) {
-      errors.cvv = "CVV must be 3 digits";
+      newErrors.cvv = "CVV must be 3 digits";
     }
 
     if (!localUser.billingAddress) {
-      errors.billingAddress = "Billing address is required";
+      newErrors.billingAddress = "Billing address is required";
     }
 
-    setPaymentErrors(errors);
-    return Object.keys(errors).length === 0;
+    setPaymentErrors(newErrors);
+
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSaveAbout = async () => {
@@ -420,78 +468,113 @@ function Profile() {
         body: JSON.stringify(payload),
       });
 
-
       if (!response.ok) {
-        toast.error(
-          <div>
-            Failed to update profile info
-          </div>,
-          { position: "top-center", autoClose: 2000, closeOnClick: true, draggable: true, closeButton: true, toastId: "profile-update-error" }
-        );
+        toast.error("Failed to update profile info", {
+          position: "top-center",
+          autoClose: 2000,
+          closeOnClick: true,
+          draggable: true,
+          closeButton: true,
+          toastId: "profile-update-error",
+        });
+
         throw new Error("Failed to update profile info");
       }
 
+      const updatedUser = {
+        ...localUser,
+        firstName: localUser.firstName,
+        lastName: localUser.lastName,
+        email: localUser.email,
+        mobile: localUser.mobile,
+      };
+
+      setLocalUser(updatedUser);
+      setContextUser(updatedUser);
+      localStorage.setItem("currentUser", JSON.stringify(updatedUser));
+
       setEditingAbout(false);
-      toast.success(
-        <div>
-          Profile information updated successfully!
-        </div>,
-        { position: "top-center", autoClose: 2000, closeOnClick: true, draggable: true, closeButton: true, toastId: "profile-update-success" }
-      );
+
+      toast.success("Profile information updated successfully!", {
+        position: "top-center",
+        autoClose: 2000,
+        closeOnClick: true,
+        draggable: true,
+        closeButton: true,
+        toastId: "profile-update-success",
+      });
+
       setIsSuccess(true);
       setErrors({});
-
     } catch (err) {
       setSuccessMessage("");
       setIsSuccess(false);
+
       console.error(err);
-      toast.error(
-        <div>
-          Failed to update profile: {err.message}
-        </div>,
-        { position: "top-center", autoClose: 2000, closeOnClick: true, draggable: true, closeButton: true, toastId: "profile-update-error" }
-      );
+
+      toast.error(`Failed to update profile: ${err.message}`, {
+        position: "top-center",
+        autoClose: 2000,
+        closeOnClick: true,
+        draggable: true,
+        closeButton: true,
+        toastId: "profile-update-error",
+      });
     }
   };
 
   const handleSaveCar = async () => {
     try {
       const token = localUser?.token;
+      const newErrors = {};
 
-      let newErrors = {};
-
-      if (localUser.car.make == "Select") {
+      if (localUser.car.make === "Select") {
         newErrors.carMake = "Please select a make";
       }
 
-      if (localUser.car.model == "Select" || localUser.car.model === "") {
+      if (
+        localUser.car.model === "Select" ||
+        localUser.car.model === ""
+      ) {
         newErrors.carModel = "Please select a model";
       }
-      if (localUser.car.year == "Select" || localUser.car.year === "") {
+
+      if (
+        localUser.car.year === "Select" ||
+        localUser.car.year === ""
+      ) {
         newErrors.carYear = "Please select a year";
       }
+
       setErrors(newErrors);
 
-      // The car selected must exist in allVehicles (fro /api/vehicle)
+      if (Object.keys(newErrors).length > 0) {
+        return;
+      }
+
       const selectedVehicle = allVehicles.find(
         (v) =>
           v.make === localUser.car?.make &&
           v.model === localUser.car?.model &&
-          String(v.model_release_year || v.year) === String(localUser.car?.year)
+          String(v.model_release_year || v.year) ===
+            String(localUser.car?.year)
       );
 
       if (!selectedVehicle) {
-        toast.error(
-          <div>
-            Invalid vehicle selection
-          </div>,
-          { position: "top-center", autoClose: 2000, closeOnClick: true, draggable: true, closeButton: true, toastId: "vehicle-invalid-error" }
-        );
+        toast.error("Invalid vehicle selection", {
+          position: "top-center",
+          autoClose: 2000,
+          closeOnClick: true,
+          draggable: true,
+          closeButton: true,
+          toastId: "vehicle-invalid-error",
+        });
+
         return;
       }
 
       const payload = {
-        vehicleId: selectedVehicle.id, // API requires only this
+        vehicleId: selectedVehicle.id,
       };
 
       const response = await fetch(`${API_URL}/profile/vehicle-model`, {
@@ -503,39 +586,53 @@ function Profile() {
         body: JSON.stringify(payload),
       });
 
-      if (!response.ok) throw new Error("Failed to update vehicle");
+      if (!response.ok) {
+        throw new Error("Failed to update vehicle");
+      }
 
-      const data = await response.json();
+      await response.json();
 
-      // Update user state with the selected vehicle
       const normalizedCar = {
         ...selectedVehicle,
-        id: selectedVehicle.id ?? selectedVehicle._id ?? vehicleId,
+        id: selectedVehicle.id ?? selectedVehicle._id,
         year:
-          selectedVehicle.year ?? selectedVehicle.model_release_year ?? null,
+          selectedVehicle.year ??
+          selectedVehicle.model_release_year ??
+          null,
       };
 
       setLocalUser((prev) => {
-        const next = { ...prev, car: normalizedCar };
+        const next = {
+          ...prev,
+          car: normalizedCar,
+        };
+
         localStorage.setItem("currentUser", JSON.stringify(next));
+
         return next;
       });
 
       setEditingCar(false);
-      toast.success(
-        <div>
-          Vehicle updated successfully!
-        </div>,
-        { position: "top-center", autoClose: 2000, closeOnClick: true, draggable: true, closeButton: true, toastId: "vehicle-update-success" }
-      );
+
+      toast.success("Vehicle updated successfully!", {
+        position: "top-center",
+        autoClose: 2000,
+        closeOnClick: true,
+        draggable: true,
+        closeButton: true,
+        toastId: "vehicle-update-success",
+      });
     } catch (err) {
       console.error(err);
-      toast.error(
-        <div>
-          Failed to update vehicle: {err.message}
-        </div>,
-        { position: "top-center", autoClose: 2000, closeOnClick: true, draggable: true, closeButton: true, toastId: "vehicle-update-error" }
-      );
+
+      toast.error(`Failed to update vehicle: ${err.message}`, {
+        position: "top-center",
+        autoClose: 2000,
+        closeOnClick: true,
+        draggable: true,
+        closeButton: true,
+        toastId: "vehicle-update-error",
+      });
     }
   };
 
@@ -544,651 +641,1089 @@ function Profile() {
 
     const cardNum = (localUser.cardNumber || "").replace(/\s+/g, "");
 
-    setLocalUser(prev => {
-      const next = { ...prev, cardNumber: cardNum };
+    setLocalUser((prev) => {
+      const next = {
+        ...prev,
+        cardNumber: cardNum,
+      };
+
       localStorage.setItem("currentUser", JSON.stringify(next));
+
       return next;
     });
 
     setEditingPayment(false);
     setPaymentErrors({});
-    setPaymentSuccessMessage("Payment information updated successfully!");
+    setPaymentSuccessMessage(
+      "Payment information updated successfully!"
+    );
     setIsPaymentSuccess(true);
 
-    // ✅ Auto-hide after 3 seconds
     setTimeout(() => {
       setPaymentSuccessMessage("");
       setIsPaymentSuccess(false);
     }, 3000);
   };
 
-  // update avatar
-    const handleAvatarChange = (newUrl) => {
-        updateContextUser({ avatarURL: newUrl });
-        setLocalUser(prev => ({ ...prev, avatarURL: newUrl }));
-        setShowAvatarTool(false);
-    };
+  const handleAvatarChange = (newUrl) => {
+    updateContextUser({
+      avatarURL: newUrl,
+    });
 
-  if (!localUser) return null;
+    setLocalUser((prev) => ({
+      ...prev,
+      avatarURL: newUrl,
+    }));
+
+    setShowAvatarTool(false);
+  };
+
+  const startEditing = (type) => {
+    if (originalUser !== null) {
+      setLocalUser(originalUser);
+      setErrors({});
+    }
+
+    setOriginalUser(localUser);
+
+    if (type === "about") {
+      setEditingCar(false);
+      setEditingPayment(false);
+      setEditingAbout(true);
+    }
+
+    if (type === "car") {
+      setEditingAbout(false);
+      setEditingPayment(false);
+      setEditingCar(true);
+    }
+
+    if (type === "payment") {
+      setEditingCar(false);
+      setEditingAbout(false);
+      setEditingPayment(true);
+    }
+  };
+
+  const cancelEditing = (type) => {
+    if (type === "about") {
+      setEditingAbout(false);
+    }
+
+    if (type === "car") {
+      setEditingCar(false);
+    }
+
+    if (type === "payment") {
+      setEditingPayment(false);
+    }
+
+    if (originalUser) {
+      setLocalUser(originalUser);
+    }
+
+    setErrors({});
+    setPaymentErrors({});
+  };
+
+  if (!localUser) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50 text-slate-600 dark:bg-black dark:text-gray-400">
+        Loading profile...
+      </div>
+    );
+  }
 
   return (
-    <div>
+    <div className="min-h-screen overflow-x-hidden bg-slate-50 text-slate-900 transition-colors dark:bg-transparent dark:text-white">
       <NavBar />
-      {/* background */}
-      <div className="background-image" />
-      <div className='spacer' />
-      <div className="container horizontal">
-        {/* left container */}
-        <div className="inner-left ">
 
-          {/* Profile image */}
-          <div className="profile-image-wrapper">
-            <img 
-              src={localUser.avatarURL || "defaultProfilePictures/default-white.png"} 
-              alt="User Avatar"
-              className="profile-image" 
-            />
-            {/* Edit profile image icon */} 
-            <Button
-              type="button"
-              variant="unstyled"
-              className="edit-icon bg-emerald-600 text-white"
-              onClick={handleChangeImage}
-              aria-label="Change profile picture"
-            >
-              <Pencil />
-            </Button>
+      <div
+        className="
+          pointer-events-none fixed inset-0 -z-0
+          bg-gradient-to-br from-slate-50 via-white to-emerald-50/60
+          dark:bg-none
+        "
+      />
 
-            {/* INSERT COMPONENT FOR CHOOSING PROFILE IMAGES */}
-            <input
-              id="fileInput"
-              type="file"
-              accept="image/*"
-              style={{ display: "none" }}
-              onChange={(e) => {
-                const file = e.target.files[0];
-                // if (file) {
-                //   setProfileImage(URL.createObjectURL(file));
-                // }
-              }}
-            />
-          </div>
+      <main className="relative z-10 mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
+          <aside className={sectionClass}>
+            <div className="flex flex-col items-center">
+              <div className="relative mb-5">
+                <img
+                  src={
+                    localUser.avatarURL ||
+                    "defaultProfilePictures/default-white.png"
+                  }
+                  alt="User Avatar"
+                  className="
+                    h-28 w-28 rounded-full object-cover
+                    border-4 border-white bg-slate-100
+                    shadow-lg
+                    dark:border-gray-900 dark:bg-gray-800
+                  "
+                />
 
-          {/* Name */}
-          <div className='h6 capitalize'>
-            {editingAbout ? (
-              <div className='icon-inside-input two-hundred-width'>
-                <User className="input-icon" />
+                <Button
+                  type="button"
+                  variant="unstyled"
+                  className="
+                    absolute bottom-1 right-1
+                    flex h-9 w-9 items-center justify-center
+                    rounded-full bg-emerald-600
+                    text-white shadow-md
+                    transition hover:bg-emerald-700
+                    dark:bg-emerald-500 dark:text-black
+                    dark:hover:bg-emerald-400
+                  "
+                  onClick={handleChangeImage}
+                  aria-label="Change profile picture"
+                >
+                  <Pencil size={16} />
+                </Button>
+
                 <input
-                  className="input"
-                  type="text"
-                  value={localUser.firstName || ""}
-                  onChange={(e) => {
-                    setLocalUser({ ...localUser, firstName: e.target.value });
-                    setErrors({ ...errors, firstName: "" });
-                  }}
+                  id="fileInput"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={() => {}}
                 />
               </div>
-            ) : (
-              `${localUser.firstName === "true" ? "" : localUser.firstName}`
-            )}
-            {/* First Name Error Message  */}
-            {errors.firstName && editingAbout && <ErrorMessage error={errors.firstName}/>}
 
-            {editingAbout ? (
-              <div className='icon-inside-input two-hundred-width'>
-                <User className="input-icon" />
-                <input
-                  className="input"
-                  type="text"
-                  placeholder="Enter your last name"
-                  value={localUser.lastName || ""}
-                  onChange={(e) => {
-                    setLocalUser({ ...localUser, lastName: e.target.value });
-                    setErrors({ ...errors, lastName: "" });
-                  }}
-                />
-              </div>
-            ) : (
-              ` ${localUser.lastName === "true" ? "" : localUser.lastName}`
-            )}
-            {/* Last Name Error Message  */}
-            {errors.lastName && editingAbout && <ErrorMessage error={errors.lastName}/>}
-          </div>
+              <div className="w-full text-center">
+                {editingAbout ? (
+                  <div className="space-y-2">
+                    <div className="relative mx-auto max-w-[220px]">
+                      <User
+                        size={17}
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500"
+                      />
 
-          {/* Email */}
-          <div className='lowercase font-regular text-small'>
-            <Mail size='14'/> {`${localUser.email === "true" ? "N/A" : localUser.email}`}
-          </div>
+                      <input
+                        className={`${inputClass} pl-10`}
+                        type="text"
+                        value={localUser.firstName || ""}
+                        placeholder="First name"
+                        onChange={(e) => {
+                          setLocalUser({
+                            ...localUser,
+                            firstName: e.target.value,
+                          });
 
-          {/* Phone */}
-          <div className='font-regular text-small'>
-            {editingAbout ? (
-              <div className='icon-inside-input two-hundred-width'>
-                <Phone className="input-icon" />
-                <input
-                  className="input"
-                  type="text"
-                  value={localUser.mobile || ""}
-                  placeholder="Enter your phone"
-                  onChange={(e) => {
-                    setLocalUser({ ...localUser, mobile: e.target.value });
-                    setErrors({ ...errors, mobile: "" });
-                  }}
-                />
-              </div>
-            ) : (
-              <>
-                <Phone size='14'/> {` ${localUser.mobile === "true" ? "N/A" : localUser.mobile}`}
-              </>
-            )}
-            {/* Mobile Error Message  */}
-            {errors.mobile && editingAbout && <ErrorMessage error={errors.mobile}/>}
-          </div>
+                          setErrors({
+                            ...errors,
+                            firstName: "",
+                          });
+                        }}
+                      />
+                    </div>
 
-          {/* Edit details button */}
-          { (!editingAbout) && (
-            <Button
-              type="button"
-              variant="transparent"
-              size="tiny"
-              className="w-[125px] justify-around"
-              onClick={() => {
-                if (originalUser != null){
-                  setLocalUser(originalUser); // reset the details in case other edits are in progress
-                  setErrors({});
-                }
-                setEditingCar(false);         // stop car edit
-                setEditingPayment(false);     // stop payment edit
-                setOriginalUser(localUser);   // save the current values before editing
-                setEditingAbout(true);        // enter edit details mode
-              }}
-            >
-              <Pencil size='14'/>Edit Profile
-            </Button>
-          )}
+                    {errors.firstName && (
+                      <ErrorMessage error={errors.firstName} />
+                    )}
 
-          {/* Save details button */}
-          { (editingAbout) && (
-            <Button
-              type="button"
-              size="tiny"
-              className="w-[125px] justify-around uppercase"
-              onClick={() => handleSaveAbout()}
-            >
-              <Check size='16'/> Save
-            </Button>
-          )}
+                    <div className="relative mx-auto max-w-[220px]">
+                      <User
+                        size={17}
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500"
+                      />
 
-          {/* Cancel edit detials button */}
-          { (editingAbout) && (
-            <Button
-              type="button"
-              variant="danger"
-              size="tiny"
-              className="w-[125px] justify-around uppercase"
-              onClick={() => {
-                setEditingAbout(false);
-                setLocalUser(originalUser);
-                setErrors({});
-              }}
-            >
-              <X size='16'/> CANCEL
-            </Button>
-          )}
-          <div className='spacer' />
+                      <input
+                        className={`${inputClass} pl-10`}
+                        type="text"
+                        placeholder="Last name"
+                        value={localUser.lastName || ""}
+                        onChange={(e) => {
+                          setLocalUser({
+                            ...localUser,
+                            lastName: e.target.value,
+                          });
 
+                          setErrors({
+                            ...errors,
+                            lastName: "",
+                          });
+                        }}
+                      />
+                    </div>
 
-          <div className='h6 capitalize'>
-            {`${localUser.car === "true" ? "" : "My Vehicle:"}`}
-          </div>
-          {/* Car Make */}
-          <div className='font-regular text-small'>
-            {editingCar ? (
-              <select
-                className="input two-hundred-width"
-                value={localUser.car?.make || "Select"}
-                onChange={(e) => {
-                  setLocalUser({ ...localUser, car: { ...localUser.car, make: e.target.value, model: "", year: "" } });
-                }}
-              >
-                {makes.map((make, idx) => (
-                  <option key={idx} value={make}>
-                    {make}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              `${localUser.car?.make === "true" ? "" : localUser.car?.make}`
-            )}
-            {/* Car Make Error Message  */}
-            {errors.carMake && editingCar && <ErrorMessage error={errors.carMake}/>}
-          </div>
+                    {errors.lastName && (
+                      <ErrorMessage error={errors.lastName} />
+                    )}
+                  </div>
+                ) : (
+                  <h1 className="text-xl font-bold capitalize text-slate-900 dark:text-white">
+                    {localUser.firstName === "true"
+                      ? ""
+                      : localUser.firstName}{" "}
+                    {localUser.lastName === "true"
+                      ? ""
+                      : localUser.lastName}
+                  </h1>
+                )}
 
-          {/* Car model */}
-          <div className='font-regular text-small'>
-            {editingCar ? (
-              <select
-                className="input two-hundred-width"
-                value={localUser.car?.model || "Select"}
-                onChange={(e) => {
-                  setLocalUser({...localUser, car: { ...localUser.car, model: e.target.value, year: "" }});
-                  setErrors({ ...errors, carMake: "" });
-                }}
-              >
-                {models.map((model, idx) => (
-                  <option key={idx} value={model}>
-                    {model}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              `${localUser.car?.model === "true" ? "N/A" : localUser.car?.model}`
-            )}
-            {/* Car Model Error Message  */}
-            {errors.carModel && editingCar && <ErrorMessage error={errors.carModel}/>}
-          </div>
+                <div className="mt-4 space-y-3 text-left">
+                  <div className={secondaryTextClass}>
+                    <div className="flex items-center gap-2">
+                      <Mail size={15} />
+                      <span className="break-all">
+                        {localUser.email === "true"
+                          ? "N/A"
+                          : localUser.email}
+                      </span>
+                    </div>
+                  </div>
 
-          {/* Car year */}
-          <div className='font-regular text-small'>
-            {editingCar ? (
-              <select
-                className="input two-hundred-width"
-                value={String(localUser.car?.year) || "Select"}
-                onChange={(e) =>
-                  setLocalUser({ ...localUser, car: { ...localUser.car, year: e.target.value } })
-                }
-                
-              >
-                {years.map((year, idx) => (
-                  <option key={idx} value={year}>
-                    {year}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              `${localUser.car?.year === "true" ? "N/A" : localUser.car?.year}`
-            )}
-            {/* Car Year Error Message  */}
-            {errors.carYear && editingCar && <ErrorMessage error={errors.carYear}/>}
-          </div>
+                  <div className={secondaryTextClass}>
+                    {editingAbout ? (
+                      <>
+                        <div className="relative">
+                          <Phone
+                            size={17}
+                            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500"
+                          />
 
-          {/* Edit car button */}
-          { (!editingCar) && (
-            <Button
-              type="button"
-              variant="transparent"
-              size="tiny"
-              className="w-[125px] justify-around"
-              onClick={() => {
-                if (originalUser != null){
-                  setLocalUser(originalUser); // reset the details in case other edits are in progress
-                  setErrors({});
-                }
-                setEditingAbout(false);       // stop details edit
-                setEditingPayment(false);     // stop payment edit
-                setOriginalUser(localUser);   // save the current values before editing
-                setEditingCar(true);          // enter edit car mode
-              }}
-            >
-              <Pencil size='14'/>Edit Vehcile
-            </Button>
-          )}
+                          <input
+                            className={`${inputClass} pl-10`}
+                            type="text"
+                            value={localUser.mobile || ""}
+                            placeholder="Enter your phone"
+                            onChange={(e) => {
+                              setLocalUser({
+                                ...localUser,
+                                mobile: e.target.value,
+                              });
 
-          {/* Save car button */}
-          { (editingCar) && (
-            <Button
-              type="button"
-              size="tiny"
-              className="w-[125px] justify-around uppercase"
-              onClick={() => handleSaveCar()}
-            >
-              <Check size='16'/> Save
-            </Button>
-          )}
-
-          {/* Cancel edit car button */}
-          { (editingCar) && (
-            <Button
-              type="button"
-              variant="danger"
-              size="tiny"
-              className="w-[125px] justify-around uppercase"
-              onClick={() => {
-                setEditingCar(false);
-                setLocalUser(originalUser);
-                setErrors({});
-              }}
-            >
-              <X size='16'/> CANCEL
-            </Button>
-          )}
-
-          <div className='spacer' />
-          
-          {/* Other Buttons */}
-          <Button type="button" size="tiny" className="w-[150px] justify-around" onClick={() => setActiveTab("payment")}><CreditCard /> Payment</Button>
-          <Button type="button" size="tiny" className="w-[150px] justify-around" onClick={() => setActiveTab("history")}><BookText /> Booking History</Button>
-          <Button type="button" size="tiny" className="w-[150px] justify-around" onClick={() => setActiveTab("env-impact")}>Environmental Impact</Button>
-
-          <div className='spacer' />
-          <div className='font-regular text-tiny'>
-            Joined: {formatDate(localUser.createdAt)}
-          </div>
-        </div>
-        
-        {/* center container - details*/}
-        <div className="inner-center ">
-          {activeTab === "dashboard" && (
-            <>
-              {/* Recent Unlocked Achievements */}
-              <div className="recent-achievements-section">
-                <div className="section-header">
-                  <h5>Recent Unlocked Achievements</h5>
-                  <Button
-                    type="button"
-                    variant="unstyled"
-                    onClick={() => navigate("/achievements")}
-                    className="text-emerald-600 hover:underline"
-                  >
-                    (See full achievement list)
-                  </Button>
-                </div>
-
-                {achievementsLoading ? (
-                  <p>Loading achievements...</p>
-                ) : recentAchievements.length > 0 ? (
-                  <div className="achievements-grid">   {/* 2-column grid */}
-                    {recentAchievements.map((ach) => (
-                      <div key={ach._id} className="achievement-card">
-                        <div className="achievement-icon">
-                          <img 
-                            src={ach.icon || "/default-badge.png"} 
-                            alt={ach.name}
-                            className="achievement-icon-img"
+                              setErrors({
+                                ...errors,
+                                mobile: "",
+                              });
+                            }}
                           />
                         </div>
-                        <div className="achievement-info">
-                          <h4>{ach.name}</h4>
-                          <p className="achievement-description">{ach.description}</p>
-                          
-                          <div className="progress-container">
-                            <div className="progress-bar">
-                              <div className="progress-fill" style={{ width: "100%" }}></div>
+
+                        {errors.mobile && (
+                          <ErrorMessage error={errors.mobile} />
+                        )}
+                      </>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <Phone size={15} />
+
+                        <span>
+                          {localUser.mobile === "true"
+                            ? "N/A"
+                            : localUser.mobile}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="mt-5 flex flex-wrap justify-center gap-2">
+                  {!editingAbout && (
+                    <Button
+                      type="button"
+                      variant="transparent"
+                      size="tiny"
+                      className="w-[125px] justify-around"
+                      onClick={() => startEditing("about")}
+                    >
+                      <Pencil size={14} />
+                      Edit Profile
+                    </Button>
+                  )}
+
+                  {editingAbout && (
+                    <>
+                      <Button
+                        type="button"
+                        size="tiny"
+                        className="w-[125px] justify-around uppercase"
+                        onClick={handleSaveAbout}
+                      >
+                        <Check size={16} />
+                        Save
+                      </Button>
+
+                      <Button
+                        type="button"
+                        variant="danger"
+                        size="tiny"
+                        className="w-[125px] justify-around uppercase"
+                        onClick={() => cancelEditing("about")}
+                      >
+                        <X size={16} />
+                        Cancel
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="my-6 h-px bg-slate-200 dark:bg-gray-800" />
+
+            <div>
+              <h2 className="mb-4 text-base font-semibold text-slate-900 dark:text-white">
+                My Vehicle
+              </h2>
+
+              <div className="space-y-3">
+                <div>
+                  <p className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-gray-500">
+                    Make
+                  </p>
+
+                  {editingCar ? (
+                    <select
+                      className={inputClass}
+                      value={localUser.car?.make || "Select"}
+                      onChange={(e) => {
+                        setLocalUser({
+                          ...localUser,
+                          car: {
+                            ...localUser.car,
+                            make: e.target.value,
+                            model: "",
+                            year: "",
+                          },
+                        });
+                      }}
+                    >
+                      {makes.map((make, idx) => (
+                        <option key={idx} value={make}>
+                          {make}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <p className="text-sm font-medium text-slate-700 dark:text-gray-200">
+                      {localUser.car?.make === "true"
+                        ? "N/A"
+                        : localUser.car?.make || "N/A"}
+                    </p>
+                  )}
+
+                  {errors.carMake && editingCar && (
+                    <ErrorMessage error={errors.carMake} />
+                  )}
+                </div>
+
+                <div>
+                  <p className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-gray-500">
+                    Model
+                  </p>
+
+                  {editingCar ? (
+                    <select
+                      className={inputClass}
+                      value={localUser.car?.model || "Select"}
+                      onChange={(e) => {
+                        setLocalUser({
+                          ...localUser,
+                          car: {
+                            ...localUser.car,
+                            model: e.target.value,
+                            year: "",
+                          },
+                        });
+
+                        setErrors({
+                          ...errors,
+                          carModel: "",
+                        });
+                      }}
+                    >
+                      {models.map((model, idx) => (
+                        <option key={idx} value={model}>
+                          {model}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <p className="text-sm font-medium text-slate-700 dark:text-gray-200">
+                      {localUser.car?.model === "true"
+                        ? "N/A"
+                        : localUser.car?.model || "N/A"}
+                    </p>
+                  )}
+
+                  {errors.carModel && editingCar && (
+                    <ErrorMessage error={errors.carModel} />
+                  )}
+                </div>
+
+                <div>
+                  <p className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-gray-500">
+                    Year
+                  </p>
+
+                  {editingCar ? (
+                    <select
+                      className={inputClass}
+                      value={String(localUser.car?.year || "Select")}
+                      onChange={(e) => {
+                        setLocalUser({
+                          ...localUser,
+                          car: {
+                            ...localUser.car,
+                            year: e.target.value,
+                          },
+                        });
+
+                        setErrors({
+                          ...errors,
+                          carYear: "",
+                        });
+                      }}
+                    >
+                      {years.map((year, idx) => (
+                        <option key={idx} value={year}>
+                          {year}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <p className="text-sm font-medium text-slate-700 dark:text-gray-200">
+                      {localUser.car?.year === "true"
+                        ? "N/A"
+                        : localUser.car?.year || "N/A"}
+                    </p>
+                  )}
+
+                  {errors.carYear && editingCar && (
+                    <ErrorMessage error={errors.carYear} />
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-5 flex flex-wrap gap-2">
+                {!editingCar && (
+                  <Button
+                    type="button"
+                    variant="transparent"
+                    size="tiny"
+                    className="w-[125px] justify-around"
+                    onClick={() => startEditing("car")}
+                  >
+                    <Pencil size={14} />
+                    Edit Vehicle
+                  </Button>
+                )}
+
+                {editingCar && (
+                  <>
+                    <Button
+                      type="button"
+                      size="tiny"
+                      className="w-[125px] justify-around uppercase"
+                      onClick={handleSaveCar}
+                    >
+                      <Check size={16} />
+                      Save
+                    </Button>
+
+                    <Button
+                      type="button"
+                      variant="danger"
+                      size="tiny"
+                      className="w-[125px] justify-around uppercase"
+                      onClick={() => cancelEditing("car")}
+                    >
+                      <X size={16} />
+                      Cancel
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
+
+            <div className="my-6 h-px bg-slate-200 dark:bg-gray-800" />
+
+            <div className="flex flex-col gap-2">
+              <Button
+                type="button"
+                size="tiny"
+                className="w-full justify-center gap-2"
+                onClick={() => setActiveTab("payment")}
+              >
+                <CreditCard size={17} />
+                Payment
+              </Button>
+
+              <Button
+                type="button"
+                size="tiny"
+                className="w-full justify-center gap-2"
+                onClick={() => setActiveTab("history")}
+              >
+                <BookText size={17} />
+                Booking History
+              </Button>
+
+              <Button
+                type="button"
+                size="tiny"
+                className="w-full justify-center gap-2"
+                onClick={() => setActiveTab("env-impact")}
+              >
+                Environmental Impact
+              </Button>
+            </div>
+
+            <div className="my-6 h-px bg-slate-200 dark:bg-gray-800" />
+
+            <p className="text-center text-xs text-slate-400 dark:text-gray-500">
+              Joined: {formatDate(localUser.createdAt)}
+            </p>
+
+            <Button
+              type="button"
+              variant="danger"
+              size="tiny"
+              className="mt-4 w-full justify-center gap-2"
+              onClick={handleSignOut}
+            >
+              Sign Out
+            </Button>
+          </aside>
+
+          <section className="min-w-0 space-y-6">
+            {activeTab === "dashboard" && (
+              <>
+                <div className={sectionClass}>
+                  <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-600 dark:text-emerald-400">
+                        Achievements
+                      </p>
+
+                      <h2 className="mt-1 text-xl font-bold text-slate-900 dark:text-white">
+                        Recent Unlocked Achievements
+                      </h2>
+                    </div>
+
+                    <Button
+                      type="button"
+                      variant="unstyled"
+                      onClick={() => navigate("/achievements")}
+                      className="w-fit text-sm font-medium text-emerald-600 hover:underline dark:text-emerald-400"
+                    >
+                      See full achievement list →
+                    </Button>
+                  </div>
+
+                  {achievementsLoading ? (
+                    <div className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500 dark:border-gray-800 dark:text-gray-400">
+                      Loading achievements...
+                    </div>
+                  ) : recentAchievements.length > 0 ? (
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                      {recentAchievements.map((ach) => (
+                        <div
+                          key={ach._id}
+                          className="
+                            flex gap-4 rounded-xl border p-4
+                            border-slate-200 bg-slate-50
+                            transition-all duration-200
+                            hover:-translate-y-0.5
+                            hover:border-emerald-200
+                            hover:shadow-sm
+                            dark:border-gray-800
+                            dark:bg-[#020403]
+                            dark:hover:border-emerald-900
+                            dark:hover:shadow-[0_8px_25px_rgba(16,185,129,0.06)]
+                          "
+                        >
+                          <div
+                            className="
+                              flex h-14 w-14 shrink-0 items-center
+                              justify-center rounded-xl
+                              border border-emerald-100
+                              bg-emerald-50
+                              dark:border-emerald-950
+                              dark:bg-emerald-950/50
+                            "
+                          >
+                            <img
+                              src={
+                                ach.icon || "/default-badge.png"
+                              }
+                              alt={ach.name}
+                              className="h-10 w-10 object-contain"
+                            />
+                          </div>
+
+                          <div className="min-w-0 flex-1">
+                            <h3 className="font-semibold text-slate-900 dark:text-white">
+                              {ach.name}
+                            </h3>
+
+                            <p className="mt-1 text-sm leading-5 text-slate-500 dark:text-gray-400">
+                              {ach.description}
+                            </p>
+
+                            <div className="mt-4">
+                              <div className="h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-gray-800">
+                                <div
+                                  className="h-full w-full rounded-full bg-emerald-500"
+                                  style={{ width: "100%" }}
+                                />
+                              </div>
+
+                              <span className="mt-2 block text-xs text-slate-400 dark:text-gray-500">
+                                Completed:{" "}
+                                {new Date(
+                                  ach.unlockedAt
+                                ).toLocaleDateString("en-AU")}
+                              </span>
                             </div>
-                            <span className="completed-date">
-                              Completed: {new Date(ach.unlockedAt).toLocaleDateString('en-AU')}
-                            </span>
                           </div>
                         </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500 dark:border-gray-800 dark:text-gray-400">
+                      You haven't unlocked any achievements yet. Start
+                      charging or updating your profile!
+                    </div>
+                  )}
+                </div>
+
+                <div className={sectionClass}>
+                  <div className="mb-5">
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-600 dark:text-emerald-400">
+                      Your EVAT Activity
+                    </p>
+
+                    <h2 className="mt-1 text-xl font-bold text-slate-900 dark:text-white">
+                      Your Impact
+                    </h2>
+                  </div>
+
+                  {statsLoading ? (
+                    <div className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500 dark:border-gray-800 dark:text-gray-400">
+                      Loading your stats...
+                    </div>
+                  ) : userStats ? (
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                      <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-gray-800 dark:bg-[#020403]">
+                        <p className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-gray-500">
+                          Charging Sessions
+                        </p>
+
+                        <p className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">
+                          {userStats.counters.totalChargingSessions}
+                        </p>
                       </div>
-                    ))}
+
+                      <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-gray-800 dark:bg-[#020403]">
+                        <p className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-gray-500">
+                          kWh Charged
+                        </p>
+
+                        <p className="mt-2 text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                          {(
+                            userStats.counters.totalWhCharged / 1000
+                          ).toFixed(1)}
+                        </p>
+                      </div>
+
+                      <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-gray-800 dark:bg-[#020403]">
+                        <p className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-gray-500">
+                          Distance Travelled
+                        </p>
+
+                        <p className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">
+                          {(
+                            userStats.counters.totalMetresTravelled /
+                            1000
+                          ).toFixed(1)}{" "}
+                          <span className="text-sm font-medium text-slate-500 dark:text-gray-400">
+                            km
+                          </span>
+                        </p>
+                      </div>
+
+                      <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-gray-800 dark:bg-[#020403]">
+                        <p className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-gray-500">
+                          CO₂ Avoided
+                        </p>
+
+                        <p className="mt-2 text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                          {userStats.counters.totalCO2KgAvoided}{" "}
+                          <span className="text-sm font-medium text-slate-500 dark:text-gray-400">
+                            kg
+                          </span>
+                        </p>
+                      </div>
+
+                      <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-gray-800 dark:bg-[#020403]">
+                        <p className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-gray-500">
+                          Petrol Savings
+                        </p>
+
+                        <p className="mt-2 text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                          $
+                          {(
+                            userStats.counters
+                              .totalPetrolSavingsCents / 100
+                          ).toFixed(2)}
+                        </p>
+                      </div>
+
+                      <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-gray-800 dark:bg-[#020403]">
+                        <p className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-gray-500">
+                          Login Streak
+                        </p>
+
+                        <p className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">
+                          {
+                            userStats.counters
+                              .consecutiveLoginDays
+                          }{" "}
+                          <span className="text-sm font-medium text-slate-500 dark:text-gray-400">
+                            days
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500 dark:border-gray-800 dark:text-gray-400">
+                      Unable to load stats.
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+
+            {activeTab === "payment" && (
+              <div className={sectionClass}>
+                <div className="mb-6">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-600 dark:text-emerald-400">
+                    Account
+                  </p>
+
+                  <h2 className="mt-1 text-xl font-bold text-slate-900 dark:text-white">
+                    Payment Information
+                  </h2>
+
+                  <p className="mt-2 text-sm text-slate-500 dark:text-gray-400">
+                    Your payment details are stored locally in your
+                    browser.
+                  </p>
+                </div>
+
+                <div className="space-y-5">
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-gray-300">
+                      Card
+                    </label>
+
+                    {editingPayment ? (
+                      <div className="relative w-full max-w-[260px]">
+                        <CreditCard
+                          className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500"
+                          size={17}
+                        />
+
+                        <input
+                          className={`${inputClass} max-w-none pl-10`}
+                          type="text"
+                          value={localUser.cardNumber || ""}
+                          placeholder="1234 5678 9012 3456"
+                          onChange={(e) => {
+                            let val = e.target.value
+                              .replace(/\D/g, "")
+                              .slice(0, 16);
+
+                            val = val.replace(
+                              /(\d{4})(?=\d)/g,
+                              "$1 "
+                            );
+
+                            setLocalUser({
+                              ...localUser,
+                              cardNumber: val,
+                            });
+
+                            setPaymentErrors({
+                              ...paymentErrors,
+                              cardNumber: "",
+                            });
+                          }}
+                        />
+                      </div>
+                    ) : (
+                      <p className="text-sm font-medium text-slate-700 dark:text-gray-200">
+                        {localUser.cardNumber
+                          ? "**** **** **** " +
+                            localUser.cardNumber
+                              .replace(/\s/g, "")
+                              .slice(-4)
+                          : "**** **** **** 1234"}
+                      </p>
+                    )}
+
+                    {paymentErrors.cardNumber &&
+                      editingPayment && (
+                        <ErrorMessage
+                          error={paymentErrors.cardNumber}
+                        />
+                      )}
                   </div>
-                ) : (
-                  <p>You haven't unlocked any achievements yet. Start charging or updating your profile!</p>
-                )}
-              </div>
-              
-              <div className='spacer' />
 
-              {/* User Stats Section */}
-              <div className="user-stats-section">
-                <h3>Your Impact</h3>
-                
-                {statsLoading ? (
-                  <p>Loading your stats...</p>
-                ) : userStats ? (
-                  <div className="stats-grid">
-                    <div className="stat-card">
-                      <strong>Total Charging Sessions: </strong>
-                      <span>{userStats.counters.totalChargingSessions}</span>
-                    </div>
-                    
-                    <div className="stat-card">
-                      <strong>Total kWh Charged: </strong>
-                      <span>{(userStats.counters.totalWhCharged / 1000).toFixed(1)}</span>
-                    </div>
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-gray-300">
+                      Expiry Date
+                    </label>
 
-                    <div className="stat-card">
-                      <strong>Total Distance Travelled: </strong>
-                      <span>{(userStats.counters.totalMetresTravelled / 1000).toFixed(1)} km</span>
-                    </div>
+                    {editingPayment ? (
+                      <div className="relative w-full max-w-[220px]">
+                        <CalendarDays
+                          className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500"
+                          size={17}
+                        />
 
-                    <div className="stat-card">
-                      <strong>CO₂ Avoided: </strong>
-                      <span>{userStats.counters.totalCO2KgAvoided} kg</span>
-                    </div>
+                        <input
+                          className={`${inputClass} max-w-none pl-10`}
+                          type="text"
+                          value={localUser.expiryDate || ""}
+                          placeholder="MM/YY"
+                          onChange={(e) => {
+                            let val = e.target.value
+                              .replace(/\D/g, "")
+                              .slice(0, 4);
 
-                    <div className="stat-card">
-                      <strong>Petrol Savings: </strong>
-                      <span>${(userStats.counters.totalPetrolSavingsCents / 100).toFixed(2)}</span>
-                    </div>
+                            if (val.length > 2) {
+                              val =
+                                val.slice(0, 2) +
+                                "/" +
+                                val.slice(2);
+                            }
 
-                    <div className="stat-card">
-                      <strong>Consecutive Login Days: </strong>
-                      <span>{userStats.counters.consecutiveLoginDays} days</span>
-                    </div>
+                            setLocalUser({
+                              ...localUser,
+                              expiryDate: val,
+                            });
+
+                            setPaymentErrors({
+                              ...paymentErrors,
+                              expiryDate: "",
+                            });
+                          }}
+                        />
+                      </div>
+                    ) : (
+                      <p className="text-sm font-medium text-slate-700 dark:text-gray-200">
+                        {localUser.expiryDate || "MM/YY"}
+                      </p>
+                    )}
+
+                    {paymentErrors.expiryDate &&
+                      editingPayment && (
+                        <ErrorMessage
+                          error={paymentErrors.expiryDate}
+                        />
+                      )}
                   </div>
-                ) : (
-                  <p>Unable to load stats.</p>
-                )}
-              </div>
-            </>
-          )}
 
-          {/* Payment */}
-          {activeTab === "payment" && (
-            <div>
-              <h3>Payment Information</h3>
-              {/* CARD NUMBER */}
-              <div className="input-and-label-same-line">
-                <label className='form-label required'>Card: </label>
-                {editingPayment ? (
-                  <div className='icon-inside-input'>
-                    <CreditCard className="input-icon" />
-                    <input
-                      className="input two-hundred-width"
-                      type="text"
-                      value={localUser.cardNumber || ""}
-                      placeholder="1234 5678 9012 3456"
-                      onChange={(e) => {
-                        // Only digits, max 16
-                        let val = e.target.value.replace(/\D/g, '').slice(0, 16);
-                        // Add spaces every 4 digits for display
-                        val = val.replace(/(\d{4})(?=\d)/g, '$1 ');
-                        setLocalUser({ ...localUser, cardNumber: val });
-                        setPaymentErrors({ ...paymentErrors, cardNumber: "" });
-                      }}
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-gray-300">
+                      CVV
+                    </label>
+
+                    {editingPayment ? (
+                      <div className="relative w-full max-w-[180px]">
+                        <KeyRound
+                          className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500"
+                          size={17}
+                        />
+
+                        <input
+                          className={`${inputClass} max-w-none pl-10`}
+                          type="text"
+                          value={localUser.cvv || ""}
+                          placeholder="123"
+                          onChange={(e) => {
+                            const val = e.target.value
+                              .replace(/\D/g, "")
+                              .slice(0, 3);
+
+                            setLocalUser({
+                              ...localUser,
+                              cvv: val,
+                            });
+
+                            setPaymentErrors({
+                              ...paymentErrors,
+                              cvv: "",
+                            });
+                          }}
+                        />
+                      </div>
+                    ) : (
+                      <p className="text-sm font-medium text-slate-700 dark:text-gray-200">
+                        ***
+                      </p>
+                    )}
+
+                    {paymentErrors.cvv && editingPayment && (
+                      <ErrorMessage error={paymentErrors.cvv} />
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-gray-300">
+                      Billing Address
+                    </label>
+
+                    {editingPayment ? (
+                      <div className="relative w-full max-w-[320px]">
+                        <House
+                          className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500"
+                          size={17}
+                        />
+
+                        <input
+                          className={`${inputClass} max-w-none pl-10`}
+                          type="text"
+                          value={localUser.billingAddress || ""}
+                          placeholder="Enter your billing address"
+                          onChange={(e) => {
+                            setLocalUser({
+                              ...localUser,
+                              billingAddress: e.target.value,
+                            });
+
+                            setPaymentErrors({
+                              ...paymentErrors,
+                              billingAddress: "",
+                            });
+                          }}
+                        />
+                      </div>
+                    ) : (
+                      <p className="text-sm font-medium text-slate-700 dark:text-gray-200">
+                        {localUser.billingAddress || "N/A"}
+                      </p>
+                    )}
+
+                    {paymentErrors.billingAddress &&
+                      editingPayment && (
+                        <ErrorMessage
+                          error={paymentErrors.billingAddress}
+                        />
+                      )}
+                  </div>
+
+                  {paymentSuccessMessage && (
+                    <SuccessMessage
+                      message={paymentSuccessMessage}
                     />
-                  </div>
-                ) : (
-                  localUser.cardNumber
-                    ? "**** **** **** " + localUser.cardNumber.replace(/\s/g, '').slice(-4)
-                    : "**** **** **** 1234"
-                )}
-              </div>
-              {/* Card Number Error Message  */}
-              {paymentErrors.cardNumber && editingPayment && <ErrorMessage error={paymentErrors.cardNumber}/>}
+                  )}
+                </div>
 
-              {/* EXPIRY DATE */}
-              <div className="input-and-label-same-line">
-                <label className='form-label required'>Expiry Date: </label>
-                {editingPayment ? (
-                  <div className='icon-inside-input'>
-                    <CalendarDays className="input-icon" />
-                    <input
-                      className="input two-hundred-width"
-                      type="text"
-                      value={localUser.expiryDate || ""}
-                      placeholder="MM/YY"
-                      onChange={(e) => {
-                        let val = e.target.value.replace(/\D/g, '').slice(0, 4);        // digits only, max 4
-                        if (val.length > 2) val = val.slice(0, 2) + '/' + val.slice(2); // insert '/'
-                        setLocalUser({ ...localUser, expiryDate: val });
-                        setPaymentErrors({ ...paymentErrors, expiryDate: "" });
-                      }}
-                    />
-                  </div>
-                ) : (
-                  localUser.expiryDate || "MM/YY"
-                )}
-              </div>
-              {/* Card Expiry Error Message  */}
-              {paymentErrors.expiryDate && editingPayment && <ErrorMessage error={paymentErrors.expiryDate}/>}
+                <div className="mt-8 flex flex-wrap gap-3">
+                  <Button
+                    type="button"
+                    className="w-[150px] justify-around uppercase"
+                    onClick={() => {
+                      if (editingPayment) {
+                        handleSavePayment();
+                      } else {
+                        startEditing("payment");
+                      }
+                    }}
+                  >
+                    {editingPayment ? <Check /> : <Pencil />}
+                    {editingPayment ? "SAVE" : "EDIT"}
+                  </Button>
 
-              {/* CVV */}
-              <div className="input-and-label-same-line">
-                <label className='form-label required'>CVV: </label>
-                {editingPayment ? (
-                  <div className='icon-inside-input'>
-                    <KeyRound className="input-icon" />
-                    <input
-                      className="input two-hundred-width"
-                      type="text"
-                      value={localUser.cvv || ""}
-                      placeholder="123"
-                      onChange={(e) => {
-                        const val = e.target.value.replace(/\D/g, '').slice(0, 3);
-                        setLocalUser({ ...localUser, cvv: val });
-                        setPaymentErrors({ ...paymentErrors, cvv: "" });
-                      }}
-                    />
-                  </div>
-                ) : (
-                  "***"
-                )}
+                  {editingPayment && (
+                    <Button
+                      type="button"
+                      variant="transparent"
+                      className="w-[150px] justify-around uppercase"
+                      onClick={() => cancelEditing("payment")}
+                    >
+                      <X />
+                      Cancel
+                    </Button>
+                  )}
+                </div>
               </div>
-              {/* Card CVV Error Message  */}
-              {paymentErrors.cvv && editingPayment && <ErrorMessage error={paymentErrors.cvv}/>}
+            )}
 
-              {/* BILLING ADDRESS */}
-              <div className="input-and-label-same-line">
-                <label className='form-label required'>Billing Address: </label>
-                {editingPayment ? (
-                  <div className='icon-inside-input'>
-                    <House className="input-icon" />
-                    <input
-                      className="input two-hundred-width"
-                      type="text"
-                      value={localUser.billingAddress || ""}
-                      placeholder="Enter your billing address"
-                      onChange={(e) => {
-                        setLocalUser({ ...localUser, billingAddress: e.target.value });
-                        setPaymentErrors({ ...paymentErrors, billingAddress: "" });
-                      }}
-                    />
-                  </div>
-                ) : (
-                  localUser.billingAddress || "N/A"
-                )}
+            {activeTab === "history" && (
+              <div className={sectionClass}>
+                <div className="mb-6">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-600 dark:text-emerald-400">
+                    Activity
+                  </p>
+
+                  <h2 className="mt-1 text-xl font-bold text-slate-900 dark:text-white">
+                    Booking History
+                  </h2>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <BookingHistoryTable />
+                </div>
               </div>
-              {/* Billing Address Error Message  */}
-              {paymentErrors.billingAddress && editingPayment && <ErrorMessage error={paymentErrors.billingAddress}/>}
-              {paymentSuccessMessage && <SuccessMessage message={paymentSuccessMessage}/>}
-            </div>
-          )}
+            )}
 
-          {/* History */}
-          {activeTab === "history" && (
-            <div>
-              <h3>Booking History</h3>
-              <div>
-                <BookingHistoryTable />
-              </div>
-            </div>
-          )}
+            {activeTab === "env-impact" && (
+              <div className={sectionClass}>
+                <div className="mb-6">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-600 dark:text-emerald-400">
+                    Sustainability
+                  </p>
 
-          {/* Environmental Impact */}
-          {activeTab === "env-impact" && (
-            <div>
-              <h3>Environmental Impact</h3>
-              <div>
-                <EnvironmentalImpact 
+                  <h2 className="mt-1 text-xl font-bold text-slate-900 dark:text-white">
+                    Environmental Impact
+                  </h2>
+                </div>
+
+                <EnvironmentalImpact
                   user={localUser}
                   allElectricVehicles={allVehicles}
                   makes={makes}
                 />
               </div>
-            </div>
-          )}
-          
-          <div className='spacer' />
+            )}
 
-          {/* Payment */}
-          {activeTab === "payment" && (
-            <>
-              {/* Save/Edit button */}
-              <Button
-                type="button"
-                className="w-[150px] justify-around uppercase"
-                onClick={() => {
-                  if (editingPayment) {
-                    handleSavePayment();
-                  } else {
-                    if (originalUser != null){
-                      setLocalUser(originalUser); // reset the details in case other edits are in progress
-                      setErrors({});
-                    }
-                    setEditingCar(false);         // stop car edit
-                    setEditingAbout(false);       // stop details edit
-                    setOriginalUser(localUser);   // save the current values before editing
-                    setEditingPayment(true);      // enter edit details mode
-                  }
-                }}
-              >
-                {editingPayment ? <Check /> : <Pencil /> }
-                {editingPayment ? "SAVE" : "EDIT"}
-              </Button>
-            </>
-          )}
+            {(activeTab === "history" ||
+              activeTab === "env-impact" ||
+              (activeTab === "payment" && !editingPayment)) && (
+              <div>
+                <Button
+                  type="button"
+                  variant="tertiary"
+                  className="w-[150px] justify-around uppercase"
+                  onClick={() => setActiveTab("dashboard")}
+                >
+                  <ArrowLeft />
+                  Back
+                </Button>
+              </div>
+            )}
+          </section>
+        </div>
+      </main>
 
-          {/* Handle Cancel button */}
-          { ((activeTab === "payment" && editingPayment)      // payment and editing
-            ) && (
-            // Cancel button
-            <Button
-              type="button"
-              variant="transparent"
-              className="w-[150px] justify-around uppercase"
-              onClick={() => {
-                if (activeTab === "payment") {
-                  setEditingPayment(false);
-                } 
-                setLocalUser(originalUser);
-                setErrors({});
-              }}
-            >
-              <X /> CANCEL
-            </Button>
-          )}
-
-          {/* Handle Back button */}
-          { (activeTab === "history" ||                       // history
-            activeTab === "env-impact" ||                     // environmental impact
-            (activeTab === "payment" && !editingPayment)      // payment but not editing
-            ) && (
-            // Back button
-            <Button
-              type="button"
-              variant="tertiary"
-              className="w-[150px] justify-around uppercase"
-              onClick={() => setActiveTab("dashboard")}
-            >
-              <ArrowLeft /> BACK
-            </Button>
-          )}
-
-        </div> 
-      </div>
       <ProfileAvatarTool
         currentAvatar={localUser?.avatarURL}
         isOpen={showAvatarTool}
         onClose={() => setShowAvatarTool(false)}
         onAvatarChange={handleAvatarChange}
       />
+
       <ChatBubble />
-      
-    </div >
+    </div>
   );
 }
 

@@ -1,10 +1,3 @@
-// NOTE: Might consider more detailed issue selection.
-
-// e.g. multi-level categories (Billing > Refund), multi-select tags (app crash, GPS, map),
-// dynamic fields per issue (station ID picker),
-// file upload, contact preference,
-// auto-attach context (last booking/station used).
-
 import { useState, useEffect } from "react";
 
 import { Mail, User } from "lucide-react";
@@ -13,7 +6,7 @@ import SuccessMessage from "../components/SuccessMessage";
 
 const API_URL = import.meta.env.VITE_API_URL;
 const SUPPORT_ENDPOINT = `${API_URL}/support-requests`;
-const RECENT_SUCCESS_MESSAGE_LINGER = 5000; // 5 seconds * 1000
+const RECENT_SUCCESS_MESSAGE_LINGER = 5000;
 
 export default function SupportRequestForm() {
   const [name, setName] = useState("");
@@ -31,7 +24,6 @@ export default function SupportRequestForm() {
   const [isDescriptionEmpty, setIsDescriptionEmpty] = useState(false);
   const [recentSuccess, setRecentSuccess] = useState(false);
 
-  // Prefill name/email from currentUser if available
   useEffect(() => {
     const raw = localStorage.getItem("currentUser");
     if (!raw) return;
@@ -50,7 +42,6 @@ export default function SupportRequestForm() {
     }
   }, []);
 
-  // Auto-clear the success message after 5 seconds
   useEffect(() => {
     if (recentSuccess) {
       const timer = setTimeout(() => {
@@ -146,7 +137,6 @@ export default function SupportRequestForm() {
         );
       }
 
-      // Save locally (optional quick UX)
       const prev = JSON.parse(
         localStorage.getItem("supportRequests") || "[]"
       );
@@ -156,7 +146,6 @@ export default function SupportRequestForm() {
         JSON.stringify([...prev, data])
       );
 
-      // Clear success message after 5 seconds
       setSuccess(
         `Support request submitted! ${
           data.reference ? `Reference: ${data.reference}` : ""
@@ -165,7 +154,6 @@ export default function SupportRequestForm() {
 
       setRecentSuccess(true);
 
-      // Reset form
       setName(name);
       setEmail(email);
       setIssue("");
@@ -177,32 +165,139 @@ export default function SupportRequestForm() {
     }
   };
 
+  const labelClass = `
+    mb-2 block text-sm font-semibold
+    text-slate-700
+    dark:text-gray-200
+    after:ml-1 after:text-red-500
+    after:content-['*']
+  `;
+
+  const inputClass = `
+    peer w-full rounded-lg border
+    border-slate-200 bg-slate-50
+    py-3 pl-10 pr-3
+    text-slate-900
+    placeholder:text-slate-400
+    transition-all duration-200
+    hover:border-emerald-300
+    hover:bg-white
+    focus:border-emerald-500
+    focus:bg-white
+    focus:outline-none
+    focus:ring-4
+    focus:ring-emerald-500/10
+
+    dark:border-gray-800
+    dark:bg-[#08100c]
+    dark:text-gray-100
+    dark:placeholder:text-gray-600
+    dark:hover:border-emerald-900
+    dark:hover:bg-[#0b1510]
+    dark:focus:border-emerald-500
+    dark:focus:bg-[#0b1510]
+    dark:focus:ring-emerald-500/10
+  `;
+
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col items-center px-4 py-8">
-      <h2 className="mb-8 text-center text-3xl font-bold text-slate-900">
-        Submit a Request
-      </h2>
+    <div
+      className="
+        mx-auto flex w-full max-w-2xl flex-col items-center
+        px-4 py-8 text-slate-900
+        dark:text-white
+      "
+    >
+      <div className="mb-8 text-center">
+        <span
+          className="
+            inline-flex items-center rounded-full
+            border border-emerald-200 bg-emerald-50
+            px-3.5 py-1.5 text-[11px] font-semibold
+            uppercase tracking-[0.18em] text-emerald-700
+
+            dark:border-emerald-900/70
+            dark:bg-emerald-950/50
+            dark:text-emerald-400
+          "
+        >
+          Support Centre
+        </span>
+
+        <h2
+          className="
+            mt-4 text-center text-3xl font-bold
+            tracking-tight text-slate-900
+            dark:text-white
+          "
+        >
+          Submit a Request
+        </h2>
+
+        <p
+          className="
+            mx-auto mt-2 max-w-md text-sm leading-6
+            text-slate-500
+            dark:text-gray-400
+          "
+        >
+          Tell us what went wrong and our support team can help.
+        </p>
+      </div>
 
       <form
         onSubmit={handleValidation}
-        className="flex w-full max-w-xl flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_8px_30px_rgba(15,23,42,0.08)] transition-all duration-300 hover:border-emerald-200 hover:shadow-[0_12px_35px_rgba(16,185,129,0.12)] sm:p-8"
+        className="
+          relative flex w-full max-w-xl flex-col gap-4
+          overflow-hidden rounded-2xl border
+          border-slate-200
+          bg-white/90
+          p-6
+          shadow-[0_8px_30px_rgba(15,23,42,0.08)]
+          backdrop-blur-xl
+          transition-all duration-300
+          hover:border-emerald-200
+          hover:shadow-[0_12px_35px_rgba(16,185,129,0.12)]
+          sm:p-8
+
+          dark:border-emerald-900/50
+          dark:bg-[#050806]/90
+          dark:shadow-[0_15px_45px_rgba(0,0,0,0.45)]
+          dark:hover:border-emerald-800
+          dark:hover:shadow-[0_15px_45px_rgba(16,185,129,0.08)]
+        "
       >
-        {/* Submit Error and Success Messages */}
+        <div
+          className="
+            pointer-events-none absolute left-8 right-8 top-0
+            h-px bg-gradient-to-r
+            from-transparent via-emerald-300 to-transparent
+            dark:via-emerald-700
+          "
+        />
+
         {error && <ErrorMessage error={error} />}
         {success && <SuccessMessage message={success} />}
 
         <div className="h-2" />
 
-        {/* Enter Name */}
-        <label className="mb-2 block text-sm font-semibold text-slate-700 after:ml-1 after:text-red-500 after:content-['*']">
+        <label className={labelClass}>
           Name
         </label>
 
         <div className="relative flex items-center">
-          <User className="absolute left-3 h-5 w-5 text-slate-400 transition-colors duration-200 peer-focus:text-emerald-600" />
+          <User
+            className="
+              absolute left-3 h-5 w-5
+              text-slate-400
+              transition-colors duration-200
+              peer-focus:text-emerald-600
+              dark:text-gray-500
+              dark:peer-focus:text-emerald-400
+            "
+          />
 
           <input
-            className="peer w-full rounded-lg border border-slate-200 bg-slate-50 py-3 pl-10 pr-3 text-slate-900 placeholder:text-slate-400 transition-all duration-200 hover:border-emerald-300 hover:bg-white focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/10"
+            className={inputClass}
             type="text"
             name="name"
             placeholder="Your Name"
@@ -213,19 +308,26 @@ export default function SupportRequestForm() {
 
         <div className="h-2" />
 
-        {/* Name Error Message */}
         {isNameEmpty && <ErrorMessage error="required" />}
 
-        {/* Enter Email */}
-        <label className="mb-2 block text-sm font-semibold text-slate-700 after:ml-1 after:text-red-500 after:content-['*']">
+        <label className={labelClass}>
           Email
         </label>
 
         <div className="relative flex items-center">
-          <Mail className="absolute left-3 h-5 w-5 text-slate-400 transition-colors duration-200 peer-focus:text-emerald-600" />
+          <Mail
+            className="
+              absolute left-3 h-5 w-5
+              text-slate-400
+              transition-colors duration-200
+              peer-focus:text-emerald-600
+              dark:text-gray-500
+              dark:peer-focus:text-emerald-400
+            "
+          />
 
           <input
-            className="peer w-full rounded-lg border border-slate-200 bg-slate-50 py-3 pl-10 pr-3 text-slate-900 placeholder:text-slate-400 transition-all duration-200 hover:border-emerald-300 hover:bg-white focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/10"
+            className={inputClass}
             type="email"
             name="email"
             placeholder="Your Email"
@@ -237,16 +339,35 @@ export default function SupportRequestForm() {
 
         <div className="h-2" />
 
-        {/* Email Error Message */}
         {isEmailEmpty && <ErrorMessage error="required" />}
 
-        {/* Enter Issue */}
-        <label className="mb-2 block text-sm font-semibold text-slate-700 after:ml-1 after:text-red-500 after:content-['*']">
+        <label className={labelClass}>
           Issue Type
         </label>
 
         <select
-          className="w-full cursor-pointer rounded-lg border border-slate-200 bg-slate-50 px-3 py-3 text-slate-900 transition-all duration-200 hover:border-emerald-300 hover:bg-white focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/10"
+          className="
+            w-full cursor-pointer rounded-lg border
+            border-slate-200 bg-slate-50
+            px-3 py-3
+            text-slate-900
+            transition-all duration-200
+            hover:border-emerald-300
+            hover:bg-white
+            focus:border-emerald-500
+            focus:bg-white
+            focus:outline-none
+            focus:ring-4 focus:ring-emerald-500/10
+
+            dark:border-gray-800
+            dark:bg-[#08100c]
+            dark:text-gray-100
+            dark:hover:border-emerald-900
+            dark:hover:bg-[#0b1510]
+            dark:focus:border-emerald-500
+            dark:focus:bg-[#0b1510]
+            dark:focus:ring-emerald-500/10
+          "
           name="issue"
           value={issue}
           onChange={(e) => setIssue(e.target.value)}
@@ -260,16 +381,37 @@ export default function SupportRequestForm() {
 
         <div className="h-2" />
 
-        {/* Issue Error Message */}
         {isIssueEmpty && <ErrorMessage error="required" />}
 
-        {/* Enter Description */}
-        <label className="mb-2 block text-sm font-semibold text-slate-700 after:ml-1 after:text-red-500 after:content-['*']">
+        <label className={labelClass}>
           Description of Issue
         </label>
 
         <textarea
-          className="min-h-28 w-full resize-y rounded-lg border border-slate-200 bg-slate-50 px-3 py-3 text-slate-900 placeholder:text-slate-400 transition-all duration-200 hover:border-emerald-300 hover:bg-white focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/10"
+          className="
+            min-h-28 w-full resize-y rounded-lg border
+            border-slate-200 bg-slate-50
+            px-3 py-3
+            text-slate-900
+            placeholder:text-slate-400
+            transition-all duration-200
+            hover:border-emerald-300
+            hover:bg-white
+            focus:border-emerald-500
+            focus:bg-white
+            focus:outline-none
+            focus:ring-4 focus:ring-emerald-500/10
+
+            dark:border-gray-800
+            dark:bg-[#08100c]
+            dark:text-gray-100
+            dark:placeholder:text-gray-600
+            dark:hover:border-emerald-900
+            dark:hover:bg-[#0b1510]
+            dark:focus:border-emerald-500
+            dark:focus:bg-[#0b1510]
+            dark:focus:ring-emerald-500/10
+          "
           name="description"
           placeholder="Describe your issue..."
           rows={5}
@@ -279,19 +421,50 @@ export default function SupportRequestForm() {
 
         <div className="h-2" />
 
-        {/* Description Error Message */}
         {isDescriptionEmpty && <ErrorMessage error="required" />}
 
         <div className="h-2" />
 
-        {/* UI: Tailwind styling gives the primary action a consistent emerald interaction state */}
         <button
           type="submit"
-          className="mt-2 inline-flex w-full items-center justify-center rounded-lg bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-emerald-700 hover:shadow-lg hover:shadow-emerald-500/20 focus:outline-none focus:ring-4 focus:ring-emerald-500/20 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
+          className="
+            mt-2 inline-flex w-full items-center
+            justify-center rounded-lg
+            bg-emerald-600
+            px-5 py-3
+            text-sm font-semibold text-white
+            shadow-sm
+            transition-all duration-200
+            hover:-translate-y-0.5
+            hover:bg-emerald-700
+            hover:shadow-lg
+            hover:shadow-emerald-500/20
+            focus:outline-none
+            focus:ring-4 focus:ring-emerald-500/20
+            active:translate-y-0
+            disabled:cursor-not-allowed
+            disabled:opacity-60
+            disabled:hover:translate-y-0
+
+            dark:bg-emerald-600
+            dark:shadow-[0_0_20px_rgba(16,185,129,0.10)]
+            dark:hover:bg-emerald-500
+            dark:hover:shadow-[0_0_25px_rgba(16,185,129,0.18)]
+          "
           disabled={submitting}
         >
           {submitting ? "Submitting..." : "Submit Request"}
         </button>
+
+        <p
+          className="
+            mt-1 text-center text-xs
+            text-slate-400
+            dark:text-gray-600
+          "
+        >
+          We’ll use the information provided to respond to your request.
+        </p>
       </form>
     </div>
   );
