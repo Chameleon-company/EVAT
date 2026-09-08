@@ -1,10 +1,12 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import asyncio
 
 from backend.llm.service import get_llm_service
 
 
 app = Flask(__name__)
+CORS(app)
 
 
 @app.get("/health")
@@ -20,6 +22,7 @@ def chat():
     data = request.get_json(silent=True) or {}
 
     message = (data.get("message") or "").strip()
+    metadata = data.get("metadata") or {}
 
     if not message:
         return jsonify({
@@ -31,7 +34,10 @@ def chat():
         service = get_llm_service()
 
         response = asyncio.run(
-            service.chat_with_tools(message)
+            service.chat_with_tools(
+                message,
+                metadata=metadata
+            )
         )
 
         return jsonify({

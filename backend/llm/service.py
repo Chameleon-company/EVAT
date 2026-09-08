@@ -62,13 +62,17 @@ class LLMService:
         user_message: str,
         history: Optional[Sequence[LLMMessage]] = None,
         max_tool_rounds: int = 3,
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> LLMResponse:
-        """Chat with Qwen and allow approved EVAT backend tool calls."""
-
         cleaned_message = user_message.strip()
 
         if not cleaned_message:
             raise ValueError("The user message cannot be empty.")
+
+        metadata = metadata or {}
+
+        latitude = metadata.get("latitude")
+        longitude = metadata.get("longitude")
 
         messages = [
             LLMMessage(
@@ -106,10 +110,24 @@ class LLMService:
             )
 
             for tool_call in response.tool_calls:
+                arguments = dict(tool_call.arguments)
+
+                if (
+                    latitude is not None
+                    and longitude is not None
+                ):
+                    if tool_call.name == "get_station_availability":
+                        arguments["lat"] = latitude
+                        arguments["lon"] = longitude
+
+                    elif tool_call.name == "get_stations_by_preference":
+                        arguments["latitude"] = latitude
+                        arguments["longitude"] = longitude
+
                 try:
                     result = execute_tool_call(
                         tool_call.name,
-                        tool_call.arguments,
+                        arguments,
                     )
                 except ValueError as exc:
                     result = {
