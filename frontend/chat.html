@@ -42,6 +42,47 @@
             }
         };
     </script>
+
+    <style>
+        /* custom scrollbar so it matches the green theme instead of the default gray one */
+        #chat::-webkit-scrollbar {
+            width: 8px;
+        }
+        #chat::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        #chat::-webkit-scrollbar-thumb {
+            background: rgba(52, 211, 153, 0.18);
+            border-radius: 9999px;
+        }
+        #chat::-webkit-scrollbar-thumb:hover {
+            background: rgba(52, 211, 153, 0.32);
+        }
+        #chat {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(52, 211, 153, 0.18) transparent;
+        }
+
+        /* little fade/slide when a new message pops in, feels less jumpy */
+        @keyframes evatFadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .evat-in {
+            animation: evatFadeUp 0.3s ease-out both;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .evat-in {
+                animation: none;
+            }
+        }
+    </style>
 </head>
 
 <body class="min-h-screen overflow-hidden bg-[#06100f] font-sans text-white antialiased">
@@ -69,7 +110,7 @@
             id="chat-frame"
             class="
                 flex min-h-0 flex-1 flex-col overflow-hidden
-                rounded-[30px]
+                rounded-[22px] sm:rounded-[30px]
                 border border-white/[0.10]
                 bg-white/[0.035]
                 shadow-[0_35px_120px_rgba(0,0,0,0.65)]
@@ -227,6 +268,7 @@
                             text-sm leading-5 text-white
                             outline-none
                             placeholder:text-white/25
+                            focus-visible:outline-none
                         "
                     ></textarea>
 
@@ -245,6 +287,9 @@
                             hover:bg-emerald-400/[0.06]
                             hover:text-emerald-300
                             active:scale-95
+                            focus-visible:outline-none
+                            focus-visible:ring-2
+                            focus-visible:ring-emerald-400/50
                         "
                     >
                         ↻
@@ -264,6 +309,11 @@
                             transition
                             hover:brightness-110
                             active:scale-95
+                            focus-visible:outline-none
+                            focus-visible:ring-2
+                            focus-visible:ring-emerald-300/60
+                            focus-visible:ring-offset-2
+                            focus-visible:ring-offset-[#06100f]
                         "
                     >
                         ➤

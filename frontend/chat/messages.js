@@ -24,12 +24,14 @@ function addMessage(
     row.className =
         sender === "bot"
             ? `
+                evat-in
                 mb-5
                 flex
                 items-end
                 gap-3
             `
             : `
+                evat-in
                 mb-5
                 flex
                 items-end
@@ -95,7 +97,7 @@ function addMessage(
                 py-3
                 text-sm
                 leading-6
-                text-white/85
+                text-white/90
                 shadow-[0_15px_45px_rgba(0,0,0,0.25)]
                 backdrop-blur-2xl
                 sm:max-w-[75%]

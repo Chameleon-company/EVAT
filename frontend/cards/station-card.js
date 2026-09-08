@@ -130,6 +130,7 @@ function addStationCards(
 
   row.className =
     `
+      evat-in
       mb-5
       flex
       items-start
@@ -566,6 +567,9 @@ function addStationCards(
                   hover:text-emerald-200
                   hover:shadow-[0_8px_30px_rgba(16,185,129,0.10)]
                   active:scale-[0.99]
+                  focus-visible:outline-none
+                  focus-visible:ring-2
+                  focus-visible:ring-emerald-400/50
                 "
                 data-id="${station.station_id}"
               >
