@@ -1,590 +1,981 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid,
-  Tooltip, ResponsiveContainer, ReferenceLine,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  ReferenceLine,
 } from "recharts";
-import { MapContainer, TileLayer, CircleMarker, Popup } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  CircleMarker,
+  Popup,
+} from "react-leaflet";
 import NavBar from "../components/NavBar";
 import "leaflet/dist/leaflet.css";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-const AU_HOLIDAYS_2026 = [
-  "2026-01-01", "2026-01-26", "2026-04-03", "2026-04-04",
-  "2026-04-05", "2026-04-06", "2026-04-25", "2026-06-08",
-  "2026-12-25", "2026-12-26", "2026-12-28",
+const HOLIDAYS = [
+  "2026-01-01",
+  "2026-01-26",
+  "2026-04-03",
+  "2026-04-04",
+  "2026-04-05",
+  "2026-04-06",
+  "2026-04-25",
+  "2026-06-08",
+  "2026-12-25",
+  "2026-12-26",
+  "2026-12-28",
 ];
 
-const LINE_COLORS = ["#00b482", "#60a5fa", "#f472b6"];
-const PRESET_DAYS = [3, 7, 14, 16];
+const COLORS = ["#00b482", "#60a5fa", "#f472b6"];
+const DAYS = [3, 7, 14, 16];
 
-const formatDate = (d) => d.toISOString().split("T")[0];
-const formatDisplayDate = (dateStr) => {
-  const d = new Date(dateStr);
-  return d.toLocaleDateString("en-AU", { weekday: "short", month: "short", day: "numeric" });
-};
-const isWeekend = (dateStr) => { const d = new Date(dateStr); return d.getDay() === 0 || d.getDay() === 6; };
-const isHoliday = (dateStr) => AU_HOLIDAYS_2026.includes(dateStr);
+const formatDate = (date) => date.toISOString().split("T")[0];
 
-const getNextDates = (n, offsetDays = 0) => Array.from({ length: n }, (_, i) => {
-  const d = new Date();
-  d.setDate(d.getDate() + i + 1 + offsetDays);
-  return formatDate(d);
-});
+const displayDate = (date) =>
+  new Date(date).toLocaleDateString("en-AU", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
 
-const getDemandLevel = (kwh, min, max) => {
-  const range = max - min || 1;
-  const normalized = (kwh - min) / range;
-  if (normalized < 0.33) return { label: "Low", color: "#34d399", bg: "rgba(52,211,153,0.15)" };
-  if (normalized < 0.66) return { label: "Medium", color: "#fbbf24", bg: "rgba(251,191,36,0.15)" };
-  return { label: "High", color: "#f87171", bg: "rgba(248,113,113,0.15)" };
+const isWeekend = (date) => {
+  const day = new Date(date).getDay();
+  return day === 0 || day === 6;
 };
 
-const getHeatmapColor = (kwh, min, max) => {
+const isHoliday = (date) => HOLIDAYS.includes(date);
+
+const getDates = (count, offset = 0) =>
+  Array.from({ length: count }, (_, i) => {
+    const date = new Date();
+    date.setDate(date.getDate() + i + 1 + offset);
+    return formatDate(date);
+  });
+
+const getLevel = (value, min, max) => {
   const range = max - min || 1;
-  const t = (kwh - min) / range;
-  const r = Math.round(10 + t * 220);
-  const g = Math.round(180 - t * 150);
-  const b = Math.round(80 - t * 60);
-  return `rgb(${r},${g},${b})`;
+  const ratio = (value - min) / range;
+
+  if (ratio < 0.33)
+    return {
+      label: "Low",
+      color: "#34d399",
+      bg: "rgba(52,211,153,.15)",
+    };
+
+  if (ratio < 0.66)
+    return {
+      label: "Medium",
+      color: "#fbbf24",
+      bg: "rgba(251,191,36,.15)",
+    };
+
+  return {
+    label: "High",
+    color: "#f87171",
+    bg: "rgba(248,113,113,.15)",
+  };
 };
 
-const getMarkerColor = (kwh, min, max) => {
+const getHeatColor = (value, min, max) => {
   const range = max - min || 1;
-  const t = (kwh - min) / range;
-  if (t < 0.33) return "#34d399";
-  if (t < 0.66) return "#fbbf24";
+  const t = (value - min) / range;
+
+  return `rgb(
+    ${Math.round(10 + t * 220)},
+    ${Math.round(180 - t * 150)},
+    ${Math.round(80 - t * 60)}
+  )`;
+};
+
+const getMarkerColor = (value, min, max) => {
+  const range = max - min || 1;
+  const ratio = (value - min) / range;
+
+  if (ratio < 0.33) return "#34d399";
+  if (ratio < 0.66) return "#fbbf24";
   return "#f87171";
 };
 
-const CustomTooltip = ({ active, payload, label, globalMin, globalMax }) => {
-  if (active && payload && payload.length) {
-    return (
-      <div style={{ backgroundColor: "#0f2318", border: "1px solid rgba(0,180,130,0.3)", borderRadius: "8px", padding: "12px 16px", minWidth: "160px" }}>
-        <p style={{ color: "#00b482", fontWeight: 700, margin: "0 0 8px 0", fontSize: "13px" }}>{label}</p>
-        {payload.map((p, i) => {
-          const level = getDemandLevel(p.value, globalMin, globalMax);
-          return (
-            <div key={i} style={{ marginBottom: "6px" }}>
-              <p style={{ color: "#fff", margin: "0 0 4px 0", fontSize: "14px" }}>{p.value?.toFixed(2)} <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "12px" }}>kWh</span></p>
-              <span style={{ backgroundColor: level.bg, color: level.color, border: `1px solid ${level.color}55`, borderRadius: "4px", padding: "2px 8px", fontSize: "11px", fontWeight: 600 }}>{level.label}</span>
-            </div>
-          );
-        })}
-        {payload[0]?.payload?.weekend && <p style={{ color: "#fbbf24", margin: "6px 0 0 0", fontSize: "11px" }}>📅 Weekend</p>}
-        {payload[0]?.payload?.holiday && <p style={{ color: "#a78bfa", margin: "4px 0 0 0", fontSize: "11px" }}>🎉 Public Holiday</p>}
-      </div>
-    );
-  }
-  return null;
-};
-
-// Animated counter hook
-function useCountUp(target, duration = 1200, trigger = false) {
-  const [val, setVal] = useState(0);
-  useEffect(() => {
-    if (!trigger || !target) return;
-    setVal(0);
-    const steps = 40;
-    const inc = target / steps;
-    let cur = 0;
-    const timer = setInterval(() => {
-      cur = Math.min(cur + inc, target);
-      setVal(cur);
-      if (cur >= target) clearInterval(timer);
-    }, duration / steps);
-    return () => clearInterval(timer);
-  }, [target, trigger]);
-  return val;
-}
-
-// Ring progress component
-function Ring({ pct, color, size = 64, children }) {
-  const r = (size / 2) - 6;
-  const circ = 2 * Math.PI * r;
-  const [offset, setOffset] = useState(circ);
-  useEffect(() => {
-    const t = setTimeout(() => setOffset(circ - (pct / 100) * circ), 100);
-    return () => clearTimeout(t);
-  }, [pct, circ]);
-  return (
-    <div style={{ position: "relative", width: size, height: size }}>
-      <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
-        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={5} />
-        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={5} strokeLinecap="round"
-          strokeDasharray={circ} strokeDashoffset={offset}
-          style={{ transition: "stroke-dashoffset 1.2s ease" }} />
-      </svg>
-      <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", textAlign: "center" }}>
-        {children}
-      </div>
-    </div>
-  );
-}
-
-// Pulse dot
 const PulseDot = ({ color = "#00b482" }) => (
-  <span style={{ position: "relative", display: "inline-flex", alignItems: "center", justifyContent: "center", width: 10, height: 10, marginRight: 6 }}>
-    <span style={{ position: "absolute", width: 10, height: 10, borderRadius: "50%", backgroundColor: color, opacity: 0.4, animation: "pingAnim 1.4s ease-in-out infinite" }} />
-    <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: color, display: "inline-block" }} />
+  <span className="relative inline-flex h-2.5 w-2.5 items-center justify-center">
+    <span
+      className="absolute h-2.5 w-2.5 animate-ping rounded-full opacity-40"
+      style={{ backgroundColor: color }}
+    />
+    <span
+      className="h-1.5 w-1.5 rounded-full"
+      style={{ backgroundColor: color }}
+    />
   </span>
 );
+
+const Card = ({ children, className = "" }) => (
+  <section
+    className={`rounded-2xl border border-slate-200 bg-white p-5 shadow-sm
+      transition-all duration-300
+      hover:-translate-y-1 hover:border-emerald-200 hover:shadow-lg
+      ${className}`}
+  >
+    {children}
+  </section>
+);
+
+const Bar = ({ value, color = "#10b981" }) => (
+  <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-100">
+    <div
+      className="h-full rounded-full transition-all duration-700"
+      style={{
+        width: `${Math.min(value, 100)}%`,
+        backgroundColor: color,
+      }}
+    />
+  </div>
+);
+
+const TooltipContent = ({ active, payload, label, min, max }) => {
+  if (!active || !payload?.length) return null;
+
+  return (
+    <div className="rounded-xl border border-emerald-500/30 bg-slate-950 p-3 shadow-xl">
+      <p className="mb-2 text-xs font-bold text-emerald-400">{label}</p>
+
+      {payload.map((item, index) => {
+        const level = getLevel(item.value, min, max);
+
+        return (
+          <div key={index} className="mb-2">
+            <p className="text-sm font-semibold text-white">
+              {item.value?.toFixed(2)}{" "}
+              <span className="text-xs text-slate-500">kWh</span>
+            </p>
+
+            <span
+              className="rounded-md border px-2 py-0.5 text-[10px] font-semibold"
+              style={{
+                color: level.color,
+                backgroundColor: level.bg,
+                borderColor: `${level.color}55`,
+              }}
+            >
+              {level.label}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
 
 export default function DemandForecasting() {
   const [postcodes, setPostcodes] = useState(["", "", ""]);
   const [days, setDays] = useState(7);
-  const [mergedData, setMergedData] = useState([]);
-  const [statsByPc, setStatsByPc] = useState({});
+  const [data, setData] = useState([]);
+  const [stats, setStats] = useState({});
   const [weekComparison, setWeekComparison] = useState(null);
-  const [mapMarkers, setMapMarkers] = useState([]);
+  const [markers, setMarkers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [hasSearched, setHasSearched] = useState(false);
-  const [globalMin, setGlobalMin] = useState(0);
-  const [globalMax, setGlobalMax] = useState(100);
-  const [ticker, setTicker] = useState(0);
+  const [searched, setSearched] = useState(false);
+  const [min, setMin] = useState(0);
+  const [max, setMax] = useState(100);
 
-  // Live ticker
-  useEffect(() => {
-    if (!hasSearched) return;
-    const t = setInterval(() => setTicker(s => s + 1), 1000);
-    return () => clearInterval(t);
-  }, [hasSearched]);
+  const activePostcodes = postcodes.filter(
+    (postcode) => /^\d{4}$/.test(postcode.trim())
+  );
 
-  const getToken = () => JSON.parse(localStorage.getItem("currentUser"))?.token;
-  const activePostcodes = postcodes.filter((p) => p.trim() && /^\d{4}$/.test(p.trim()));
+  const updatePostcode = (index, value) => {
+    const cleaned = value.replace(/\D/g, "").slice(0, 4);
 
-  const fetchForPostcode = async (postcode, dates, token) => {
-    const results = await Promise.all(
-      dates.map((date) =>
-        fetch(`${API_URL}/predict/demand`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ postcode: postcode.trim(), date }),
-        }).then((r) => r.json())
+    setPostcodes((current) =>
+      current.map((postcode, i) =>
+        i === index ? cleaned : postcode
       )
     );
-    const firstError = results.find((r) => r.status === "error" || r.message);
-    if (firstError) throw new Error(`${postcode}: ${firstError.error || firstError.message}`);
+  };
+
+  const getToken = () => {
+    try {
+      return JSON.parse(localStorage.getItem("currentUser"))?.token;
+    } catch {
+      return null;
+    }
+  };
+
+  const fetchPostcode = async (postcode, dates, token) => {
+    const results = await Promise.all(
+      dates.map(async (date) => {
+        const response = await fetch(`${API_URL}/predict/demand`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            postcode: postcode.trim(),
+            date,
+          }),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || result.status === "error") {
+          throw new Error(
+            `${postcode}: ${result.error || result.message || "Forecast failed"}`
+          );
+        }
+
+        return result;
+      })
+    );
+
     return results;
   };
 
-  const fetchCoords = async (postcode, token) => {
+  const fetchCoordinates = async (postcode, token) => {
     try {
-      const res = await fetch(`${API_URL}/predict/demand/coords/${postcode}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) return null;
-      return await res.json();
-    } catch { return null; }
+      const response = await fetch(
+        `${API_URL}/predict/demand/coords/${postcode}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) return null;
+
+      return await response.json();
+    } catch {
+      return null;
+    }
   };
 
   const handleForecast = async () => {
-    if (activePostcodes.length === 0) { setError("Please enter at least one valid 4-digit Australian postcode."); return; }
-    setError(""); setLoading(true); setHasSearched(false); setTicker(0);
-    const token = getToken();
-    const dates = getNextDates(days);
+    if (!activePostcodes.length) {
+      setError("Please enter at least one valid 4-digit Australian postcode.");
+      return;
+    }
+
+    setError("");
+    setLoading(true);
+    setSearched(false);
 
     try {
-      const allResults = {};
-      await Promise.all(activePostcodes.map(async (pc) => {
-        allResults[pc] = await fetchForPostcode(pc, dates, token);
-      }));
+      const token = getToken();
+      const dates = getDates(days);
 
-      let weekComp = null;
-      if (activePostcodes[0]) {
-        const [thisWeek, nextWeek] = await Promise.all([
-          fetchForPostcode(activePostcodes[0], getNextDates(7), token),
-          fetchForPostcode(activePostcodes[0], getNextDates(7, 7), token),
-        ]);
-        weekComp = {
-          thisWeek: thisWeek.map((r) => ({ date: formatDisplayDate(r.date), demand: r.predicted_demand_kwh })),
-          nextWeek: nextWeek.map((r) => ({ date: formatDisplayDate(r.date), demand: r.predicted_demand_kwh })),
-          thisTotal: thisWeek.reduce((s, r) => s + r.predicted_demand_kwh, 0),
-          nextTotal: nextWeek.reduce((s, r) => s + r.predicted_demand_kwh, 0),
+      const results = {};
+
+      await Promise.all(
+        activePostcodes.map(async (postcode) => {
+          results[postcode] = await fetchPostcode(
+            postcode,
+            dates,
+            token
+          );
+        })
+      );
+
+      const merged = dates.map((date, index) => {
+        const row = {
+          date: displayDate(date),
+          rawDate: date,
+          weekend: isWeekend(date),
+          holiday: isHoliday(date),
         };
-      }
 
-      const coordsResults = await Promise.all(activePostcodes.map((pc) => fetchCoords(pc, token)));
+        activePostcodes.forEach((postcode) => {
+          row[postcode] =
+            results[postcode][index]?.predicted_demand_kwh ?? 0;
+        });
 
-      const merged = dates.map((date, i) => {
-        const row = { date: formatDisplayDate(date), rawDate: date, weekend: isWeekend(date), holiday: isHoliday(date) };
-        activePostcodes.forEach((pc) => { row[pc] = allResults[pc][i].predicted_demand_kwh; });
         return row;
       });
 
-      const stats = {};
-      activePostcodes.forEach((pc) => {
-        const demands = merged.map((r) => r[pc]);
-        const peak = merged.reduce((max, d) => d[pc] > max[pc] ? d : max, merged[0]);
-        const best = merged.reduce((min, d) => d[pc] < min[pc] ? d : min, merged[0]);
-        const total = demands.reduce((s, v) => s + v, 0);
-        const trendPct = ((demands[demands.length - 1] - demands[0]) / demands[0]) * 100;
-        const anomalies = merged.filter((d) => {
-          const avg = total / demands.length;
-          return Math.abs(d[pc] - avg) > avg * 0.2;
-        });
-        stats[pc] = { peak, best, total, avg: total / demands.length, trendPct, anomalies };
+      const values = merged.flatMap((row) =>
+        activePostcodes.map((postcode) => row[postcode])
+      );
+
+      const globalMin = Math.min(...values);
+      const globalMax = Math.max(...values);
+
+      const calculatedStats = {};
+
+      activePostcodes.forEach((postcode) => {
+        const values = merged.map((row) => row[postcode]);
+
+        const peak = merged.reduce((a, b) =>
+          b[postcode] > a[postcode] ? b : a
+        );
+
+        const best = merged.reduce((a, b) =>
+          b[postcode] < a[postcode] ? b : a
+        );
+
+        const total = values.reduce((sum, value) => sum + value, 0);
+        const average = total / values.length;
+
+        const first = values[0] || 1;
+        const last = values[values.length - 1] || 0;
+
+        calculatedStats[postcode] = {
+          peak,
+          best,
+          total,
+          avg: average,
+          trendPct: ((last - first) / first) * 100,
+          anomalies: merged.filter(
+            (row) =>
+              Math.abs(row[postcode] - average) > average * 0.2
+          ),
+        };
       });
 
-      const allValues = merged.flatMap((r) => activePostcodes.map((pc) => r[pc]));
-      const gMin = Math.min(...allValues);
-      const gMax = Math.max(...allValues);
-      setGlobalMin(gMin);
-      setGlobalMax(gMax);
+      const coordinates = await Promise.all(
+        activePostcodes.map((postcode) =>
+          fetchCoordinates(postcode, token)
+        )
+      );
 
-      const markers = activePostcodes.map((pc, idx) => {
-        const coords = coordsResults[idx];
-        const avgDemand = stats[pc].avg;
-        const color = getMarkerColor(avgDemand, gMin, gMax);
-        const level = getDemandLevel(avgDemand, gMin, gMax);
-        return coords ? { postcode: pc, lat: coords.lat, lon: coords.lon, avgDemand, color, level, lineColor: LINE_COLORS[idx], stats: stats[pc] } : null;
-      }).filter(Boolean);
+      const mapMarkers = activePostcodes
+        .map((postcode, index) => {
+          const coordinate = coordinates[index];
 
-      setMergedData(merged);
-      setStatsByPc(stats);
-      setWeekComparison(weekComp);
-      setMapMarkers(markers);
-      setHasSearched(true);
+          if (!coordinate) return null;
+
+          return {
+            postcode,
+            lat: coordinate.lat,
+            lon: coordinate.lon,
+            avgDemand: calculatedStats[postcode].avg,
+            color: getMarkerColor(
+              calculatedStats[postcode].avg,
+              globalMin,
+              globalMax
+            ),
+            lineColor: COLORS[index],
+          };
+        })
+        .filter(Boolean);
+
+      setData(merged);
+      setStats(calculatedStats);
+      setMin(globalMin);
+      setMax(globalMax);
+      setMarkers(mapMarkers);
+      setSearched(true);
+
+      if (activePostcodes[0]) {
+        const [thisWeek, nextWeek] = await Promise.all([
+          fetchPostcode(
+            activePostcodes[0],
+            getDates(7),
+            token
+          ),
+          fetchPostcode(
+            activePostcodes[0],
+            getDates(7, 7),
+            token
+          ),
+        ]);
+
+        const thisTotal = thisWeek.reduce(
+          (sum, item) => sum + item.predicted_demand_kwh,
+          0
+        );
+
+        const nextTotal = nextWeek.reduce(
+          (sum, item) => sum + item.predicted_demand_kwh,
+          0
+        );
+
+        setWeekComparison({
+          thisTotal,
+          nextTotal,
+        });
+      }
     } catch (err) {
-      setError(err.message || "Failed to fetch forecast.");
+      setError(err.message || "Failed to fetch demand forecast.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleExportCSV = () => {
-    const rows = [["Date", "Weekend", "Holiday", ...activePostcodes.map((p) => `${p} (kWh)`)]];
-    mergedData.forEach((row) => {
-      rows.push([row.date, row.weekend ? "Yes" : "No", row.holiday ? "Yes" : "No", ...activePostcodes.map((p) => row[p]?.toFixed(2) || "")]);
-    });
-    const csv = rows.map((r) => r.join(",")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `demand_forecast_${activePostcodes.join("_")}.csv`;
-    a.click();
+  const exportCSV = () => {
+    const rows = [
+      [
+        "Date",
+        "Weekend",
+        "Holiday",
+        ...activePostcodes.map((pc) => `${pc} (kWh)`),
+      ],
+      ...data.map((row) => [
+        row.date,
+        row.weekend ? "Yes" : "No",
+        row.holiday ? "Yes" : "No",
+        ...activePostcodes.map((pc) =>
+          row[pc]?.toFixed(2) || ""
+        ),
+      ]),
+    ];
+
+    const blob = new Blob(
+      [rows.map((row) => row.join(",")).join("\n")],
+      { type: "text/csv" }
+    );
+
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `demand_forecast_${activePostcodes.join("_")}.csv`;
+    link.click();
   };
 
-  const mapCenter = mapMarkers.length > 0
-    ? [mapMarkers.reduce((s, m) => s + m.lat, 0) / mapMarkers.length, mapMarkers.reduce((s, m) => s + m.lon, 0) / mapMarkers.length]
+  const mapCenter = markers.length
+    ? [
+        markers.reduce((sum, marker) => sum + marker.lat, 0) /
+          markers.length,
+        markers.reduce((sum, marker) => sum + marker.lon, 0) /
+          markers.length,
+      ]
     : [-25.2744, 133.7751];
 
-  const s0 = activePostcodes[0] ? statsByPc[activePostcodes[0]] : null;
-
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "#080f0a", fontFamily: "'Segoe UI', sans-serif" }}>
-      <style>{`
-        @keyframes pingAnim { 0%,100%{transform:scale(1);opacity:0.4} 50%{transform:scale(2.2);opacity:0} }
-        @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
-        .bento-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 14px; padding: 20px; animation: fadeUp 0.5s ease forwards; opacity: 0; }
-        .bento-card:nth-child(1){animation-delay:.05s}.bento-card:nth-child(2){animation-delay:.1s}.bento-card:nth-child(3){animation-delay:.15s}.bento-card:nth-child(4){animation-delay:.2s}.bento-card:nth-child(5){animation-delay:.25s}.bento-card:nth-child(6){animation-delay:.3s}.bento-card:nth-child(7){animation-delay:.35s}.bento-card:nth-child(8){animation-delay:.4s}
-        .card-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; color: rgba(255,255,255,0.35); margin: 0 0 8px 0; text-transform: uppercase; }
-        .card-value { font-size: 24px; font-weight: 700; margin: 0; }
-        .card-sub { font-size: 12px; color: rgba(255,255,255,0.4); margin: 4px 0 0 0; }
-        .mini-bar-track { height: 4px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; flex: 1; }
-        .mini-bar-fill { height: 100%; border-radius: 2px; transition: width 1.4s ease; }
-      `}</style>
-
+    <div className="min-h-screen bg-slate-50 text-slate-900">
       <NavBar />
 
-      <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "40px 24px" }}>
+      <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
 
         {/* Header */}
-        <div style={{ marginBottom: "32px", display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: "16px" }}>
-          <div>
-            <div style={{ display: "inline-flex", alignItems: "center", backgroundColor: "rgba(0,180,130,0.12)", border: "1px solid rgba(0,180,130,0.25)", borderRadius: "20px", padding: "4px 14px", marginBottom: "14px" }}>
-              <PulseDot />
-              <span style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "2px", color: "#00b482" }}>LIVE FORECAST</span>
-            </div>
-            <h1 style={{ color: "#fff", fontSize: "32px", fontWeight: 800, margin: "0 0 8px 0" }}>EV Charging Demand <span style={{ color: "#00b482" }}>Forecast</span></h1>
-            <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "14px", margin: 0 }}>Predict daily EV charging demand · Up to 3 postcodes · Powered by live weather</p>
+        <header className="mb-8">
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5">
+            <PulseDot />
+            <span className="text-[11px] font-bold tracking-widest text-emerald-600">
+              LIVE FORECAST
+            </span>
           </div>
-          {hasSearched && (
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", backgroundColor: "rgba(0,180,130,0.08)", border: "1px solid rgba(0,180,130,0.2)", borderRadius: "8px", padding: "8px 16px" }}>
-              <PulseDot />
-              <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.5)" }}>Updated {ticker}s ago</span>
-            </div>
-          )}
-        </div>
 
-        {/* Input Panel */}
-        <div style={{ backgroundColor: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "14px", padding: "24px", marginBottom: "24px" }}>
-          <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", marginBottom: "20px" }}>
-            {postcodes.map((pc, i) => (
-              <div key={i} style={{ flex: 1, minWidth: "140px" }}>
-                <label style={{ color: LINE_COLORS[i], fontSize: "10px", fontWeight: 700, letterSpacing: "1px", display: "block", marginBottom: "6px" }}>
-                  POSTCODE {i + 1} {i === 0 ? "·  required" : "· optional"}
-                </label>
-                <input type="text" value={pc} maxLength={4}
-                  onChange={(e) => { const u = [...postcodes]; u[i] = e.target.value; setPostcodes(u); }}
-                  onKeyDown={(e) => e.key === "Enter" && handleForecast()}
+          <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
+            EV Charging Demand{" "}
+            <span className="text-emerald-600">Forecast</span>
+          </h1>
+
+          <p className="mt-2 text-sm text-slate-500">
+            Predict daily EV charging demand · Up to 3 postcodes · Live
+            weather data
+          </p>
+        </header>
+
+        {/* Input card */}
+        <Card className="mb-6">
+          <div className="grid gap-4 md:grid-cols-3">
+            {postcodes.map((postcode, index) => (
+              <label key={index}>
+                <span
+                  className="mb-2 block text-[11px] font-bold uppercase tracking-wider"
+                  style={{ color: COLORS[index] }}
+                >
+                  Postcode {index + 1} ·{" "}
+                  {index === 0 ? "required" : "optional"}
+                </span>
+
+                <input
+                  value={postcode}
+                  maxLength={4}
+                  inputMode="numeric"
                   placeholder="e.g. 3000"
-                  style={{ width: "100%", backgroundColor: "rgba(255,255,255,0.06)", border: `1px solid ${LINE_COLORS[i]}44`, borderRadius: "8px", padding: "10px 14px", color: "#fff", fontSize: "15px", outline: "none", boxSizing: "border-box", transition: "border-color 0.2s" }}
+                  onChange={(e) =>
+                    updatePostcode(index, e.target.value)
+                  }
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleForecast();
+                    }
+                  }}
+                  className="
+                    w-full rounded-xl border border-slate-200
+                    bg-slate-50 px-4 py-3 text-sm
+                    outline-none transition-all
+                    hover:border-emerald-300
+                    focus:border-emerald-500
+                    focus:bg-white
+                    focus:ring-4 focus:ring-emerald-100
+                  "
                 />
-              </div>
+              </label>
             ))}
           </div>
-          <div style={{ marginBottom: "16px" }}>
-            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "10px" }}>
-              {PRESET_DAYS.map((d) => (
-                <button key={d} onClick={() => setDays(d)} style={{ backgroundColor: days === d ? "#00b482" : "rgba(255,255,255,0.05)", color: days === d ? "#fff" : "rgba(255,255,255,0.45)", border: `1px solid ${days === d ? "#00b482" : "rgba(255,255,255,0.08)"}`, borderRadius: "20px", padding: "5px 16px", fontSize: "12px", fontWeight: 600, cursor: "pointer", transition: "all 0.2s" }}>{d} days</button>
-              ))}
-              <span style={{ display: "flex", alignItems: "center", gap: "10px", flex: 1, minWidth: "200px" }}>
-                <input type="range" min={1} max={16} value={days} onChange={(e) => setDays(Number(e.target.value))} style={{ flex: 1, accentColor: "#00b482" }} />
-                <span style={{ color: "#00b482", fontWeight: 700, fontSize: "16px", minWidth: "50px" }}>{days}d</span>
-              </span>
-            </div>
+
+          {/* Days */}
+          <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-5">
+            {DAYS.map((value) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setDays(value)}
+                className={`rounded-full border px-4 py-1.5 text-xs font-semibold transition-all ${
+                  days === value
+                    ? "border-emerald-600 bg-emerald-600 text-white shadow-md"
+                    : "border-slate-200 bg-slate-50 text-slate-500 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-600"
+                }`}
+              >
+                {value} days
+              </button>
+            ))}
+
+            <input
+              type="range"
+              min="1"
+              max="16"
+              value={days}
+              onChange={(e) => setDays(Number(e.target.value))}
+              className="ml-2 min-w-[180px] flex-1 accent-emerald-600"
+            />
+
+            <strong className="text-sm text-emerald-600">
+              {days}d
+            </strong>
           </div>
-          <button onClick={handleForecast} disabled={loading} style={{ backgroundColor: loading ? "rgba(0,180,130,0.3)" : "#00b482", color: "#fff", border: "none", borderRadius: "8px", padding: "11px 28px", fontWeight: 700, fontSize: "14px", cursor: loading ? "not-allowed" : "pointer", letterSpacing: "0.5px", display: "flex", alignItems: "center", gap: "8px" }}>
-            {loading ? (<><PulseDot color="#fff" /> Fetching live weather & running model...</>) : "Get Forecast →"}
+
+          <button
+            type="button"
+            onClick={handleForecast}
+            disabled={loading}
+            className="
+              mt-5 inline-flex items-center gap-2 rounded-xl
+              bg-emerald-600 px-6 py-3 text-sm font-bold text-white
+              shadow-md transition-all
+              hover:-translate-y-0.5 hover:bg-emerald-700 hover:shadow-lg
+              disabled:cursor-not-allowed disabled:opacity-50
+            "
+          >
+            {loading ? (
+              <>
+                <PulseDot color="#fff" />
+                Fetching forecast...
+              </>
+            ) : (
+              "Get Forecast →"
+            )}
           </button>
-        </div>
+        </Card>
 
         {/* Error */}
-        {error && <div style={{ backgroundColor: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)", borderRadius: "10px", padding: "14px 20px", color: "#f87171", marginBottom: "20px", fontSize: "14px" }}>{error}</div>}
+        {error && (
+          <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
+            {error}
+          </div>
+        )}
 
-        {/* Results — Bento Grid */}
-        {hasSearched && !loading && activePostcodes.map((pc, idx) => {
-          const s = statsByPc[pc];
-          if (!s) return null;
-          const trendUp = s.trendPct >= 0;
-          const totalPct = Math.min((s.total / (s.total * 1.4)) * 100, 100);
-          const avgPct = Math.min((s.avg / globalMax) * 100, 100);
+        {/* Results */}
+        {searched &&
+          !loading &&
+          activePostcodes.map((postcode, index) => {
+            const stat = stats[postcode];
 
-          return (
-            <div key={pc} style={{ marginBottom: "32px" }}>
-              {/* Postcode header */}
-              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "14px" }}>
-                <PulseDot color={LINE_COLORS[idx]} />
-                <span style={{ color: LINE_COLORS[idx], fontSize: "13px", fontWeight: 700, letterSpacing: "1px" }}>POSTCODE {pc}</span>
-                <span style={{ backgroundColor: getDemandLevel(s.avg, globalMin, globalMax).bg, color: getDemandLevel(s.avg, globalMin, globalMax).color, fontSize: "11px", fontWeight: 600, padding: "2px 10px", borderRadius: "20px", border: `1px solid ${getDemandLevel(s.avg, globalMin, globalMax).color}55` }}>
-                  {getDemandLevel(s.avg, globalMin, globalMax).label} Demand
-                </span>
+            if (!stat) return null;
+
+            const rising = stat.trendPct >= 0;
+            const level = getLevel(stat.avg, min, max);
+
+            return (
+              <div key={postcode} className="mb-8">
+
+                <div className="mb-3 flex items-center gap-2">
+                  <PulseDot color={COLORS[index]} />
+
+                  <span
+                    className="text-xs font-bold uppercase tracking-wider"
+                    style={{ color: COLORS[index] }}
+                  >
+                    Postcode {postcode}
+                  </span>
+
+                  <span
+                    className="rounded-full border px-3 py-1 text-[11px] font-semibold"
+                    style={{
+                      color: level.color,
+                      backgroundColor: level.bg,
+                      borderColor: `${level.color}55`,
+                    }}
+                  >
+                    {level.label} Demand
+                  </span>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-3">
+
+                  <Card className="border-t-2 border-t-red-400">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                      Peak demand
+                    </p>
+
+                    <b className="mt-3 block text-xl text-red-500">
+                      {stat.peak?.date}
+                    </b>
+
+                    <p className="text-xs text-slate-400">
+                      {stat.peak?.[postcode]?.toFixed(1)} kWh
+                    </p>
+
+                    <Bar value={90} color="#f87171" />
+                  </Card>
+
+                  <Card className="border-t-2 border-t-emerald-400">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                      Best charging day
+                    </p>
+
+                    <b className="mt-3 block text-xl text-emerald-500">
+                      {stat.best?.date}
+                    </b>
+
+                    <p className="text-xs text-slate-400">
+                      {stat.best?.[postcode]?.toFixed(1)} kWh
+                    </p>
+
+                    <Bar value={40} color="#34d399" />
+                  </Card>
+
+                  <Card
+                    className="border-t-2"
+                    style={{
+                      borderTopColor: rising
+                        ? "#f87171"
+                        : "#34d399",
+                    }}
+                  >
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                      Demand trend
+                    </p>
+
+                    <b
+                      className={`mt-3 block text-3xl ${
+                        rising
+                          ? "text-red-500"
+                          : "text-emerald-500"
+                      }`}
+                    >
+                      {rising ? "▲" : "▼"}{" "}
+                      {Math.abs(stat.trendPct).toFixed(1)}%
+                    </b>
+
+                    <p className="text-xs text-slate-400">
+                      {rising ? "Rising" : "Falling"} over {days} days
+                    </p>
+                  </Card>
+
+                  <Card
+                    className="border-t-2 md:col-span-3"
+                    style={{ borderTopColor: COLORS[index] }}
+                  >
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                      Forecast summary
+                    </p>
+
+                    <div className="mt-3 grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <p className="text-xs text-slate-400">
+                          Total forecast
+                        </p>
+                        <b
+                          className="text-2xl"
+                          style={{ color: COLORS[index] }}
+                        >
+                          {stat.total.toFixed(1)} kWh
+                        </b>
+                      </div>
+
+                      <div>
+                        <p className="text-xs text-slate-400">
+                          Daily average
+                        </p>
+                        <b className="text-2xl text-blue-500">
+                          {stat.avg.toFixed(1)} kWh
+                        </b>
+                      </div>
+                    </div>
+                  </Card>
+                </div>
+
+                {stat.anomalies?.length > 0 && (
+                  <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs">
+                    <b className="text-amber-600">
+                      ⚠ Anomalies detected ·{" "}
+                    </b>
+
+                    <span className="text-slate-500">
+                      {stat.anomalies
+                        .map(
+                          (item) =>
+                            `${item.date} (${item[postcode]?.toFixed(
+                              0
+                            )} kWh)`
+                        )
+                        .join(" · ")}
+                    </span>
+                  </div>
+                )}
               </div>
+            );
+          })}
 
-              {/* Bento grid */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: "10px" }}>
+        {/* Map + heatmap */}
+        {searched && !loading && (
+          <div className="grid gap-4 lg:grid-cols-2">
 
-                {/* Peak day — span 2 */}
-                <div className="bento-card" style={{ gridColumn: "span 2", borderTop: `2px solid #f87171` }}>
-                  <p className="card-label">Peak demand day</p>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <div>
-                      <p className="card-value" style={{ color: "#f87171", fontSize: "20px" }}>{s.peak?.date}</p>
-                      <p className="card-sub">{s.peak?.[pc]?.toFixed(1)} kWh</p>
-                    </div>
-                    <Ring pct={Math.min(((s.peak?.[pc] - globalMin) / (globalMax - globalMin)) * 100, 100)} color="#f87171" size={60}>
-                      <span style={{ fontSize: "10px", color: "#f87171", fontWeight: 700 }}>HIGH</span>
-                    </Ring>
-                  </div>
-                </div>
+            {markers.length > 0 && (
+              <Card>
+                <p className="mb-3 text-xs font-bold uppercase tracking-widest text-slate-400">
+                  Demand map
+                </p>
 
-                {/* Best charging day — span 2 */}
-                <div className="bento-card" style={{ gridColumn: "span 2", borderTop: `2px solid #34d399` }}>
-                  <p className="card-label">Best charging day</p>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <div>
-                      <p className="card-value" style={{ color: "#34d399", fontSize: "20px" }}>{s.best?.date}</p>
-                      <p className="card-sub">{s.best?.[pc]?.toFixed(1)} kWh · lowest demand</p>
-                    </div>
-                    <Ring pct={Math.min(((s.best?.[pc] - globalMin) / (globalMax - globalMin)) * 100, 100)} color="#34d399" size={60}>
-                      <span style={{ fontSize: "10px", color: "#34d399", fontWeight: 700 }}>LOW</span>
-                    </Ring>
-                  </div>
-                </div>
+                <div className="h-[280px] overflow-hidden rounded-xl">
+                  <MapContainer
+                    center={mapCenter}
+                    zoom={markers.length === 1 ? 10 : 5}
+                    className="h-full w-full"
+                  >
+                    <TileLayer
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      attribution="&copy; OpenStreetMap contributors"
+                    />
 
-                {/* Trend — span 2 */}
-                <div className="bento-card" style={{ gridColumn: "span 2", borderTop: `2px solid ${trendUp ? "#f87171" : "#34d399"}` }}>
-                  <p className="card-label">Demand trend</p>
-                  <p className="card-value" style={{ color: trendUp ? "#f87171" : "#34d399", fontSize: "28px" }}>
-                    {trendUp ? "▲" : "▼"} {Math.abs(s.trendPct).toFixed(1)}%
-                  </p>
-                  <p className="card-sub">{trendUp ? "Rising" : "Falling"} over {days} days</p>
-                </div>
-
-                {/* Total — span 3 */}
-                <div className="bento-card" style={{ gridColumn: "span 3", borderTop: `2px solid ${LINE_COLORS[idx]}` }}>
-                  <p className="card-label">Total forecasted</p>
-                  <p className="card-value" style={{ color: LINE_COLORS[idx] }}>{s.total?.toFixed(1)} kWh</p>
-                  <div style={{ marginTop: "12px" }}>
-                    <div style={{ height: "5px", backgroundColor: "rgba(255,255,255,0.08)", borderRadius: "3px", overflow: "hidden" }}>
-                      <div style={{ height: "100%", width: `${totalPct}%`, backgroundColor: LINE_COLORS[idx], borderRadius: "3px", transition: "width 1.4s ease" }} />
-                    </div>
-                  </div>
-                  <p className="card-sub" style={{ marginTop: "6px" }}>Over {days} days</p>
-                </div>
-
-                {/* Daily avg — span 3 */}
-                <div className="bento-card" style={{ gridColumn: "span 3", borderTop: `2px solid #60a5fa` }}>
-                  <p className="card-label">Daily average</p>
-                  <p className="card-value" style={{ color: "#60a5fa" }}>{s.avg?.toFixed(1)} kWh</p>
-                  <div style={{ marginTop: "12px" }}>
-                    <div style={{ height: "5px", backgroundColor: "rgba(255,255,255,0.08)", borderRadius: "3px", overflow: "hidden" }}>
-                      <div style={{ height: "100%", width: `${avgPct}%`, backgroundColor: "#60a5fa", borderRadius: "3px", transition: "width 1.4s ease" }} />
-                    </div>
-                  </div>
-                  <p className="card-sub" style={{ marginTop: "6px" }}>Per day average</p>
-                </div>
-
-              </div>
-
-              {/* Anomalies */}
-              {s.anomalies?.length > 0 && (
-                <div style={{ marginTop: "10px", backgroundColor: "rgba(251,191,36,0.06)", border: "1px solid rgba(251,191,36,0.2)", borderRadius: "10px", padding: "12px 18px", display: "flex", alignItems: "flex-start", gap: "10px" }}>
-                  <span style={{ fontSize: "16px", marginTop: "1px" }}>⚠</span>
-                  <div>
-                    <span style={{ color: "#fbbf24", fontWeight: 700, fontSize: "12px" }}>Anomalies detected · </span>
-                    <span style={{ color: "rgba(255,255,255,0.45)", fontSize: "12px" }}>{s.anomalies.map((a) => `${a.date} (${a[pc]?.toFixed(0)} kWh)`).join(" · ")}</span>
-                  </div>
-                </div>
-              )}
-            </div>
-          );
-        })}
-
-        {/* Map + Heatmap side by side */}
-        {hasSearched && !loading && (
-          <div style={{ display: "grid", gridTemplateColumns: mapMarkers.length > 0 ? "1fr 1fr" : "1fr", gap: "12px", marginBottom: "16px" }}>
-
-            {/* Map */}
-            {mapMarkers.length > 0 && (
-              <div className="bento-card" style={{ padding: "20px" }}>
-                <p className="card-label" style={{ marginBottom: "12px" }}>📍 Demand map overlay</p>
-                <div style={{ borderRadius: "10px", overflow: "hidden", height: "280px" }}>
-                  <MapContainer center={mapCenter} zoom={mapMarkers.length === 1 ? 10 : 5} style={{ height: "100%", width: "100%" }} key={mapMarkers.map((m) => m.postcode).join("-")}>
-                    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="&copy; OpenStreetMap contributors" />
-                    {mapMarkers.map((marker) => (
-                      <CircleMarker key={marker.postcode} center={[marker.lat, marker.lon]} radius={20} pathOptions={{ fillColor: marker.color, fillOpacity: 0.85, color: marker.lineColor, weight: 3 }}>
+                    {markers.map((marker) => (
+                      <CircleMarker
+                        key={marker.postcode}
+                        center={[marker.lat, marker.lon]}
+                        radius={20}
+                        pathOptions={{
+                          fillColor: marker.color,
+                          fillOpacity: 0.85,
+                          color: marker.lineColor,
+                          weight: 3,
+                        }}
+                      >
                         <Popup>
-                          <div style={{ minWidth: "160px" }}>
-                            <p style={{ fontWeight: 700, margin: "0 0 6px 0" }}>Postcode {marker.postcode}</p>
-                            <p style={{ margin: "0 0 3px 0", fontSize: "12px" }}>Avg: <strong>{marker.avgDemand.toFixed(1)} kWh</strong></p>
-                            <p style={{ margin: "0 0 3px 0", fontSize: "12px" }}>Peak: <strong>{marker.stats.peak?.[marker.postcode]?.toFixed(1)} kWh</strong></p>
-                            <p style={{ margin: "0 0 3px 0", fontSize: "12px" }}>Best: <strong>{marker.stats.best?.date}</strong></p>
-                            <span style={{ backgroundColor: marker.level.bg, color: marker.level.color, border: `1px solid ${marker.level.color}`, borderRadius: "4px", padding: "2px 8px", fontSize: "11px", fontWeight: 700 }}>{marker.level.label}</span>
-                          </div>
+                          <b>Postcode {marker.postcode}</b>
+                          <br />
+                          Average: {marker.avgDemand.toFixed(1)} kWh
                         </Popup>
                       </CircleMarker>
                     ))}
                   </MapContainer>
                 </div>
-              </div>
+              </Card>
             )}
 
-            {/* Heatmap */}
-            <div className="bento-card" style={{ padding: "20px" }}>
-              <p className="card-label" style={{ marginBottom: "12px" }}>🗓 Demand heatmap calendar</p>
-              {activePostcodes.map((pc, idx) => (
-                <div key={pc} style={{ marginBottom: "14px" }}>
-                  <p style={{ color: LINE_COLORS[idx], fontSize: "11px", fontWeight: 600, margin: "0 0 8px 0" }}>Postcode {pc}</p>
-                  <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
-                    {mergedData.map((d) => {
-                      const color = getHeatmapColor(d[pc], globalMin, globalMax);
-                      const level = getDemandLevel(d[pc], globalMin, globalMax);
-                      return (
-                        <div key={d.rawDate} title={`${d.date}: ${d[pc]?.toFixed(1)} kWh (${level.label})`}
-                          style={{ width: "44px", height: "44px", borderRadius: "6px", backgroundColor: color, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", position: "relative", border: d.holiday ? "2px solid #a78bfa" : d.weekend ? "2px solid #fbbf24" : "2px solid transparent", cursor: "default" }}>
-                          <span style={{ fontSize: "8px", color: "rgba(255,255,255,0.85)", fontWeight: 600 }}>{d.date.split(" ").slice(0, 2).join(" ")}</span>
-                          <span style={{ fontSize: "9px", color: "#fff", fontWeight: 800 }}>{d[pc]?.toFixed(0)}</span>
-                          {d.holiday && <span style={{ position: "absolute", top: "-5px", right: "-5px", fontSize: "9px" }}>🎉</span>}
-                          {d.weekend && !d.holiday && <span style={{ position: "absolute", top: "-5px", right: "-5px", fontSize: "9px" }}>📅</span>}
-                        </div>
-                      );
-                    })}
+            <Card>
+              <p className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">
+                Demand heatmap
+              </p>
+
+              {activePostcodes.map((postcode, index) => (
+                <div key={postcode} className="mb-5">
+                  <p
+                    className="mb-2 text-xs font-bold"
+                    style={{ color: COLORS[index] }}
+                  >
+                    Postcode {postcode}
+                  </p>
+
+                  <div className="flex flex-wrap gap-1.5">
+                    {data.map((row) => (
+                      <div
+                        key={row.rawDate}
+                        title={`${row.date}: ${row[
+                          postcode
+                        ]?.toFixed(1)} kWh`}
+                        className="
+                          flex h-11 w-11 items-center justify-center
+                          rounded-lg text-[10px] font-bold text-white
+                          transition-all duration-200
+                          hover:scale-110 hover:shadow-lg
+                        "
+                        style={{
+                          backgroundColor: getHeatColor(
+                            row[postcode],
+                            min,
+                            max
+                          ),
+                          border: `2px solid ${
+                            row.holiday
+                              ? "#a78bfa"
+                              : row.weekend
+                              ? "#fbbf24"
+                              : "transparent"
+                          }`,
+                        }}
+                      >
+                        {row[postcode]?.toFixed(0)}
+                      </div>
+                    ))}
                   </div>
                 </div>
               ))}
-              <div style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "8px" }}>
-                <span style={{ color: "rgba(255,255,255,0.3)", fontSize: "10px" }}>Low</span>
-                <div style={{ background: "linear-gradient(90deg, rgb(10,180,80), rgb(230,30,20))", height: "5px", width: "80px", borderRadius: "3px" }} />
-                <span style={{ color: "rgba(255,255,255,0.3)", fontSize: "10px" }}>High</span>
-              </div>
-            </div>
+            </Card>
           </div>
         )}
 
-        {/* Line Chart */}
-        {hasSearched && !loading && (
-          <div className="bento-card" style={{ marginBottom: "12px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", flexWrap: "wrap", gap: "10px" }}>
-              <p className="card-label" style={{ margin: 0 }}>📈 Predicted demand comparison</p>
-              <div style={{ display: "flex", gap: "12px", fontSize: "11px", color: "rgba(255,255,255,0.35)", flexWrap: "wrap" }}>
-                <span>🟡 Weekend</span><span>🟣 Holiday</span>
-                {activePostcodes.map((pc, i) => <span key={pc} style={{ color: LINE_COLORS[i] }}>— {pc}</span>)}
+        {/* Chart */}
+        {searched && !loading && (
+          <Card className="mt-4">
+            <div className="mb-4 flex flex-wrap justify-between gap-2">
+              <p className="text-xs font-bold uppercase tracking-widest text-slate-400">
+                Predicted demand comparison
+              </p>
+
+              <div className="flex gap-3 text-[11px] text-slate-400">
+                🟡 Weekend · 🟣 Holiday
+                {activePostcodes.map((postcode, index) => (
+                  <span
+                    key={postcode}
+                    style={{ color: COLORS[index] }}
+                  >
+                    — {postcode}
+                  </span>
+                ))}
               </div>
             </div>
+
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={mergedData} margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="date" tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }} tickLine={false} axisLine={{ stroke: "rgba(255,255,255,0.08)" }} />
-                <YAxis tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }} tickLine={false} axisLine={false} tickFormatter={(v) => `${v} kWh`} width={80} />
-                <Tooltip content={<CustomTooltip globalMin={globalMin} globalMax={globalMax} />} />
-                {mergedData.filter((d) => d.weekend).map((d) => <ReferenceLine key={d.rawDate} x={d.date} stroke="#fbbf2418" strokeWidth={14} />)}
-                {mergedData.filter((d) => d.holiday).map((d) => <ReferenceLine key={d.rawDate + "_h"} x={d.date} stroke="#a78bfa28" strokeWidth={14} />)}
-                {activePostcodes.map((pc, idx) => (
-                  <Line key={pc} type="monotone" dataKey={pc} stroke={LINE_COLORS[idx]} strokeWidth={2}
-                    dot={(props) => {
-                      const { cx, cy, payload } = props;
-                      return <circle key={payload.rawDate + pc} cx={cx} cy={cy} r={payload.holiday ? 6 : payload.weekend ? 5 : 3.5} fill={payload.holiday ? "#a78bfa" : payload.weekend ? "#fbbf24" : LINE_COLORS[idx]} stroke={LINE_COLORS[idx]} strokeWidth={2} />;
-                    }}
-                    activeDot={{ r: 6 }}
+              <LineChart data={data}>
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="#e2e8f0"
+                />
+
+                <XAxis
+                  dataKey="date"
+                  tick={{ fill: "#94a3b8", fontSize: 11 }}
+                  tickLine={false}
+                />
+
+                <YAxis
+                  tick={{ fill: "#94a3b8", fontSize: 11 }}
+                  tickLine={false}
+                  width={75}
+                />
+
+                <Tooltip
+                  content={
+                    <TooltipContent min={min} max={max} />
+                  }
+                />
+
+                {data
+                  .filter((row) => row.weekend)
+                  .map((row) => (
+                    <ReferenceLine
+                      key={row.rawDate}
+                      x={row.date}
+                      stroke="#fbbf2430"
+                      strokeWidth={14}
+                    />
+                  ))}
+
+                {activePostcodes.map((postcode, index) => (
+                  <Line
+                    key={postcode}
+                    type="monotone"
+                    dataKey={postcode}
+                    stroke={COLORS[index]}
+                    strokeWidth={2.5}
+                    activeDot={{ r: 7 }}
+                    dot={{ r: 3 }}
                   />
                 ))}
               </LineChart>
             </ResponsiveContainer>
-          </div>
+          </Card>
         )}
 
-        {/* Week on Week */}
-        {hasSearched && !loading && weekComparison && (
-          <div className="bento-card" style={{ marginBottom: "12px" }}>
-            <p className="card-label" style={{ marginBottom: "14px" }}>🔁 Week-on-week comparison · Postcode {activePostcodes[0]}</p>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "12px" }}>
-              {[
-                { label: "This Week", value: weekComparison.thisTotal.toFixed(1), color: "#00b482", pct: 65 },
-                { label: "Next Week", value: weekComparison.nextTotal.toFixed(1), color: "#60a5fa", pct: Math.min((weekComparison.nextTotal / weekComparison.thisTotal) * 65, 100) },
-              ].map((c) => (
-                <div key={c.label}>
-                  <p style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", margin: "0 0 6px 0" }}>{c.label}</p>
-                  <div style={{ height: "5px", backgroundColor: "rgba(255,255,255,0.08)", borderRadius: "3px", overflow: "hidden", marginBottom: "6px" }}>
-                    <div style={{ height: "100%", width: `${c.pct}%`, backgroundColor: c.color, borderRadius: "3px", transition: "width 1.4s ease" }} />
-                  </div>
-                  <p style={{ color: c.color, fontSize: "20px", fontWeight: 700, margin: 0 }}>{c.value} kWh</p>
-                </div>
-              ))}
-            </div>
-            <div style={{ backgroundColor: weekComparison.nextTotal > weekComparison.thisTotal ? "rgba(248,113,113,0.07)" : "rgba(52,211,153,0.07)", border: `1px solid ${weekComparison.nextTotal > weekComparison.thisTotal ? "rgba(248,113,113,0.2)" : "rgba(52,211,153,0.2)"}`, borderRadius: "8px", padding: "10px 16px" }}>
-              <span style={{ color: weekComparison.nextTotal > weekComparison.thisTotal ? "#f87171" : "#34d399", fontWeight: 700, fontSize: "13px" }}>
-                {weekComparison.nextTotal > weekComparison.thisTotal ? "▲" : "▼"} Next week is {Math.abs(((weekComparison.nextTotal - weekComparison.thisTotal) / weekComparison.thisTotal) * 100).toFixed(1)}% {weekComparison.nextTotal > weekComparison.thisTotal ? "higher" : "lower"} than this week
-              </span>
-            </div>
-          </div>
-        )}
+        {/* Week comparison */}
+        {searched && weekComparison && (
+          <Card className="mt-4">
+            <p className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">
+              Week-on-week · {activePostcodes[0]}
+            </p>
 
-        {/* Footer row */}
-        {hasSearched && !loading && (
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "4px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <PulseDot />
-              <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.25)" }}>Powered by Open-Meteo live weather · LightGBM ML model</span>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="rounded-xl bg-slate-50 p-4">
+                <p className="text-xs font-semibold text-slate-400">
+                  This Week
+                </p>
+
+                <b className="mt-2 block text-xl text-emerald-600">
+                  {weekComparison.thisTotal.toFixed(1)} kWh
+                </b>
+
+                <Bar value={65} color="#10b981" />
+              </div>
+
+              <div className="rounded-xl bg-slate-50 p-4">
+                <p className="text-xs font-semibold text-slate-400">
+                  Next Week
+                </p>
+
+                <b className="mt-2 block text-xl text-blue-500">
+                  {weekComparison.nextTotal.toFixed(1)} kWh
+                </b>
+
+                <Bar value={75} color="#60a5fa" />
+              </div>
             </div>
-            <button onClick={handleExportCSV} style={{ backgroundColor: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.6)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", padding: "8px 20px", fontWeight: 600, fontSize: "12px", cursor: "pointer" }}>
-              ⬇ Export CSV
-            </button>
-          </div>
+          </Card>
         )}
 
         {/* Empty state */}
-        {!hasSearched && !loading && !error && (
-          <div style={{ textAlign: "center", padding: "80px 0", color: "rgba(255,255,255,0.15)" }}>
-            <div style={{ fontSize: "52px", marginBottom: "16px", opacity: 0.6 }}>📈</div>
-            <p style={{ fontSize: "16px", margin: "0 0 8px 0", color: "rgba(255,255,255,0.3)" }}>Enter a postcode to get started</p>
-            <p style={{ fontSize: "13px", margin: 0, color: "rgba(255,255,255,0.15)" }}>Up to 3 postcodes · 1–16 day forecast · Live weather data</p>
+        {!searched && !loading && !error && (
+          <div className="py-20 text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-50 text-3xl">
+              📈
+            </div>
+
+            <p className="font-semibold text-slate-600">
+              Enter a postcode to get started
+            </p>
+
+            <p className="mt-1 text-sm text-slate-400">
+              Up to 3 postcodes · 1–16 day forecast · Live weather data
+            </p>
           </div>
         )}
-      </div>
+
+        {/* Footer */}
+        {searched && !loading && (
+          <footer className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-4">
+            <span className="flex items-center gap-2 text-[11px] text-slate-400">
+              <PulseDot />
+              Powered by Open-Meteo · LightGBM
+            </span>
+
+            <button
+              type="button"
+              onClick={exportCSV}
+              className="
+                rounded-xl border border-slate-200 bg-white
+                px-4 py-2 text-xs font-semibold text-slate-500
+                transition-all
+                hover:border-emerald-300
+                hover:bg-emerald-50
+                hover:text-emerald-600
+              "
+            >
+              ↓ Export CSV
+            </button>
+          </footer>
+        )}
+      </main>
     </div>
   );
 }

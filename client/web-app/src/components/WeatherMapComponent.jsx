@@ -1,32 +1,42 @@
-import React, { useEffect, useState, useContext, useCallback } from 'react';
-import { MapContainer, TileLayer, useMapEvents, Marker, Polyline } from 'react-leaflet';
-import polyline from '@mapbox/polyline';
-import { UserContext } from '../context/user';
-import { predictWeatherAwareRouting } from '../services/weatherAwareRoutingService';
+import React, { useEffect, useState, useContext, useCallback } from "react";
+import {
+  MapContainer,
+  TileLayer,
+  useMapEvents,
+  Marker,
+  Polyline,
+} from "react-leaflet";
+import polyline from "@mapbox/polyline";
+import { UserContext } from "../context/user";
+import { predictWeatherAwareRouting } from "../services/weatherAwareRoutingService";
 
-import WeatherAwareSelection from './WeatherAwareSelection';
-import WeatherAwareResult from './WeatherAwareResult';
+import WeatherAwareSelection from "./WeatherAwareSelection";
+import WeatherAwareResult from "./WeatherAwareResult";
 import TurnByTurnOverlay from "./TurnByTurnOverlayRouting";
-
-// styles
-import '../styles/Root.css';
-import '../styles/Map.css';
-import '../styles/Buttons.css';
-import '../styles/Elements.css';
-import '../styles/Fonts.css';
 
 // Watches map bounds and reports them upward
 function BoundsWatcher({ onChange }) {
   const map = useMapEvents({
     moveend() {
       const b = map.getBounds();
-      onChange([b.getWest(), b.getSouth(), b.getEast(), b.getNorth()]);
-    }
+      onChange([
+        b.getWest(),
+        b.getSouth(),
+        b.getEast(),
+        b.getNorth(),
+      ]);
+    },
   });
 
   useEffect(() => {
     const b = map.getBounds();
-    onChange([b.getWest(), b.getSouth(), b.getEast(), b.getNorth()]);
+
+    onChange([
+      b.getWest(),
+      b.getSouth(),
+      b.getEast(),
+      b.getNorth(),
+    ]);
   }, [map, onChange]);
 
   return null;
@@ -46,17 +56,6 @@ function MapClickHandler({ onLocationSelect }) {
   return null;
 }
 
-const styles = {
-  resultPanel: {
-    position: "absolute",
-    right: "24px",
-    bottom: "80px",
-    width: "420px",
-    maxWidth: "calc(100% - 48px)",
-    zIndex: 1000,
-  },
-};
-
 export default function Map() {
   const { user } = useContext(UserContext);
 
@@ -74,14 +73,16 @@ export default function Map() {
   const [weatherResult, setWeatherResult] = useState(null);
   const [routeCoordinates, setRouteCoordinates] = useState([]);
   const [weatherLoading, setWeatherLoading] = useState(false);
-  const [weatherError, setWeatherError] = useState('');
+  const [weatherError, setWeatherError] = useState("");
 
-  // Convert map coordinates into a readable address using Google Geocoding API
+  // Convert map coordinates into an address
   const getAddressFromCoordinates = async (lat, lon) => {
     const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
     if (!apiKey) {
-      throw new Error("Google Maps API key is missing. Please add it to your .env file.");
+      throw new Error(
+        "Google Maps API key is missing. Please add it to your .env file."
+      );
     }
 
     const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lon}&key=${apiKey}`;
@@ -93,20 +94,25 @@ export default function Map() {
       return data.results[0].formatted_address;
     }
 
-    throw new Error("Could not convert this map location into an address.");
+    throw new Error(
+      "Could not convert this map location into an address."
+    );
   };
 
-  // When user clicks map, convert coordinates into address first
+  // Handle map location selection
   const handleLocationSelect = async (location) => {
     setWeatherResult(null);
     setWeatherError("");
     setRouteCoordinates([]);
 
     try {
-      const address = await getAddressFromCoordinates(location.lat, location.lon);
+      const address = await getAddressFromCoordinates(
+        location.lat,
+        location.lon
+      );
 
       const selectedLocation = {
-        address: address,
+        address,
         lat: location.lat,
         lon: location.lon,
       };
@@ -119,7 +125,9 @@ export default function Map() {
       }
     } catch (error) {
       console.log(error);
-      setWeatherError(error.message || "Could not read this map location.");
+      setWeatherError(
+        error.message || "Could not read this map location."
+      );
     }
   };
 
@@ -143,44 +151,55 @@ export default function Map() {
     setRouteCoordinates([]);
   };
 
+  // Calculate weather-aware energy
   const handleCalculateEnergy = async () => {
     if (!originLocation || !destinationLocation) {
-      setWeatherError("Please select both origin and destination.");
+      setWeatherError(
+        "Please select both origin and destination."
+      );
       return;
     }
 
     if (!originLocation.address || !destinationLocation.address) {
-      setWeatherError("Please select valid origin and destination addresses.");
+      setWeatherError(
+        "Please select valid origin and destination addresses."
+      );
       return;
     }
 
     setWeatherLoading(true);
-    setWeatherError('');
+    setWeatherError("");
 
     try {
-      // Backend now expects address/location text, not coordinates
       const payload = {
         origin: originLocation.address,
         destination: destinationLocation.address,
         ac_on: acOn,
       };
+
       console.log(payload);
 
-      const data = await predictWeatherAwareRouting(payload, user?.token);
+      const data = await predictWeatherAwareRouting(
+        payload,
+        user?.token
+      );
 
       setWeatherResult(data);
 
-      // Decode model/backend polyline and draw it on Leaflet map
       if (data?.polyline) {
         const decodedRoute = polyline.decode(data.polyline);
         setRouteCoordinates(decodedRoute);
       } else {
         setRouteCoordinates([]);
       }
-
     } catch (error) {
       console.log(error);
-      setWeatherError(error.message || "Something went wrong while calculating energy.");
+
+      setWeatherError(
+        error.message ||
+          "Something went wrong while calculating energy."
+      );
+
       setRouteCoordinates([]);
     } finally {
       setWeatherLoading(false);
@@ -197,6 +216,7 @@ export default function Map() {
     setWeatherError("");
   }, []);
 
+  // Dark mode
   useEffect(() => {
     if (isDark) {
       document.body.classList.add("dark-mode");
@@ -210,59 +230,53 @@ export default function Map() {
   }, [isDark]);
 
   return (
-    <div className={`map-page ${isDark ? "dark" : ""}`}>
-      <div className='container-map'>
+    <div
+      className={`relative h-[calc(100vh-64px)] min-h-[650px] w-full overflow-hidden ${
+        isDark ? "dark bg-slate-950" : "bg-slate-100"
+      }`}
+    >
+      {/* Map container */}
+      <div className="relative h-full w-full overflow-hidden">
+        {/* Map loading message */}
         {!bbox && !loading && user?.token && (
-          <div className="map-status-message map-info" style={{
-            position: 'absolute',
-            top: 12,
-            left: 12,
-            zIndex: 1000,
-            background: '#e3f2fd',
-            color: '#1565c0',
-            padding: '12px 16px',
-            borderRadius: 8,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-            fontSize: '14px',
-            fontWeight: 500,
-            borderLeft: '4px solid #2196f3',
-            maxWidth: '320px',
-            lineHeight: '1.5'
-          }}>
-            <div style={{ fontWeight: 600, marginBottom: '4px' }}>
-              📍 Map Loading
-            </div>
-            <div style={{ fontSize: '13px', opacity: 0.9 }}>
-              Wait for map to load or move/zoom to search for chargers
+          <div className="absolute left-4 top-4 z-[1100] max-w-xs rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-blue-800 shadow-lg">
+            <div className="flex items-start gap-3">
+              <span className="text-lg">📍</span>
+
+              <div>
+                <p className="text-sm font-bold">
+                  Map Loading
+                </p>
+
+                <p className="mt-1 text-xs leading-5 text-blue-700">
+                  Wait for the map to load or move/zoom to search
+                  for chargers.
+                </p>
+              </div>
             </div>
           </div>
         )}
 
+        {/* Login warning */}
         {!user?.token && (
-          <div className="map-status-message map-warning" style={{
-            position: 'absolute',
-            top: 12,
-            left: 12,
-            zIndex: 1000,
-            background: '#fff3cd',
-            color: '#856404',
-            padding: '12px 16px',
-            borderRadius: 8,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-            fontSize: '14px',
-            fontWeight: 500,
-            borderLeft: '4px solid #ffc107',
-            maxWidth: '300px'
-          }}>
-            <div style={{ fontWeight: 600, marginBottom: '4px' }}>
-              ⚠️ Login Required
-            </div>
-            <div style={{ fontSize: '13px', opacity: 0.9 }}>
-              Please log in to use weather-aware routing
+          <div className="absolute left-4 top-4 z-[1100] max-w-xs rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-800 shadow-lg">
+            <div className="flex items-start gap-3">
+              <span className="text-lg">⚠️</span>
+
+              <div>
+                <p className="text-sm font-bold">
+                  Login Required
+                </p>
+
+                <p className="mt-1 text-xs leading-5 text-amber-700">
+                  Please log in to use weather-aware routing.
+                </p>
+              </div>
             </div>
           </div>
         )}
 
+        {/* Selection panel */}
         <WeatherAwareSelection
           originLocation={originLocation}
           destinationLocation={destinationLocation}
@@ -278,8 +292,9 @@ export default function Map() {
           onPlaceSelect={handlePlaceSelect}
         />
 
+        {/* Leaflet Map */}
         <MapContainer
-          className="map-visible-area hide-scrollbar"
+          className="!h-full !w-full"
           center={[-37.8136, 144.9631]}
           zoom={13}
         >
@@ -289,16 +304,33 @@ export default function Map() {
           />
 
           <BoundsWatcher onChange={setBbox} />
-          <MapClickHandler onLocationSelect={handleLocationSelect} />
 
-          {originLocation && originLocation.lat && originLocation.lon && (
-            <Marker position={[originLocation.lat, originLocation.lon]} />
+          <MapClickHandler
+            onLocationSelect={handleLocationSelect}
+          />
+
+          {/* Origin marker */}
+          {originLocation?.lat && originLocation?.lon && (
+            <Marker
+              position={[
+                originLocation.lat,
+                originLocation.lon,
+              ]}
+            />
           )}
 
-          {destinationLocation && destinationLocation.lat && destinationLocation.lon && (
-            <Marker position={[destinationLocation.lat, destinationLocation.lon]} />
-          )}
+          {/* Destination marker */}
+          {destinationLocation?.lat &&
+            destinationLocation?.lon && (
+              <Marker
+                position={[
+                  destinationLocation.lat,
+                  destinationLocation.lon,
+                ]}
+              />
+            )}
 
+          {/* Route */}
           {routeCoordinates.length > 0 && (
             <Polyline
               positions={routeCoordinates}
@@ -311,23 +343,37 @@ export default function Map() {
           )}
         </MapContainer>
 
+        {/* Turn-by-turn directions */}
         {weatherResult?.steps && (
-          <TurnByTurnOverlay steps={weatherResult.steps} isDark={isDark} />
+          <TurnByTurnOverlay
+            steps={weatherResult.steps}
+            isDark={isDark}
+          />
         )}
 
+        {/* Result panel */}
         {weatherResult && (
-          <div style={styles.resultPanel}>
-            <WeatherAwareResult result={weatherResult} isDark={isDark} />
+          <div className="absolute bottom-5 right-5 z-[1000] w-[420px] max-w-[calc(100%-2rem)] sm:bottom-20 sm:right-6">
+            <WeatherAwareResult
+              result={weatherResult}
+              isDark={isDark}
+            />
           </div>
         )}
 
+        {/* Dark mode toggle */}
         <button
-          className="btn btn-primary btn-dark-mode"
+          type="button"
           aria-label="Toggle dark mode"
-          onClick={() => setIsDark(prev => !prev)}
-          title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+          title={
+            isDark
+              ? "Switch to light mode"
+              : "Switch to dark mode"
+          }
+          onClick={() => setIsDark((prev) => !prev)}
+          className="absolute bottom-5 right-5 z-[1200] flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-lg shadow-lg transition hover:scale-105 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 sm:bottom-5 sm:left-5 sm:right-auto"
         >
-          {isDark ? '🌙' : '☀️'}
+          {isDark ? "☀️" : "🌙"}
         </button>
       </div>
     </div>
