@@ -1,10 +1,12 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import asyncio
 
 from backend.llm.service import get_llm_service
 
 
 app = Flask(__name__)
+CORS(app)
 
 
 @app.get("/health")
@@ -20,6 +22,10 @@ def chat():
     data = request.get_json(silent=True) or {}
 
     message = (data.get("message") or "").strip()
+    metadata = data.get("metadata") or {}
+
+    if not isinstance(metadata, dict):
+        metadata = {}
 
     if not message:
         return jsonify({
@@ -31,7 +37,10 @@ def chat():
         service = get_llm_service()
 
         response = asyncio.run(
-            service.chat_with_tools(message)
+            service.chat_with_tools(
+                message,
+                metadata=metadata,
+            )
         )
 
         return jsonify({
@@ -48,7 +57,7 @@ def chat():
             "error": str(exc)
         }), 400
 
-    except Exception as exc:
+    except Exception:
         import traceback
 
         print("LLM API ERROR:")
@@ -56,7 +65,7 @@ def chat():
 
         return jsonify({
             "ok": False,
-            "error": str(exc)
+            "error": "The chatbot service could not complete the request."
         }), 500
 
 
