@@ -11,3 +11,6 @@ rasa/models/
 apps/EVAT_Flask/
 cloudbuild.yaml
 .claude/
+node_modules
+
+rasa_env_old/

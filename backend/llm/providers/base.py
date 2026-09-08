@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Sequence
+from typing import Any, Dict, Optional, Sequence
 
 from backend.llm.models import LLMMessage, LLMResponse
 
@@ -12,8 +12,9 @@ class LLMProvider(ABC):
         self,
         messages: Sequence[LLMMessage],
         temperature: float = 0.2,
+        tools: Optional[Sequence[Dict[str, Any]]] = None,
     ) -> LLMResponse:
-        """Generate an assistant response."""
+        """Generate an assistant response, optionally using backend tools."""
 
     @abstractmethod
     async def health_check(self) -> bool:
