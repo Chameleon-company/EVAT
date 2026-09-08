@@ -102,11 +102,12 @@ function useCountUp(target, duration = 1200, trigger = false) {
 function Ring({ pct, color, size = 64, children }) {
   const r = (size / 2) - 6;
   const circ = 2 * Math.PI * r;
+  const safePct = Number.isFinite(pct) ? Math.min(Math.max(pct, 0), 100) : 0;
   const [offset, setOffset] = useState(circ);
   useEffect(() => {
-    const t = setTimeout(() => setOffset(circ - (pct / 100) * circ), 100);
+    const t = setTimeout(() => setOffset(circ - (safePct / 100) * circ), 100);
     return () => clearTimeout(t);
-  }, [pct, circ]);
+  }, [safePct, circ]);
   return (
     <div style={{ position: "relative", width: size, height: size }}>
       <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
@@ -164,8 +165,9 @@ export default function DemandForecasting() {
         }).then((r) => r.json())
       )
     );
-    const firstError = results.find((r) => r.status === "error");
-    if (firstError) throw new Error(`${postcode}: ${firstError.error || firstError.message}`);
+    // Success responses always carry a numeric predictedDemandKwh; error responses never do.
+    const firstError = results.find((r) => typeof r.predictedDemandKwh !== "number");
+    if (firstError) throw new Error(`${postcode}: ${firstError.error || firstError.message || "Failed to fetch forecast."}`);
     return results;
   };
 
@@ -198,10 +200,10 @@ export default function DemandForecasting() {
           fetchForPostcode(activePostcodes[0], getNextDates(7, 7), token),
         ]);
         weekComp = {
-          thisWeek: thisWeek.map((r) => ({ date: formatDisplayDate(r.date), demand: r.predicted_demand_kwh })),
-          nextWeek: nextWeek.map((r) => ({ date: formatDisplayDate(r.date), demand: r.predicted_demand_kwh })),
-          thisTotal: thisWeek.reduce((s, r) => s + r.predicted_demand_kwh, 0),
-          nextTotal: nextWeek.reduce((s, r) => s + r.predicted_demand_kwh, 0),
+          thisWeek: thisWeek.map((r) => ({ date: formatDisplayDate(r.date), demand: r.predictedDemandKwh })),
+          nextWeek: nextWeek.map((r) => ({ date: formatDisplayDate(r.date), demand: r.predictedDemandKwh })),
+          thisTotal: thisWeek.reduce((s, r) => s + r.predictedDemandKwh, 0),
+          nextTotal: nextWeek.reduce((s, r) => s + r.predictedDemandKwh, 0),
         };
       }
 
@@ -209,7 +211,7 @@ export default function DemandForecasting() {
 
       const merged = dates.map((date, i) => {
         const row = { date: formatDisplayDate(date), rawDate: date, weekend: isWeekend(date), holiday: isHoliday(date) };
-        activePostcodes.forEach((pc) => { row[pc] = allResults[pc][i].predicted_demand_kwh; });
+        activePostcodes.forEach((pc) => { row[pc] = allResults[pc][i].predictedDemandKwh; });
         return row;
       });
 
@@ -219,7 +221,7 @@ export default function DemandForecasting() {
         const peak = merged.reduce((max, d) => d[pc] > max[pc] ? d : max, merged[0]);
         const best = merged.reduce((min, d) => d[pc] < min[pc] ? d : min, merged[0]);
         const total = demands.reduce((s, v) => s + v, 0);
-        const trendPct = ((demands[demands.length - 1] - demands[0]) / demands[0]) * 100;
+          const trendPct = demands[0] ? ((demands[demands.length - 1] - demands[0]) / demands[0]) * 100 : 0;
         const anomalies = merged.filter((d) => {
           const avg = total / demands.length;
           return Math.abs(d[pc] - avg) > avg * 0.2;
@@ -350,8 +352,8 @@ export default function DemandForecasting() {
           const s = statsByPc[pc];
           if (!s) return null;
           const trendUp = s.trendPct >= 0;
-          const totalPct = Math.min((s.total / (s.total * 1.4)) * 100, 100);
-          const avgPct = Math.min((s.avg / globalMax) * 100, 100);
+          const totalPct = s.total ? Math.min((s.total / (s.total * 1.4)) * 100, 100) : 0;
+          const avgPct = globalMax ? Math.min((s.avg / globalMax) * 100, 100) : 0;
 
           return (
             <div key={pc} style={{ marginBottom: "32px" }}>
@@ -375,7 +377,7 @@ export default function DemandForecasting() {
                       <p className="card-value" style={{ color: "#f87171", fontSize: "20px" }}>{s.peak?.date}</p>
                       <p className="card-sub">{s.peak?.[pc]?.toFixed(1)} kWh</p>
                     </div>
-                    <Ring pct={Math.min(((s.peak?.[pc] - globalMin) / (globalMax - globalMin)) * 100, 100)} color="#f87171" size={60}>
+                    <Ring pct={Math.min(((s.peak?.[pc] - globalMin) / ((globalMax - globalMin) || 1)) * 100, 100)} color="#f87171" size={60}>
                       <span style={{ fontSize: "10px", color: "#f87171", fontWeight: 700 }}>HIGH</span>
                     </Ring>
                   </div>
@@ -389,7 +391,7 @@ export default function DemandForecasting() {
                       <p className="card-value" style={{ color: "#34d399", fontSize: "20px" }}>{s.best?.date}</p>
                       <p className="card-sub">{s.best?.[pc]?.toFixed(1)} kWh · lowest demand</p>
                     </div>
-                    <Ring pct={Math.min(((s.best?.[pc] - globalMin) / (globalMax - globalMin)) * 100, 100)} color="#34d399" size={60}>
+                    <Ring pct={Math.min(((s.best?.[pc] - globalMin) / ((globalMax - globalMin) || 1)) * 100, 100)} color="#34d399" size={60}>
                       <span style={{ fontSize: "10px", color: "#34d399", fontWeight: 700 }}>LOW</span>
                     </Ring>
                   </div>
@@ -544,7 +546,7 @@ export default function DemandForecasting() {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "12px" }}>
               {[
                 { label: "This Week", value: weekComparison.thisTotal.toFixed(1), color: "#00b482", pct: 65 },
-                { label: "Next Week", value: weekComparison.nextTotal.toFixed(1), color: "#60a5fa", pct: Math.min((weekComparison.nextTotal / weekComparison.thisTotal) * 65, 100) },
+                { label: "Next Week", value: weekComparison.nextTotal.toFixed(1), color: "#60a5fa", pct: weekComparison.thisTotal ? Math.min((weekComparison.nextTotal / weekComparison.thisTotal) * 65, 100) : 0 },
               ].map((c) => (
                 <div key={c.label}>
                   <p style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", margin: "0 0 6px 0" }}>{c.label}</p>
@@ -557,7 +559,7 @@ export default function DemandForecasting() {
             </div>
             <div style={{ backgroundColor: weekComparison.nextTotal > weekComparison.thisTotal ? "rgba(248,113,113,0.07)" : "rgba(52,211,153,0.07)", border: `1px solid ${weekComparison.nextTotal > weekComparison.thisTotal ? "rgba(248,113,113,0.2)" : "rgba(52,211,153,0.2)"}`, borderRadius: "8px", padding: "10px 16px" }}>
               <span style={{ color: weekComparison.nextTotal > weekComparison.thisTotal ? "#f87171" : "#34d399", fontWeight: 700, fontSize: "13px" }}>
-                {weekComparison.nextTotal > weekComparison.thisTotal ? "▲" : "▼"} Next week is {Math.abs(((weekComparison.nextTotal - weekComparison.thisTotal) / weekComparison.thisTotal) * 100).toFixed(1)}% {weekComparison.nextTotal > weekComparison.thisTotal ? "higher" : "lower"} than this week
+                {weekComparison.nextTotal > weekComparison.thisTotal ? "▲" : "▼"} Next week is {(weekComparison.thisTotal ? Math.abs(((weekComparison.nextTotal - weekComparison.thisTotal) / weekComparison.thisTotal) * 100) : 0).toFixed(1)}% {weekComparison.nextTotal > weekComparison.thisTotal ? "higher" : "lower"} than this week
               </span>
             </div>
           </div>
