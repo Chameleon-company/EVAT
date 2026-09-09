@@ -55,7 +55,10 @@ const createDefaultAdmin = async () => {
   }
 };
 
-app.use(cors());
+app.use(cors({
+  origin: "http://localhost:3000", // Change to URL at deployment
+  credentials: true
+}));
 app.use(express.json());
 
 // Swagger definition

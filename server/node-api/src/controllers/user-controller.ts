@@ -100,6 +100,12 @@ export default class UserController {
                     //user.lastLogin = new Date();
                     await user.save();
 
+                    res.cookie('token', newAccessToken, {
+                      httpOnly: true,
+                      secure: process.env.NODE_ENV === 'production',
+                      sameSite: 'lax'
+                    });
+
                     // OK status with data and a new AccessToken
                     return res.status(200).json({
                         message: "Automatic Login Successful",
@@ -145,6 +151,12 @@ export default class UserController {
         accessToken: data.accessToken,
         refreshToken: data.refreshToken,
       };
+
+      res.cookie('token', data.accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax'
+      });
 
       return res.status(200).json({
         message: "Login successful",
