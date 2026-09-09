@@ -71,8 +71,28 @@ class LLMService:
 
         metadata = metadata or {}
 
-        latitude = metadata.get("latitude")
-        longitude = metadata.get("longitude")
+        # Support both frontend lat/lng and latitude/longitude formats.
+        latitude = metadata.get(
+            "latitude",
+            metadata.get("lat"),
+        )
+        longitude = metadata.get(
+            "longitude",
+            metadata.get("lng"),
+        )
+
+        location_available = (
+            not isinstance(latitude, bool)
+            and not isinstance(longitude, bool)
+            and isinstance(latitude, (int, float))
+            and isinstance(longitude, (int, float))
+            and -90 <= float(latitude) <= 90
+            and -180 <= float(longitude) <= 180
+        )
+
+        if location_available:
+            latitude = float(latitude)
+            longitude = float(longitude)
 
         messages = [
             LLMMessage(
@@ -80,6 +100,24 @@ class LLMService:
                 content=EVAT_SYSTEM_PROMPT,
             )
         ]
+
+        # Make application-provided location visible to the LLM
+        # before it decides whether a location-based tool is needed.
+        if location_available:
+            messages.append(
+                LLMMessage(
+                    role="system",
+                    content=(
+                        "The user's current browser location is available. "
+                        f"Latitude: {latitude}, longitude: {longitude}. "
+                        "Use this location for requests such as near me, "
+                        "nearby, closest, cheapest or fastest chargers "
+                        "unless the user provides another location. "
+                        "Do not ask the user for latitude or longitude when "
+                        "this browser location is available."
+                    ),
+                )
+            )
 
         if history:
             messages.extend(history)
@@ -112,27 +150,40 @@ class LLMService:
             for tool_call in response.tool_calls:
                 arguments = dict(tool_call.arguments)
 
-                if (
-                    latitude is not None
-                    and longitude is not None
-                ):
+                # Use browser location when a location-based tool
+                # does not already contain coordinates.
+                if location_available:
                     if tool_call.name == "get_station_availability":
-                        arguments["lat"] = latitude
-                        arguments["lon"] = longitude
+                        arguments.setdefault(
+                            "lat",
+                            latitude,
+                        )
+                        arguments.setdefault(
+                            "lon",
+                            longitude,
+                        )
 
                     elif tool_call.name == "get_stations_by_preference":
-                        arguments["latitude"] = latitude
-                        arguments["longitude"] = longitude
+                        arguments.setdefault(
+                            "latitude",
+                            latitude,
+                        )
+                        arguments.setdefault(
+                            "longitude",
+                            longitude,
+                        )
 
                 try:
                     result = execute_tool_call(
                         tool_call.name,
                         arguments,
                     )
+
                 except ValueError as exc:
                     result = {
                         "error": str(exc),
                     }
+
                 except Exception:
                     result = {
                         "error": (
