@@ -6,6 +6,7 @@ from backend.route_planning_service import get_route_stations as backend_get_rou
 from backend.location_resolution_service import get_location_coordinates
 from backend.data_loader import load_datasets
 from backend.station_preference_service import get_stations_by_preference
+from backend.real_time_apis import api_manager
 
 
 EVAT_TOOLS = [
@@ -150,6 +151,93 @@ def _validate_coordinates(
     return latitude, longitude
 
 
+def _traffic_label(delay_minutes: Any) -> str:
+    """Return a short traffic label from TomTom's route delay."""
+
+    try:
+        delay = float(delay_minutes or 0)
+    except (TypeError, ValueError):
+        return "Unknown"
+
+    if delay < 1:
+        return "Clear"
+    if delay < 5:
+        return "Light traffic"
+    if delay < 15:
+        return "Moderate traffic"
+    return "Heavy traffic"
+
+
+def _station_for_card(
+    station: Dict[str, Any],
+    start_coords: tuple[float, float],
+) -> Dict[str, Any]:
+    """Map a station to the frontend schema and add route information."""
+
+    mapped = dict(station)
+    latitude = station.get("latitude", station.get("lat"))
+    longitude = station.get("longitude", station.get("lon"))
+
+    try:
+        station_coords = _validate_coordinates(latitude, longitude)
+    except ValueError:
+        station_coords = None
+
+    if station_coords:
+        mapped["latitude"] = station_coords[0]
+        mapped["longitude"] = station_coords[1]
+        mapped["station_id"] = (
+            f"{station_coords[0]},{station_coords[1]}"
+        )
+
+        route = api_manager.get_real_time_route(
+            start_coords,
+            station_coords,
+        )
+
+        if route:
+            distance = route.get("distance_km")
+            duration = route.get("duration_minutes")
+            delay = route.get("traffic_delay_minutes")
+
+            mapped["distance_km"] = (
+                round(float(distance), 1)
+                if distance is not None
+                else mapped.get("distance_km")
+            )
+            mapped["travel_time_minutes"] = (
+                round(float(duration), 1)
+                if duration is not None
+                else None
+            )
+            mapped["traffic_delay_minutes"] = (
+                round(float(delay), 1)
+                if delay is not None
+                else None
+            )
+            mapped["traffic"] = _traffic_label(delay)
+
+    mapped.setdefault(
+        "station_id",
+        str(mapped.get("name", "station")),
+    )
+    return mapped
+
+
+def _stations_for_cards(
+    stations: Any,
+    start_coords: tuple[float, float],
+    limit: int = 5,
+) -> list[Dict[str, Any]]:
+    """Prepare only the displayed stations to avoid excessive route calls."""
+
+    return [
+        _station_for_card(station, start_coords)
+        for station in stations[:limit]
+        if isinstance(station, dict)
+    ]
+
+
 def execute_tool_call(
     name: str,
     arguments: Dict[str, Any],
@@ -255,17 +343,33 @@ def execute_tool_call(
             max_results=SEARCH_CONFIG["MAX_RESULTS"],
         )
 
+        card_stations = _stations_for_cards(
+            stations,
+            (latitude, longitude),
+            limit=limit,
+        )
+
         return {
+            "type": "stations",
+            "show_availability": True,
             "preference": preference,
-            "count": len(stations),
-            "stations": stations,
+            "count": len(card_stations),
+            "stations": card_stations,
         }
 
     if name == "get_route_stations":
         start_location = arguments.get("start_location")
         end_location = arguments.get("end_location")
 
-        if not isinstance(start_location, str) or not start_location.strip():
+        valid_start_location = (
+            isinstance(start_location, str)
+            and bool(start_location.strip())
+        ) or (
+            isinstance(start_location, (list, tuple))
+            and len(start_location) == 2
+        )
+
+        if not valid_start_location:
             raise ValueError("Start location is required.")
 
         if not isinstance(end_location, str) or not end_location.strip():
@@ -303,13 +407,21 @@ def execute_tool_call(
             earth_radius_km=LOCATION_CONFIG["EARTH_RADIUS_KM"],
         )
 
+        card_stations = _stations_for_cards(
+            stations,
+            start_coords,
+            limit=5,
+        )
+
         return {
+            "type": "stations",
+            "show_availability": True,
             "start_location": start_location,
             "end_location": end_location,
             "start_coordinates": start_coords,
             "end_coordinates": end_coords,
-            "count": len(stations),
-            "stations": stations,
+            "count": len(card_stations),
+            "stations": card_stations,
             "candidate_count": len(all_candidates),
         }
 

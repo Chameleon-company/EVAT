@@ -46,11 +46,25 @@ async function sendToQwen(
 
     console.log("Qwen3 response:", data);
 
-    return [
-        {
+    const messages = [];
+
+    if (data.reply) {
+        messages.push({
             text: data.reply,
-        },
-    ];
+        });
+    }
+
+    if (Array.isArray(data.tool_results)) {
+        data.tool_results.forEach((result) => {
+            if (result && typeof result === "object" && result.type) {
+                messages.push({
+                    custom: result,
+                });
+            }
+        });
+    }
+
+    return messages;
 }
 
 async function sendToRasa(

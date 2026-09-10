@@ -72,6 +72,7 @@ class OllamaProvider(LLMProvider):
             "messages": serialized_messages,
             "options": {
                 "temperature": temperature,
+                "num_predict": 200,
             },
         }
 

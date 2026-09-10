@@ -1,4 +1,5 @@
 import json
+from dataclasses import replace
 from functools import lru_cache
 from typing import Any, Dict, Optional, Sequence
 
@@ -129,6 +130,8 @@ class LLMService:
             )
         )
 
+        tool_results = []
+
         for _ in range(max_tool_rounds):
             response = await self._provider.chat(
                 messages=messages,
@@ -137,7 +140,37 @@ class LLMService:
             )
 
             if not response.tool_calls:
-                return response
+                final_content = response.content
+
+                station_result = next(
+                    (
+                        result
+                        for result in tool_results
+                        if result.get("type") == "stations"
+                    ),
+                    None,
+                )
+
+                if station_result:
+                    count = station_result.get("count", 0)
+                    preference = station_result.get("preference")
+
+                    if preference:
+                        final_content = (
+                            f"Here are the {count} {preference} "
+                            "charging stations:"
+                        )
+                    else:
+                        final_content = (
+                            f"Here are {count} charging stations "
+                            "for your route:"
+                        )
+
+                return replace(
+                    response,
+                    content=final_content,
+                    tool_results=tool_results,
+                )
 
             messages.append(
                 LLMMessage(
@@ -173,6 +206,45 @@ class LLMService:
                             longitude,
                         )
 
+                    elif tool_call.name == "get_route_stations":
+                        start_location = arguments.get("start_location")
+                        start_text = (
+                            start_location.lower().strip()
+                            if isinstance(start_location, str)
+                            else ""
+                        )
+                        message_text = cleaned_message.lower()
+                        browser_location_phrases = (
+                            "my location",
+                            "current location",
+                            "my current location",
+                            "your location",
+                            "user location",
+                            "my position",
+                            "current position",
+                            "my current position",
+                            "your current position",
+                            "from here",
+                        )
+                        uses_browser_location = (
+                            not start_text
+                            or start_text == "here"
+                            or any(
+                                phrase in start_text
+                                for phrase in browser_location_phrases
+                            )
+                            or any(
+                                phrase in message_text
+                                for phrase in browser_location_phrases
+                            )
+                        )
+
+                        if uses_browser_location:
+                            arguments["start_location"] = [
+                                latitude,
+                                longitude,
+                            ]
+
                 try:
                     result = execute_tool_call(
                         tool_call.name,
@@ -191,6 +263,9 @@ class LLMService:
                         )
                     }
 
+                if isinstance(result, dict):
+                    tool_results.append(result)
+
                 messages.append(
                     LLMMessage(
                         role="tool",
@@ -208,6 +283,7 @@ class LLMService:
             provider=self._provider.provider_name,
             model=self._provider.model_name,
             finish_reason="tool_limit",
+            tool_results=tool_results,
         )
 
     async def health_check(self) -> bool:

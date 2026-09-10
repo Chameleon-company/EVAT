@@ -30,3 +30,4 @@ class LLMResponse:
     prompt_tokens: Optional[int] = None
     completion_tokens: Optional[int] = None
     tool_calls: List[LLMToolCall] = field(default_factory=list)
+    tool_results: List[Dict[str, Any]] = field(default_factory=list)

@@ -397,6 +397,62 @@ function addStationCards(
 
 
               <!-- =======================================
+                   LIVE ROUTE DETAILS
+                   ======================================= -->
+
+              <div
+                class="
+                  mt-2
+                  grid
+                  grid-cols-2
+                  gap-2
+                "
+              >
+
+                <div
+                  class="
+                    rounded-xl
+                    border
+                    border-white/[0.06]
+                    bg-black/[0.14]
+                    p-2.5
+                    backdrop-blur-xl
+                  "
+                >
+                  <p class="text-[10px] font-medium uppercase tracking-wider text-white/25">
+                    Travel time
+                  </p>
+                  <p class="mt-1 text-xs font-medium text-white/80">
+                    ${
+                      station.travel_time_minutes != null
+                        ? `${station.travel_time_minutes} min`
+                        : "—"
+                    }
+                  </p>
+                </div>
+
+                <div
+                  class="
+                    rounded-xl
+                    border
+                    border-white/[0.06]
+                    bg-black/[0.14]
+                    p-2.5
+                    backdrop-blur-xl
+                  "
+                >
+                  <p class="text-[10px] font-medium uppercase tracking-wider text-white/25">
+                    Traffic
+                  </p>
+                  <p class="mt-1 text-xs font-medium text-white/80">
+                    ${station.traffic || "—"}
+                  </p>
+                </div>
+
+              </div>
+
+
+              <!-- =======================================
                    STATION DETAILS
                    ======================================= -->
 
@@ -572,6 +628,8 @@ function addStationCards(
                   focus-visible:ring-emerald-400/50
                 "
                 data-id="${station.station_id}"
+                data-latitude="${station.latitude ?? ""}"
+                data-longitude="${station.longitude ?? ""}"
               >
                 Get Directions
               </button>
@@ -678,10 +736,11 @@ function attachStationDirectionsHandlers() {
           "click",
           () => {
 
-            const stationId =
-              button.getAttribute(
-                "data-id"
-              );
+            const stationId = button.getAttribute("data-id");
+            const latitudeValue = button.getAttribute("data-latitude");
+            const longitudeValue = button.getAttribute("data-longitude");
+            const destinationLatitude = Number(latitudeValue);
+            const destinationLongitude = Number(longitudeValue);
 
 
             if (!stationId) {
@@ -691,22 +750,41 @@ function attachStationDirectionsHandlers() {
             }
 
 
-            addMessage(
-              "Get Directions",
-              "user"
-            );
+            if (
+              !latitudeValue ||
+              !longitudeValue ||
+              !Number.isFinite(destinationLatitude) ||
+              !Number.isFinite(destinationLongitude)
+            ) {
+              addMessage(
+                "Directions are unavailable for this station.",
+                "bot"
+              );
+              return;
+            }
 
+            const params = new URLSearchParams({
+              api: "1",
+              destination: `${destinationLatitude},${destinationLongitude}`,
+              travelmode: "driving",
+            });
 
             if (
-              typeof sendMessage ===
-              "function"
+              userLocation &&
+              Number.isFinite(Number(userLocation.lat)) &&
+              Number.isFinite(Number(userLocation.lng))
             ) {
-
-              sendMessage(
-                `/get_directions{"station_id":"${stationId}"}`
+              params.set(
+                "origin",
+                `${userLocation.lat},${userLocation.lng}`
               );
-
             }
+
+            window.open(
+              `https://www.google.com/maps/dir/?${params.toString()}`,
+              "_blank",
+              "noopener,noreferrer"
+            );
 
           }
         );

@@ -43,6 +43,7 @@ def chat():
         return jsonify({
             "ok": True,
             "reply": response.content,
+            "tool_results": response.tool_results,
             "provider": response.provider,
             "model": response.model,
             "finish_reason": response.finish_reason
