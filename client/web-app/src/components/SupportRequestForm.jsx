@@ -6,6 +6,7 @@
 // auto-attach context (last booking/station used).
 
 import { useState, useEffect } from "react";
+import DOMPurify from "dompurify";
 import { toast } from "react-toastify";
 import { Mail, User } from 'lucide-react';
 import ErrorMessage from '../components/ErrorMessage'
@@ -93,6 +94,9 @@ export default function SupportRequestForm() {
     setSuccess('');
     if (submitting) return;
 
+    const sanitizedDescription = DOMPurify.sanitize(description);
+    console.log(`Input: ${description}, Sanitised: ${sanitizedDescription}`)
+
     const userId = getUserId();
     if (!userId) {
       setError('Please sign in first.');
@@ -101,6 +105,10 @@ export default function SupportRequestForm() {
 
     setSubmitting(true);
     try {
+      if (sanitizedDescription.trim() === '') {
+        throw new Error("Cannot submit description with potentially malicious Javascript/HTML.");
+      }
+
       const res = await fetch(SUPPORT_ENDPOINT, {
         method: "POST",
         headers: {
@@ -111,7 +119,7 @@ export default function SupportRequestForm() {
           name: name,
           email: email,
           issue: issue,
-          description: description,
+          description: sanitizedDescription,
         }),
       });
 
@@ -137,6 +145,8 @@ export default function SupportRequestForm() {
       setDescription('');
     } catch (err) {
       setError('Unable to submit');
+      console.error("Error submitting support request:", err)
+      setError(err.message || 'Failed to submit support request. Please try again.');
     } finally {
       setSubmitting(false);
     }

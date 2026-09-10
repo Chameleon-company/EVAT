@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import DOMPurify from 'dompurify';
 import { Mail, User, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { submitFeedback } from '../services/feedbackService';
-import ErrorMessage from '../components/ErrorMessage'
-import SuccessMessage from '../components/SuccessMessage'
+import ErrorMessage from '../components/ErrorMessage';
+import SuccessMessage from '../components/SuccessMessage';
 
 const RECENT_SUCCESS_MESSAGE_LINGER = 5000; // 5 seconds * 1000
 
@@ -67,11 +68,17 @@ function FeedbackForm() {
     setError('');
     setSuccess('');
 
+    const sanitizedSuggestion = DOMPurify.sanitize(suggestion);
+
     try {
+      if (sanitizedSuggestion.trim() === '') {
+        throw new Error("Cannot submit feedback with potentially malicious Javascript/HTML.");
+      }
+
       const response = await submitFeedback({
           name: name,
           email: email,
-          suggestion: suggestion,
+          suggestion: sanitizedSuggestion,
         });
       console.log('Feedback submitted successfully:', response);
       // Clear success message after 5 seconds
@@ -130,7 +137,8 @@ function FeedbackForm() {
               placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}"
+              // pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}"
+              pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,4}"
             />
           </div>
           <div className="spacer-small">  </div>
