@@ -1,40 +1,545 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>EVAT Chatbot</title>
-  <link rel="stylesheet" href="style.css" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+
+  <title>EVAT — Melbourne EV Charging Assistant</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            evat: {
+              50: "#ecfdf5",
+              100: "#d1fae5",
+              200: "#a7f3d0",
+              300: "#6ee7b7",
+              400: "#34d399",
+              500: "#10b981",
+              600: "#059669",
+              700: "#047857",
+              800: "#065f46",
+              900: "#064e3b",
+              950: "#022c22"
+            }
+          }
+        }
+      }
+    };
+  </script>
 </head>
 
-<body>
-  <header class="app-header">
-    <div class="app-header__inner header-grid">
-      <span class="logo" aria-hidden="true">⚡</span>
-      <div class="title-wrap">
-        <h1 class="app-title">Melbourne EV Charging Assistant</h1>
-        <p class="app-tagline">Find charging stations across Melbourne</p>
-      </div>
-    </div>
-  </header>
 
-  <main class="app">
-    <section class="chat-frame" id="chat-frame">
-      <div id="chat"></div>
-      <div id="typing-indicator" class="hidden">EVAT is typing…</div>
+<body
+  class="
+    min-h-screen
+    overflow-hidden
+    bg-[#020604]
+    text-white
+    antialiased
+  "
+>
+
+  <!-- =====================================================
+       BACKGROUND
+       ===================================================== -->
+
+  <div
+    class="
+      fixed
+      inset-0
+      -z-10
+      overflow-hidden
+      bg-[#020604]
+    "
+  >
+
+    <!-- Deep forest base -->
+    <div
+      class="
+        absolute
+        inset-0
+        bg-gradient-to-br
+        from-[#071a12]
+        via-[#020604]
+        to-[#010302]
+      "
+    ></div>
+
+
+    <!-- Large emerald glass glow -->
+    <div
+      class="
+        absolute
+        -left-48
+        -top-48
+        h-[700px]
+        w-[700px]
+        rounded-full
+        bg-emerald-600/20
+        blur-[170px]
+      "
+    ></div>
+
+
+    <!-- Bottom green atmosphere -->
+    <div
+      class="
+        absolute
+        -bottom-56
+        -right-48
+        h-[650px]
+        w-[650px]
+        rounded-full
+        bg-emerald-500/15
+        blur-[170px]
+      "
+    ></div>
+
+
+    <!-- Small centre highlight -->
+    <div
+      class="
+        absolute
+        left-1/2
+        top-[42%]
+        h-[300px]
+        w-[500px]
+        -translate-x-1/2
+        rounded-full
+        bg-emerald-400/5
+        blur-[120px]
+      "
+    ></div>
+
+
+    <!-- Subtle white light -->
+    <div
+      class="
+        absolute
+        left-[45%]
+        top-[-15%]
+        h-[300px]
+        w-[500px]
+        rounded-full
+        bg-white/[0.025]
+        blur-[120px]
+      "
+    ></div>
+
+  </div>
+
+
+  <!-- =====================================================
+       APPLICATION
+       ===================================================== -->
+
+  <main
+    class="
+      mx-auto
+      flex
+      h-screen
+      max-w-5xl
+      flex-col
+      p-3
+      sm:p-5
+    "
+  >
+
+    <!-- ===================================================
+         GLASS CHAT APPLICATION
+         =================================================== -->
+
+    <section
+      id="chat-frame"
+      class="
+        flex
+        min-h-0
+        flex-1
+        flex-col
+        overflow-hidden
+        rounded-[30px]
+        border
+        border-white/[0.10]
+        bg-white/[0.035]
+        shadow-[0_35px_120px_rgba(0,0,0,0.65)]
+        backdrop-blur-[30px]
+      "
+    >
+
+      <!-- ===============================================
+           HEADER
+           =============================================== -->
+
+      <header
+        class="
+          flex
+          shrink-0
+          items-center
+          justify-between
+          border-b
+          border-white/[0.08]
+          bg-white/[0.045]
+          px-5
+          py-4
+          backdrop-blur-2xl
+          sm:px-7
+        "
+      >
+
+        <div class="flex items-center gap-3">
+
+          <!-- EVAT Logo -->
+          <div
+            class="
+              relative
+              flex
+              h-11
+              w-11
+              shrink-0
+              items-center
+              justify-center
+              overflow-hidden
+              rounded-2xl
+              border
+              border-emerald-300/20
+              bg-emerald-400/[0.08]
+              text-lg
+              text-emerald-300
+              shadow-[0_0_35px_rgba(16,185,129,0.12)]
+              backdrop-blur-xl
+            "
+          >
+
+            <div
+              class="
+                absolute
+                inset-0
+                bg-gradient-to-br
+                from-white/[0.08]
+                to-transparent
+              "
+            ></div>
+
+            <span class="relative">
+              ⚡
+            </span>
+
+          </div>
+
+
+          <!-- Title -->
+          <div>
+
+            <h1
+              class="
+                text-[15px]
+                font-semibold
+                tracking-[-0.015em]
+                text-white
+                sm:text-lg
+              "
+            >
+              Melbourne EV Charging Assistant
+            </h1>
+
+            <p
+              class="
+                mt-0.5
+                text-[11px]
+                tracking-wide
+                text-white/45
+                sm:text-xs
+              "
+            >
+              Intelligent charging assistance across Melbourne
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <!-- Online status -->
+        <div
+          class="
+            hidden
+            items-center
+            gap-2
+            rounded-full
+            border
+            border-white/[0.08]
+            bg-white/[0.035]
+            px-3
+            py-1.5
+            text-[10px]
+            font-medium
+            tracking-wide
+            text-white/45
+            shadow-inner
+            backdrop-blur-xl
+            sm:flex
+          "
+        >
+
+          <span
+            class="
+              h-1.5
+              w-1.5
+              rounded-full
+              bg-emerald-400
+              shadow-[0_0_12px_rgba(52,211,153,0.9)]
+            "
+          ></span>
+
+          EVAT Online
+
+        </div>
+
+      </header>
+
+
+      <!-- ===============================================
+           CHAT
+           =============================================== -->
+
+      <section
+        id="chat"
+        class="
+          min-h-0
+          flex-1
+          overflow-y-auto
+          bg-black/[0.08]
+          px-4
+          py-5
+          sm:px-7
+          sm:py-6
+        "
+        aria-live="polite"
+      ></section>
+
+
+      <!-- ===============================================
+           TYPING
+           =============================================== -->
+
+      <div
+        id="typing-indicator"
+        class="
+          hidden
+          shrink-0
+          px-5
+          pb-3
+          text-[11px]
+          text-white/35
+          sm:px-7
+        "
+      >
+
+        <div class="flex items-center gap-2">
+
+          <span
+            class="
+              flex
+              h-7
+              w-7
+              items-center
+              justify-center
+              rounded-xl
+              border
+              border-emerald-300/15
+              bg-emerald-400/[0.06]
+              text-emerald-300
+              backdrop-blur-xl
+            "
+          >
+            ⚡
+          </span>
+
+          <span>
+            EVAT is typing...
+          </span>
+
+        </div>
+
+      </div>
+
+
+      <!-- ===============================================
+           COMPOSER
+           =============================================== -->
+
+      <form
+        id="chat-form"
+        class="
+          shrink-0
+          border-t
+          border-white/[0.08]
+          bg-black/[0.12]
+          p-3
+          sm:p-4
+        "
+        aria-label="Chat input area"
+      >
+
+        <div
+          class="
+            flex
+            items-end
+            gap-2
+            rounded-[20px]
+            border
+            border-white/[0.10]
+            bg-white/[0.045]
+            p-2
+            shadow-[0_15px_45px_rgba(0,0,0,0.3)]
+            backdrop-blur-2xl
+            transition
+            focus-within:border-emerald-300/25
+            focus-within:bg-white/[0.06]
+            focus-within:shadow-[0_0_35px_rgba(16,185,129,0.07)]
+          "
+        >
+
+          <textarea
+            id="user-input"
+            rows="1"
+            autocomplete="off"
+            placeholder="Ask about EV charging stations..."
+            class="
+              max-h-32
+              min-h-11
+              flex-1
+              resize-none
+              overflow-y-auto
+              bg-transparent
+              px-3
+              py-3
+              text-sm
+              leading-5
+              text-white
+              outline-none
+              placeholder:text-white/25
+            "
+          ></textarea>
+
+
+          <!-- Clear -->
+          <button
+            type="button"
+            id="clear-btn"
+            title="Clear chat"
+            class="
+              flex
+              h-11
+              w-11
+              shrink-0
+              items-center
+              justify-center
+              rounded-xl
+              border
+              border-white/[0.07]
+              bg-white/[0.025]
+              text-white/35
+              transition
+              hover:border-emerald-300/15
+              hover:bg-emerald-400/[0.06]
+              hover:text-emerald-300
+              active:scale-95
+            "
+          >
+            ↻
+          </button>
+
+
+          <!-- Send -->
+          <button
+            type="submit"
+            title="Send message"
+            class="
+              flex
+              h-11
+              w-11
+              shrink-0
+              items-center
+              justify-center
+              rounded-xl
+              border
+              border-emerald-300/20
+              bg-gradient-to-br
+              from-emerald-300
+              via-emerald-400
+              to-emerald-600
+              text-lg
+              font-semibold
+              text-[#021009]
+              shadow-[0_8px_30px_rgba(16,185,129,0.22)]
+              transition
+              hover:brightness-110
+              active:scale-95
+            "
+          >
+            ➤
+          </button>
+
+        </div>
+
+
+        <p
+          class="
+            mt-2
+            text-center
+            text-[10px]
+            tracking-wide
+            text-white/20
+          "
+        >
+          Enter to send · Shift + Enter for a new line
+        </p>
+
+      </form>
+
     </section>
 
-    <form id="chat-form" aria-label="Chat input area" class="composer">
-      <textarea id="user-input" placeholder="Ask me about charging stations…" rows="1"></textarea>
-      <button type="submit" class="btn-send" title="Send">➤</button>
-      <button type="button" id="clear-btn" class="btn-clear" title="Clear chat">↻</button>
-    </form>
   </main>
 
-  <!-- POST-DEPLOY: replace the URL below with your Cloud Run Rasa URL, then remove this comment -->
-  <script>window.RASA_URL = "http://localhost:5005";</script>
-  <script src="script.js"></script>
-</body>
 
+  <!-- =====================================================
+       API CONFIG
+       ===================================================== -->
+
+  <script>
+    window.CHATBOT_API_URL = "http://localhost:5005";
+  </script>
+
+
+  <!-- =====================================================
+       FRONTEND MODULES
+       ===================================================== -->
+
+  <script src="cards/station-card.js"></script>
+<script src="cards/directions-card.js"></script>
+<script src="cards/traffic-card.js"></script>
+
+<script src="chat/messages.js"></script>
+<script src="chat/history.js"></script>
+<script src="chat/chips.js"></script>
+
+<script src="ui/typing.js"></script>
+<script src="ui/input.js"></script>
+
+<script src="location/location.js"></script>
+
+<script src="js/chatbot-api.js"></script>
+<script src="js/app.js"></script>
+</body>
 </html>

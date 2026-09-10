@@ -1,238 +1,364 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>EVAT Chatbot</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: #f5f7f7;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      border-left: 10px solid #009688;
-      border-right: 10px solid #009688;
-    }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    header {
-      background: #00796b;
-      color: white;
-      padding: 1rem;
-      text-align: center;
-      font-size: 1.3rem;
-      font-weight: 600;
-    }
+    <title>EVAT | Melbourne EV Charging Assistant</title>
 
-    #chat {
-      flex: 1;
-      overflow-y: auto;
-      padding: 1rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.6rem;
-    }
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
 
-    .message {
-      max-width: 75%;
-      padding: 0.75rem 1.1rem;
-      border-radius: 1.2rem;
-      line-height: 1.5;
-      white-space: pre-wrap;
-      word-wrap: break-word;
-    }
-
-    .user {
-      align-self: flex-end;
-      background: #009688;
-      color: white;
-      border-bottom-right-radius: 0;
-    }
-
-    .bot {
-      align-self: flex-start;
-      background: #e0f2f1;
-      color: #004d40;
-      border-bottom-left-radius: 0;
-    }
-
-    form {
-      display: flex;
-      padding: 0.5rem;
-      background: white;
-      border-top: 1px solid #ccc;
-    }
-
-    textarea {
-      flex: 1;
-      resize: none;
-      padding: 0.75rem 1rem;
-      border: 2px solid #009688;
-      border-radius: 1.5rem;
-      outline: none;
-      font-size: 1rem;
-      min-height: 40px;
-      max-height: 100px;
-      overflow-y: auto;
-      transition: border 0.3s;
-    }
-
-    textarea:focus {
-      border-color: #00796b;
-    }
-
-    button {
-      background: #009688;
-      color: white;
-      border: none;
-      border-radius: 1.5rem;
-      margin-left: 0.5rem;
-      padding: 0 1.2rem;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-
-    button:hover {
-      background: #00796b;
-    }
-
-    /* Mobile responsiveness */
-    @media screen and (max-width: 600px) {
-      body {
-        border-left: 5px solid #009688;
-        border-right: 5px solid #009688;
-      }
-
-      header {
-        font-size: 1.1rem;
-      }
-
-      .message {
-        max-width: 90%;
-      }
-
-      textarea {
-        font-size: 0.9rem;
-      }
-
-      button {
-        padding: 0 1rem;
-        font-size: 0.9rem;
-      }
-    }
-  </style>
-</head>
-<body>
-    <header>EVAT Chatbot</header>
-  
-    <div id="chat"></div>
-  
-    <form id="chat-form">
-      <textarea id="user-input" placeholder="Type your message..." rows="1"></textarea>
-      <button type="submit">Send</button>
-    </form>
-  
-    <!-- POST-DEPLOY: uncomment and set your Cloud Run Rasa URL -->
-    <script>window.RASA_URL = "https://evat-rasa-3cn2oy3gna-ts.a.run.app";</script>
     <script>
-      const RASA_URL = window.RASA_URL || "http://localhost:5005";
-      const chat = document.getElementById("chat");
-      const form = document.getElementById("chat-form");
-      const userInput = document.getElementById("user-input");
-  
-      let userLocation = null;
-  
-      // Function to retrieve user's location
-      async function getUserLocation() {
-        return new Promise((resolve, reject) => {
-          if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(resolve, reject);
-          } else {
-            reject(new Error("Geolocation is not supported by this browser."));
-          }
-        });
-      }
-  
-      // Store user's location when the page loads
-      window.onload = async function() {
-        try {
-          const location = await getUserLocation();
-          userLocation = {
-            lat: location.coords.latitude,
-            lng: location.coords.longitude
-          };
-          console.log("User location stored:", userLocation);
-        } catch (error) {
-          console.error("Location error:", error);
-          addMessage("Unable to retrieve your location.", "bot");
-        }
-      };
-  
-      // Function to add messages to the chat
-      function addMessage(text, sender = "bot") {
-        const msg = document.createElement("div");
-        msg.classList.add("message", sender);
-        msg.textContent = text;
-        chat.appendChild(msg);
-        chat.scrollTop = chat.scrollHeight;
-      }
-  
-      // Function to send the message with metadata (location)
-      async function sendMessage(message) {
-        try {
-          const payload = {
-            sender: "user",
-            message,
-            metadata: userLocation ? userLocation : {}  // Append location metadata
-          };
-  
-          const response = await fetch(`${RASA_URL}/webhooks/rest/webhook`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(payload),
-          });
-  
-          const data = await response.json();
-          if (data.length === 0) {
-            addMessage("Sorry, I didn’t understand that.", "bot");
-          } else {
-            data.forEach((msg) => addMessage(msg.text, "bot"));
-          }
-        } catch (error) {
-          addMessage("Server error. Please try again.", "bot");
-          console.error("Error sending message:", error);
-        }
-      }
-  
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const message = userInput.value.trim();
-        if (!message) return;
-  
-        addMessage(message, "user");
-        userInput.value = "";
-        userInput.rows = 1;
-  
-        // Send the user message with location metadata
-        await sendMessage(message);
-      });
-  
-      // Auto-expand textarea + send with Enter
-      userInput.addEventListener("input", () => {
-        userInput.rows = 1;
-        userInput.rows = Math.min(5, Math.ceil(userInput.scrollHeight / 24));
-      });
-  
-      userInput.addEventListener("keydown", function (e) {
-        if (e.key === "Enter" && !e.shiftKey) {
-          e.preventDefault();
-          form.requestSubmit();
-        }
-      });
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: [
+                            "Inter",
+                            "ui-sans-serif",
+                            "system-ui",
+                            "Segoe UI",
+                            "sans-serif"
+                        ]
+                    },
+
+                    colors: {
+                        evat: {
+                            50: "#ecfdf5",
+                            100: "#d1fae5",
+                            200: "#a7f3d0",
+                            300: "#6ee7b7",
+                            400: "#34d399",
+                            500: "#10b981",
+                            600: "#059669",
+                            700: "#047857",
+                            800: "#065f46",
+                            900: "#064e3b",
+                            950: "#022c22"
+                        }
+                    }
+                }
+            }
+        };
     </script>
-  </body>
-  </html>
+
+    <style>
+        /* custom scrollbar so it matches the green theme instead of the default gray one */
+        #chat::-webkit-scrollbar {
+            width: 8px;
+        }
+        #chat::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        #chat::-webkit-scrollbar-thumb {
+            background: rgba(52, 211, 153, 0.18);
+            border-radius: 9999px;
+        }
+        #chat::-webkit-scrollbar-thumb:hover {
+            background: rgba(52, 211, 153, 0.32);
+        }
+        #chat {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(52, 211, 153, 0.18) transparent;
+        }
+
+        /* little fade/slide when a new message pops in, feels less jumpy */
+        @keyframes evatFadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .evat-in {
+            animation: evatFadeUp 0.3s ease-out both;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .evat-in {
+                animation: none;
+            }
+        }
+    </style>
+</head>
+
+<body class="min-h-screen overflow-hidden bg-[#06100f] font-sans text-white antialiased">
+
+    <!-- Background -->
+    <div class="fixed inset-0 -z-10 overflow-hidden bg-[#020604] pointer-events-none">
+
+        <div class="absolute inset-0 bg-gradient-to-br from-[#071a12] via-[#020604] to-[#010302]"></div>
+
+        <div class="absolute -left-48 -top-48 h-[700px] w-[700px] rounded-full bg-emerald-600/20 blur-[170px]"></div>
+
+        <div class="absolute -bottom-56 -right-48 h-[650px] w-[650px] rounded-full bg-emerald-500/15 blur-[170px]"></div>
+
+        <div class="absolute left-1/2 top-[42%] h-[300px] w-[500px] -translate-x-1/2 rounded-full bg-emerald-400/5 blur-[120px]"></div>
+
+        <div class="absolute left-[45%] top-[-15%] h-[300px] w-[500px] rounded-full bg-white/[0.025] blur-[120px]"></div>
+
+    </div>
+
+    <!-- Application -->
+    <main class="mx-auto flex h-screen max-w-5xl flex-col p-3 sm:p-5">
+
+        <!-- Chat Frame -->
+        <section
+            id="chat-frame"
+            class="
+                flex min-h-0 flex-1 flex-col overflow-hidden
+                rounded-[22px] sm:rounded-[30px]
+                border border-white/[0.10]
+                bg-white/[0.035]
+                shadow-[0_35px_120px_rgba(0,0,0,0.65)]
+                backdrop-blur-[30px]
+            "
+        >
+
+            <!-- Header -->
+            <header
+                class="
+                    flex shrink-0 items-center justify-between
+                    border-b border-white/[0.08]
+                    bg-white/[0.045]
+                    px-5 py-4
+                    backdrop-blur-2xl
+                    sm:px-7
+                "
+            >
+
+                <div class="flex items-center gap-3">
+
+                    <div
+                        class="
+                            relative flex h-11 w-11 shrink-0
+                            items-center justify-center overflow-hidden
+                            rounded-2xl
+                            border border-emerald-300/20
+                            bg-emerald-400/[0.08]
+                            text-lg text-emerald-300
+                            shadow-[0_0_35px_rgba(16,185,129,0.12)]
+                            backdrop-blur-xl
+                        "
+                    >
+                        <div class="absolute inset-0 bg-gradient-to-br from-white/[0.08] to-transparent"></div>
+
+                        <span class="relative">⚡</span>
+                    </div>
+
+                    <div>
+                        <h1 class="text-[15px] font-semibold tracking-[-0.015em] text-white sm:text-lg">
+                            Melbourne EV Charging Assistant
+                        </h1>
+
+                        <p class="mt-0.5 text-[11px] tracking-wide text-white/45 sm:text-xs">
+                            Intelligent charging assistance across Melbourne
+                        </p>
+                    </div>
+
+                </div>
+
+                <div
+                    class="
+                        hidden items-center gap-2
+                        rounded-full
+                        border border-white/[0.08]
+                        bg-white/[0.035]
+                        px-3 py-1.5
+                        text-[10px] font-medium tracking-wide text-white/45
+                        shadow-inner backdrop-blur-xl
+                        sm:flex
+                    "
+                >
+                    <span
+                        class="
+                            h-1.5 w-1.5 rounded-full
+                            bg-emerald-400
+                            shadow-[0_0_12px_rgba(52,211,153,0.9)]
+                        "
+                    ></span>
+
+                    EVAT Online
+                </div>
+
+            </header>
+
+            <!-- CHAT -->
+            <section
+                id="chat"
+                class="
+                    min-h-0 flex-1 overflow-y-auto scroll-smooth
+                    bg-black/[0.08]
+                    px-4 py-5
+                    sm:px-7 sm:py-6
+                "
+                aria-live="polite"
+            ></section>
+
+            <!-- Typing Indicator -->
+            <div
+                id="typing-indicator"
+                class="
+                    hidden shrink-0
+                    px-5 pb-3
+                    text-[11px] text-white/35
+                    sm:px-7
+                "
+            >
+                <div class="flex items-center gap-2">
+
+                    <span
+                        class="
+                            flex h-7 w-7 items-center justify-center
+                            rounded-xl
+                            border border-emerald-300/15
+                            bg-emerald-400/[0.06]
+                            text-emerald-300
+                        "
+                    >
+                        ⚡
+                    </span>
+
+                    <span>EVAT is typing...</span>
+
+                </div>
+            </div>
+
+            <!-- Input -->
+            <form
+                id="chat-form"
+                class="
+                    shrink-0
+                    border-t border-white/[0.08]
+                    bg-black/[0.12]
+                    p-3
+                    sm:p-4
+                "
+            >
+
+                <div
+                    class="
+                        flex items-end gap-2
+                        rounded-[20px]
+                        border border-white/[0.10]
+                        bg-white/[0.045]
+                        p-2
+                        shadow-[0_15px_45px_rgba(0,0,0,0.3)]
+                        backdrop-blur-2xl
+                        transition
+                        focus-within:border-emerald-300/25
+                        focus-within:bg-white/[0.06]
+                        focus-within:shadow-[0_0_35px_rgba(16,185,129,0.07)]
+                    "
+                >
+
+                    <textarea
+                        id="user-input"
+                        rows="1"
+                        autocomplete="off"
+                        placeholder="Ask about EV charging stations..."
+                        class="
+                            max-h-32 min-h-11 flex-1 resize-none
+                            overflow-y-auto
+                            bg-transparent
+                            px-3 py-3
+                            text-sm leading-5 text-white
+                            outline-none
+                            placeholder:text-white/25
+                            focus-visible:outline-none
+                        "
+                    ></textarea>
+
+                    <button
+                        type="button"
+                        id="clear-btn"
+                        title="Clear chat"
+                        class="
+                            flex h-11 w-11 shrink-0 items-center justify-center
+                            rounded-xl
+                            border border-white/[0.07]
+                            bg-white/[0.025]
+                            text-white/35
+                            transition
+                            hover:border-emerald-300/15
+                            hover:bg-emerald-400/[0.06]
+                            hover:text-emerald-300
+                            active:scale-95
+                            focus-visible:outline-none
+                            focus-visible:ring-2
+                            focus-visible:ring-emerald-400/50
+                        "
+                    >
+                        ↻
+                    </button>
+
+                    <button
+                        type="submit"
+                        title="Send message"
+                        class="
+                            flex h-11 w-11 shrink-0 items-center justify-center
+                            rounded-xl
+                            border border-emerald-300/20
+                            bg-gradient-to-br
+                            from-emerald-300 via-emerald-400 to-emerald-600
+                            text-lg font-semibold text-[#021009]
+                            shadow-[0_8px_30px_rgba(16,185,129,0.22)]
+                            transition
+                            hover:brightness-110
+                            active:scale-95
+                            focus-visible:outline-none
+                            focus-visible:ring-2
+                            focus-visible:ring-emerald-300/60
+                            focus-visible:ring-offset-2
+                            focus-visible:ring-offset-[#06100f]
+                        "
+                    >
+                        ➤
+                    </button>
+
+                </div>
+
+                <p class="mt-2 text-center text-[10px] tracking-wide text-white/20">
+                    Enter to send · Shift + Enter for a new line
+                </p>
+
+            </form>
+
+        </section>
+    </main>
+
+    <!-- API CONFIG -->
+    <script>
+        window.CHATBOT_API_URL = "http://localhost:5005";
+    </script>
+
+    <!-- FRONTEND MODULES -->
+
+    <!-- Cards -->
+    <script src="cards/station-card.js"></script>
+    <script src="cards/directions-card.js"></script>
+    <script src="cards/traffic-card.js"></script>
+
+    <!-- Chat -->
+    <script src="chat/messages.js"></script>
+    <script src="chat/history.js"></script>
+    <script src="chat/chips.js"></script>
+
+    <!-- UI -->
+    <script src="ui/typing.js"></script>
+    <script src="ui/input.js"></script>
+
+    <!-- Location -->
+    <script src="location/location.js"></script>
+
+    <!-- API -->
+    <script src="js/chatbot-api.js"></script>
+
+    <!-- Main -->
+    <script src="js/app.js"></script>
+
+</body>
+</html>
