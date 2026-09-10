@@ -363,6 +363,7 @@ export default function PersonalisedInsightsFormComponent() {
                 <input
                   type="text"
                   name="postcode"
+                  maxLength={4}
                   placeholder="Enter postcode"
                   value={formData.postcode}
                   onChange={handleChange}
