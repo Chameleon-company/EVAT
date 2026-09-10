@@ -18,7 +18,7 @@ function addChips(options = []) {
 
 
   row.className =
-    "mb-4 flex items-end gap-3";
+    "evat-in mb-4 flex items-end gap-3";
 
 
   // EVAT avatar
@@ -100,6 +100,9 @@ function addChips(options = []) {
       hover:text-emerald-100
       hover:shadow-[0_0_20px_rgba(16,185,129,0.08)]
       active:scale-95
+      focus-visible:outline-none
+      focus-visible:ring-2
+      focus-visible:ring-emerald-400/50
     `;
 
 
