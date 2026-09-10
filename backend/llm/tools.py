@@ -1,7 +1,10 @@
 from typing import Any, Dict
 
 from backend.availability_service import get_station_availability
-from backend.config import SEARCH_CONFIG
+from backend.config import SEARCH_CONFIG, LOCATION_CONFIG, DATA_CONFIG
+from backend.route_planning_service import get_route_stations as backend_get_route_stations
+from backend.location_resolution_service import get_location_coordinates
+from backend.data_loader import load_datasets
 from backend.station_preference_service import get_stations_by_preference
 
 
@@ -74,6 +77,40 @@ EVAT_TOOLS = [
                     "latitude",
                     "longitude",
                     "preference",
+                ],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_route_stations",
+            "description": (
+                "Find EV charging stations along a route between a "
+                "start location and an end location. The locations can "
+                "be addresses, suburbs, station names, or coordinates."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "start_location": {
+                        "type": "string",
+                        "description": (
+                            "Starting location, address, suburb, "
+                            "station name, or coordinates."
+                        ),
+                    },
+                    "end_location": {
+                        "type": "string",
+                        "description": (
+                            "Destination location, address, suburb, "
+                            "station name, or coordinates."
+                        ),
+                    },
+                },
+                "required": [
+                    "start_location",
+                    "end_location",
                 ],
             },
         },
@@ -222,6 +259,58 @@ def execute_tool_call(
             "preference": preference,
             "count": len(stations),
             "stations": stations,
+        }
+
+    if name == "get_route_stations":
+        start_location = arguments.get("start_location")
+        end_location = arguments.get("end_location")
+
+        if not isinstance(start_location, str) or not start_location.strip():
+            raise ValueError("Start location is required.")
+
+        if not isinstance(end_location, str) or not end_location.strip():
+            raise ValueError("End location is required.")
+
+        charger_data, _ = load_datasets()
+
+        start_coords = get_location_coordinates(
+            start_location,
+            charger_data,
+            DATA_CONFIG["CSV_COLUMNS"],
+        )
+
+        end_coords = get_location_coordinates(
+            end_location,
+            charger_data,
+            DATA_CONFIG["CSV_COLUMNS"],
+        )
+
+        if not start_coords:
+            raise ValueError(
+                f"Could not resolve start location: {start_location}"
+            )
+
+        if not end_coords:
+            raise ValueError(
+                f"Could not resolve end location: {end_location}"
+            )
+
+        stations, all_candidates = backend_get_route_stations(
+            start_coords=start_coords,
+            end_coords=end_coords,
+            route_radius_km=SEARCH_CONFIG["ROUTE_RADIUS_KM"],
+            max_results=SEARCH_CONFIG["MAX_RESULTS"],
+            earth_radius_km=LOCATION_CONFIG["EARTH_RADIUS_KM"],
+        )
+
+        return {
+            "start_location": start_location,
+            "end_location": end_location,
+            "start_coordinates": start_coords,
+            "end_coordinates": end_coords,
+            "count": len(stations),
+            "stations": stations,
+            "candidate_count": len(all_candidates),
         }
 
     raise ValueError(

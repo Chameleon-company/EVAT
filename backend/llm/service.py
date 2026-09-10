@@ -64,8 +64,6 @@ class LLMService:
         max_tool_rounds: int = 3,
         metadata: Optional[Dict[str, Any]] = None,
     ) -> LLMResponse:
-        """Chat with Qwen and allow approved EVAT backend tool calls."""
-
         cleaned_message = user_message.strip()
 
         if not cleaned_message:
@@ -103,6 +101,8 @@ class LLMService:
             )
         ]
 
+        # Make application-provided location visible to the LLM
+        # before it decides whether a location-based tool is needed.
         if location_available:
             messages.append(
                 LLMMessage(
