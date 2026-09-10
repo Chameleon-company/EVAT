@@ -4,6 +4,7 @@ import swaggerUi from "swagger-ui-express";
 import swaggerJSDoc from "swagger-jsdoc";
 import cors from "cors";
 import path from "path";
+import helmet from "helmet";
 
 import { env } from "./src/config/env";
 import connectDB from "./src/config/database-config";
@@ -99,6 +100,19 @@ app.use(
   swaggerUi.setup(swaggerSpec, { explorer: true })
 );
 
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        scriptSrc: ["'self'"],
+        connectSrc: [
+          "'self'",
+          "http://localhost:8080"
+        ]
+      }
+    }
+  })
+);
 
 app.get("/api-docs/json", (req, res) => {
   res.json(swaggerSpec);
