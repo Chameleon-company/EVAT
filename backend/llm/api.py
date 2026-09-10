@@ -24,9 +24,6 @@ def chat():
     message = (data.get("message") or "").strip()
     metadata = data.get("metadata") or {}
 
-    if not isinstance(metadata, dict):
-        metadata = {}
-
     if not message:
         return jsonify({
             "ok": False,
@@ -39,7 +36,7 @@ def chat():
         response = asyncio.run(
             service.chat_with_tools(
                 message,
-                metadata=metadata,
+                metadata=metadata
             )
         )
 
@@ -57,7 +54,7 @@ def chat():
             "error": str(exc)
         }), 400
 
-    except Exception:
+    except Exception as exc:
         import traceback
 
         print("LLM API ERROR:")
@@ -65,7 +62,7 @@ def chat():
 
         return jsonify({
             "ok": False,
-            "error": "The chatbot service could not complete the request."
+            "error": str(exc)
         }), 500
 
 
