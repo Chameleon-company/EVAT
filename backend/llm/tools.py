@@ -1,8 +1,16 @@
 from typing import Any, Dict
 
 from backend.availability_service import get_station_availability
-from backend.config import SEARCH_CONFIG, LOCATION_CONFIG, DATA_CONFIG
-from backend.route_planning_service import get_route_stations as backend_get_route_stations
+from backend.config import (
+    SEARCH_CONFIG,
+    LOCATION_CONFIG,
+    DATA_CONFIG,
+    CHARGING_CONFIG,
+)
+from backend.station_details_service import get_station_details
+from backend.route_planning_service import (
+    get_route_stations as backend_get_route_stations,
+)
 from backend.location_resolution_service import get_location_coordinates
 from backend.data_loader import load_datasets
 from backend.station_preference_service import get_stations_by_preference
@@ -116,6 +124,29 @@ EVAT_TOOLS = [
             },
         },
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_station_details",
+            "description": (
+                "Get detailed information about a specific EV charging "
+                "station, including its address, charging power, number "
+                "of charging points, cost, and estimated charging time."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "station_name": {
+                        "type": "string",
+                        "description": (
+                            "Name of the EV charging station to look up."
+                        ),
+                    },
+                },
+                "required": ["station_name"],
+            },
+        },
+    },
 ]
 
 
@@ -165,6 +196,7 @@ def _traffic_label(delay_minutes: Any) -> str:
         return "Light traffic"
     if delay < 15:
         return "Moderate traffic"
+
     return "Heavy traffic"
 
 
@@ -175,17 +207,29 @@ def _station_for_card(
     """Map a station to the frontend schema and add route information."""
 
     mapped = dict(station)
-    latitude = station.get("latitude", station.get("lat"))
-    longitude = station.get("longitude", station.get("lon"))
+
+    latitude = station.get(
+        "latitude",
+        station.get("lat"),
+    )
+
+    longitude = station.get(
+        "longitude",
+        station.get("lon"),
+    )
 
     try:
-        station_coords = _validate_coordinates(latitude, longitude)
+        station_coords = _validate_coordinates(
+            latitude,
+            longitude,
+        )
     except ValueError:
         station_coords = None
 
     if station_coords:
         mapped["latitude"] = station_coords[0]
         mapped["longitude"] = station_coords[1]
+
         mapped["station_id"] = (
             f"{station_coords[0]},{station_coords[1]}"
         )
@@ -205,22 +249,26 @@ def _station_for_card(
                 if distance is not None
                 else mapped.get("distance_km")
             )
+
             mapped["travel_time_minutes"] = (
                 round(float(duration), 1)
                 if duration is not None
                 else None
             )
+
             mapped["traffic_delay_minutes"] = (
                 round(float(delay), 1)
                 if delay is not None
                 else None
             )
+
             mapped["traffic"] = _traffic_label(delay)
 
     mapped.setdefault(
         "station_id",
         str(mapped.get("name", "station")),
     )
+
     return mapped
 
 
@@ -232,7 +280,10 @@ def _stations_for_cards(
     """Prepare only the displayed stations to avoid excessive route calls."""
 
     return [
-        _station_for_card(station, start_coords)
+        _station_for_card(
+            station,
+            start_coords,
+        )
         for station in stations[:limit]
         if isinstance(station, dict)
     ]
@@ -248,6 +299,10 @@ def execute_tool_call(
         raise ValueError(
             "Tool arguments must be a dictionary."
         )
+
+    # ---------------------------------------------------------
+    # Station availability
+    # ---------------------------------------------------------
 
     if name == "get_station_availability":
         lat, lon = _validate_coordinates(
@@ -281,7 +336,8 @@ def execute_tool_call(
                 "updated_at": None,
                 "data": {
                     "message": (
-                        "Live charging availability is currently unavailable."
+                        "Live charging availability is "
+                        "currently unavailable."
                     )
                 },
             }
@@ -291,6 +347,10 @@ def execute_tool_call(
             "updated_at": updated_at,
             "data": data,
         }
+
+    # ---------------------------------------------------------
+    # Charging preferences
+    # ---------------------------------------------------------
 
     if name == "get_stations_by_preference":
         latitude, longitude = _validate_coordinates(
@@ -357,9 +417,18 @@ def execute_tool_call(
             "stations": card_stations,
         }
 
+    # ---------------------------------------------------------
+    # Route planning
+    # ---------------------------------------------------------
+
     if name == "get_route_stations":
-        start_location = arguments.get("start_location")
-        end_location = arguments.get("end_location")
+        start_location = arguments.get(
+            "start_location"
+        )
+
+        end_location = arguments.get(
+            "end_location"
+        )
 
         valid_start_location = (
             isinstance(start_location, str)
@@ -370,10 +439,17 @@ def execute_tool_call(
         )
 
         if not valid_start_location:
-            raise ValueError("Start location is required.")
+            raise ValueError(
+                "Start location is required."
+            )
 
-        if not isinstance(end_location, str) or not end_location.strip():
-            raise ValueError("End location is required.")
+        if (
+            not isinstance(end_location, str)
+            or not end_location.strip()
+        ):
+            raise ValueError(
+                "End location is required."
+            )
 
         charger_data, _ = load_datasets()
 
@@ -391,20 +467,30 @@ def execute_tool_call(
 
         if not start_coords:
             raise ValueError(
-                f"Could not resolve start location: {start_location}"
+                f"Could not resolve start location: "
+                f"{start_location}"
             )
 
         if not end_coords:
             raise ValueError(
-                f"Could not resolve end location: {end_location}"
+                f"Could not resolve end location: "
+                f"{end_location}"
             )
 
-        stations, all_candidates = backend_get_route_stations(
-            start_coords=start_coords,
-            end_coords=end_coords,
-            route_radius_km=SEARCH_CONFIG["ROUTE_RADIUS_KM"],
-            max_results=SEARCH_CONFIG["MAX_RESULTS"],
-            earth_radius_km=LOCATION_CONFIG["EARTH_RADIUS_KM"],
+        stations, all_candidates = (
+            backend_get_route_stations(
+                start_coords=start_coords,
+                end_coords=end_coords,
+                route_radius_km=SEARCH_CONFIG[
+                    "ROUTE_RADIUS_KM"
+                ],
+                max_results=SEARCH_CONFIG[
+                    "MAX_RESULTS"
+                ],
+                earth_radius_km=LOCATION_CONFIG[
+                    "EARTH_RADIUS_KM"
+                ],
+            )
         )
 
         card_stations = _stations_for_cards(
@@ -423,6 +509,57 @@ def execute_tool_call(
             "count": len(card_stations),
             "stations": card_stations,
             "candidate_count": len(all_candidates),
+        }
+
+    # ---------------------------------------------------------
+    # Station details
+    # ---------------------------------------------------------
+
+    if name == "get_station_details":
+        station_name = arguments.get(
+            "station_name"
+        )
+
+        if (
+            not isinstance(station_name, str)
+            or not station_name.strip()
+        ):
+            raise ValueError(
+                "Station name is required."
+            )
+
+        station_name = station_name.strip()
+
+        charger_data, _ = load_datasets()
+
+        details = get_station_details(
+            station_name=station_name,
+            latest_stations=[],
+            charger_data=charger_data,
+            csv_columns=DATA_CONFIG[
+                "CSV_COLUMNS"
+            ],
+            charging_time_estimates=CHARGING_CONFIG[
+                "CHARGING_TIME_ESTIMATES"
+            ],
+        )
+
+        if not details:
+            return {
+                "type": "station_details",
+                "found": False,
+                "station_name": station_name,
+                "message": (
+                    "No charging station details were found "
+                    "for that station name."
+                ),
+            }
+
+        return {
+            "type": "station_details",
+            "found": True,
+            "station_name": station_name,
+            "station": details,
         }
 
     raise ValueError(
