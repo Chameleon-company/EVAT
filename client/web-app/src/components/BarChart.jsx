@@ -26,31 +26,31 @@ const BarChart = (props) => {
             aspectRatio: 0.75,
             plugins: {
               legend: { display: false },
-              title: { display: true, text: props.title, color: "#FFFFFF", font: {
+              title: { display: true, text: props.title, color: "#334155", font: {
                 size: 16
               } },
             },
             scales: {
               x: {
                 ticks: {
-                  color: "#FFFFFF"
+                  color: "#334155"
                 },
                 grid: {
-                  color: "#acaaaa"
+                  color: "#e2e8f0"
                 }
               },
               y: {
                 ticks: {
-                  color: "#FFFFFF"
+                  color: "#334155"
                 },
                 grid: {
-                  color: "#acaaaa"
+                  color: "#e2e8f0"
                 }
               }
             }
     };
 
-    return (<Bar data={props.data} options={options}/>);
+    return (<Bar data={props.data} options={options} role="img" aria-label={props.title}/>);
 };
 
 export default BarChart;
