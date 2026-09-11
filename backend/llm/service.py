@@ -112,8 +112,8 @@ class LLMService:
                         "The user's current browser location is available. "
                         f"Latitude: {latitude}, longitude: {longitude}. "
                         "Use this location for requests such as near me, "
-                        "nearby, closest, cheapest or fastest chargers "
-                        "unless the user provides another location. "
+                        "nearby, closest, cheapest, fastest, emergency or urgent "
+                        "charging requests unless the user provides another location. "
                         "Do not ask the user for latitude or longitude when "
                         "this browser location is available."
                     ),
@@ -154,12 +154,56 @@ class LLMService:
                 if station_result:
                     count = station_result.get("count", 0)
                     preference = station_result.get("preference")
+                    emergency = bool(station_result.get("emergency"))
+                    connector = station_result.get("connector")
 
-                    if preference:
+                    if emergency:
+                        connector_label = (
+                            str(connector).upper()
+                            if connector
+                            else None
+                        )
+
+                        if count == 0:
+                            if connector_label:
+                                final_content = (
+                                    f"I couldn't find any {connector_label} compatible "
+                                    "emergency charging stations near you."
+                                )
+                            else:
+                                final_content = (
+                                    "I couldn't find any emergency charging stations "
+                                    "near you."
+                                )
+
+                        elif count == 1:
+                            if connector_label:
+                                final_content = (
+                                    f"Here is 1 {connector_label} compatible "
+                                    "emergency charging station near you:"
+                                )
+                            else:
+                                final_content = (
+                                    "Here is 1 emergency charging station near you:"
+                                )
+
+                        elif connector_label:
+                            final_content = (
+                                f"Here are {count} {connector_label} compatible "
+                                "emergency charging stations near you:"
+                            )
+
+                        else:
+                            final_content = (
+                                f"Here are {count} emergency charging stations near you:"
+                            )
+
+                    elif preference:
                         final_content = (
                             f"Here are the {count} {preference} "
                             "charging stations:"
                         )
+
                     else:
                         final_content = (
                             f"Here are {count} charging stations "
@@ -204,6 +248,20 @@ class LLMService:
                         arguments.setdefault(
                             "longitude",
                             longitude,
+                        )
+
+                    elif tool_call.name == "get_emergency_charging_stations":
+                        arguments.setdefault(
+                            "latitude",
+                            latitude,
+                        )
+                        arguments.setdefault(
+                            "longitude",
+                            longitude,
+                        )
+                        arguments.setdefault(
+                            "vehicle_or_connector",
+                            cleaned_message,
                         )
 
                     elif tool_call.name == "get_route_stations":

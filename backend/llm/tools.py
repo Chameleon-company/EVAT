@@ -16,6 +16,11 @@ from backend.data_loader import load_datasets
 from backend.station_preference_service import get_stations_by_preference
 from backend.real_time_apis import api_manager
 
+from backend.emergency_charging_service import (
+    get_emergency_stations,
+    infer_connector_from_message,
+    filter_stations_by_connector,
+)
 
 EVAT_TOOLS = [
     {
@@ -86,6 +91,42 @@ EVAT_TOOLS = [
                     "latitude",
                     "longitude",
                     "preference",
+                ],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_emergency_charging_stations",
+            "description": (
+                "Find nearby EV charging stations for an urgent or emergency "
+                "charging situation, such as when the user's battery is very low. "
+                "Can also filter stations based on a vehicle model or connector type."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "latitude": {
+                        "type": "number",
+                        "description": "User latitude.",
+                    },
+                    "longitude": {
+                        "type": "number",
+                        "description": "User longitude.",
+                    },
+                    "vehicle_or_connector": {
+                        "type": "string",
+                        "description": (
+                            "Optional vehicle model or connector mentioned by the "
+                            "user, for example Nissan Leaf, Tesla Model 3, CCS2, "
+                            "CHAdeMO, or Type 2."
+                        ),
+                    },
+                },
+                "required": [
+                    "latitude",
+                    "longitude",
                 ],
             },
         },
@@ -417,9 +458,55 @@ def execute_tool_call(
             "stations": card_stations,
         }
 
-    # ---------------------------------------------------------
-    # Route planning
-    # ---------------------------------------------------------
+    if name == "get_emergency_charging_stations":
+        latitude, longitude = _validate_coordinates(
+            arguments.get("latitude"),
+            arguments.get("longitude"),
+        )
+
+        vehicle_or_connector = arguments.get(
+            "vehicle_or_connector",
+            "",
+        )
+
+        if not isinstance(vehicle_or_connector, str):
+            raise ValueError(
+                "Vehicle or connector must be a string."
+            )
+
+        connector = infer_connector_from_message(
+            vehicle_or_connector
+        )
+
+        stations = get_emergency_stations(
+            latitude=latitude,
+            longitude=longitude,
+            radius_km=SEARCH_CONFIG["EMERGENCY_RADIUS_KM"],
+            limit=SEARCH_CONFIG["EMERGENCY_MAX_RESULTS"],
+            max_results=SEARCH_CONFIG["MAX_RESULTS"],
+        )
+
+        if connector:
+            stations = filter_stations_by_connector(
+                stations,
+                connector,
+                limit=SEARCH_CONFIG["EMERGENCY_MAX_RESULTS"],
+            )
+
+        card_stations = _stations_for_cards(
+            stations,
+            (latitude, longitude),
+            limit=SEARCH_CONFIG["EMERGENCY_MAX_RESULTS"],
+        )
+
+        return {
+            "type": "stations",
+            "show_availability": True,
+            "emergency": True,
+            "connector": connector,
+            "count": len(card_stations),
+            "stations": card_stations,
+        }
 
     if name == "get_route_stations":
         start_location = arguments.get(
