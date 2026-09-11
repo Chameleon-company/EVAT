@@ -48,6 +48,16 @@ const describeHttpFailure = async (res, serviceName) => {
   return detail || `${serviceName} returned an error (${res.status}).`;
 };
 
+/**
+ * Explain a request that failed before any response could be read. A service that is
+ * down often answers without CORS headers; the browser then hides the status entirely
+ * and fetch rejects with a TypeError, so describeHttpFailure never gets to run.
+ */
+const describeRequestError = (error, serviceName) =>
+  error instanceof TypeError
+    ? `Couldn't reach ${serviceName}. The service may be unavailable right now.`
+    : `Got an unreadable reply from ${serviceName}. Please try again.`;
+
 const loadStoredMessages = (key) => {
   try {
     const raw = localStorage.getItem(key);
@@ -440,7 +450,7 @@ export default function Chatbot() {
       addRasaMessage({
         type: "text",
         sender: "bot",
-        text: cancelledMessage(error, entry) || "Server error. Please try again.",
+        text: cancelledMessage(error, entry) || describeRequestError(error, "the station assistant"),
       });
     } finally {
       endRequest(rasaAbortRef, entry);
@@ -562,7 +572,7 @@ export default function Chatbot() {
       setGeminiMessages(prev => [...prev, { from: "bot", text: reply, time: timestamp() }]);
       setHistory(prev => [{ id: Date.now(), title: msg.slice(0, 40), tab: "ai", date: new Date().toISOString() }, ...prev.slice(0, 19)]);
     } catch (error) {
-      const text = cancelledMessage(error, entry) || "Something went wrong. Please try again.";
+      const text = cancelledMessage(error, entry) || describeRequestError(error, "EVAT-AI");
       setGeminiMessages(prev => [...prev, { from: "bot", text, time: timestamp() }]);
     } finally {
       endRequest(geminiAbortRef, entry);
