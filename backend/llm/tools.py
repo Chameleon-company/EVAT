@@ -4,6 +4,7 @@ from backend.availability_service import get_station_availability
 from backend.config import SEARCH_CONFIG, LOCATION_CONFIG, DATA_CONFIG
 from backend.route_planning_service import get_route_stations as backend_get_route_stations
 from backend.location_resolution_service import get_location_coordinates
+from backend.nearby_stations_service import get_nearby_stations
 from backend.data_loader import load_datasets
 from backend.station_preference_service import get_stations_by_preference
 from backend.real_time_apis import api_manager
@@ -31,6 +32,44 @@ EVAT_TOOLS = [
                     },
                 },
                 "required": ["lat", "lon"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_nearby_stations",
+            "description": (
+                "Find EV charging stations near the user's current "
+                "location for a general request, without filtering by "
+                "preference. Use this for requests like 'find chargers "
+                "near me'."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "latitude": {
+                        "type": "number",
+                        "description": "User latitude.",
+                    },
+                    "longitude": {
+                        "type": "number",
+                        "description": "User longitude.",
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 10,
+                        "description": (
+                            "Maximum number of stations to return. "
+                            "Defaults to 5."
+                        ),
+                    },
+                },
+                "required": [
+                    "latitude",
+                    "longitude",
+                ],
             },
         },
     },
@@ -290,6 +329,43 @@ def execute_tool_call(
             "status": status,
             "updated_at": updated_at,
             "data": data,
+        }
+
+    if name == "get_nearby_stations":
+        latitude, longitude = _validate_coordinates(
+            arguments.get("latitude"),
+            arguments.get("longitude"),
+        )
+
+        limit = arguments.get("limit", 5)
+
+        if (
+            isinstance(limit, bool)
+            or not isinstance(limit, int)
+            or not 1 <= limit <= 10
+        ):
+            raise ValueError(
+                "Limit must be an integer between 1 and 10."
+            )
+
+        stations = get_nearby_stations(
+            latitude=latitude,
+            longitude=longitude,
+            radius_km=SEARCH_CONFIG["DEFAULT_RADIUS_KM"],
+            limit=SEARCH_CONFIG["MAX_RESULTS"],
+        )
+
+        card_stations = _stations_for_cards(
+            stations,
+            (latitude, longitude),
+            limit=limit,
+        )
+
+        return {
+            "type": "stations",
+            "show_availability": True,
+            "count": len(card_stations),
+            "stations": card_stations,
         }
 
     if name == "get_stations_by_preference":
