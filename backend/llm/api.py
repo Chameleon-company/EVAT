@@ -21,14 +21,15 @@ def health():
 def chat():
     data = request.get_json(silent=True) or {}
 
-    message = (data.get("message") or "").strip()
-    metadata = data.get("metadata") or {}
-
-    if not message:
+    raw_message = data.get("message")
+    if not isinstance(raw_message, str) or not raw_message.strip():
         return jsonify({
             "ok": False,
             "error": "Message cannot be empty."
         }), 400
+
+    message = raw_message.strip()
+    metadata = data.get("metadata") or {}
 
     try:
         service = get_llm_service()
