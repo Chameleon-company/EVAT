@@ -122,6 +122,16 @@ const GEMINI_SUGGESTIONS = [
   "What are the benefits of switching to an EV?",
 ];
 
+// Openers for the Station Assistant, worded around what its replies are built to
+// show: station lists, availability, and the cheapest / fastest choices. Each works
+// as a first message, so none depend on a station having been picked already.
+const STATION_SUGGESTIONS = [
+  "Find charging stations near me",
+  "Find the cheapest charger nearby",
+  "Show me the fastest chargers",
+  "Which chargers are available right now?",
+];
+
 // ── Sub-components ──────────────────────────────────────────
 
 function Avatar({ type }) {
@@ -489,6 +499,14 @@ export default function Chatbot() {
     await sendToRasa("hello");
   };
 
+  /** Start the conversation with a suggested question instead of a greeting. */
+  const handleRasaSuggestion = async (text) => {
+    if (rasaLoading) return;
+    setStarted(true);
+    addRasaMessage({ type: "text", sender: "user", text });
+    await sendToRasa(text);
+  };
+
   const handleRasaSubmit = async () => {
     if (!rasaInput.trim() || rasaLoading) return;
     const msg = rasaInput.trim();
@@ -731,6 +749,18 @@ export default function Chatbot() {
                       style={{ background: "linear-gradient(135deg,#6366f1,#4f46e5)", color: "#fff", border: "none", borderRadius: "12px", padding: "13px 36px", fontWeight: 700, fontSize: "15px", cursor: "pointer", boxShadow: "0 6px 20px rgba(99,102,241,0.3)" }}>
                       Start Chat →
                     </button>
+                    <p style={{ color: "#bbb", fontSize: "12px", margin: "28px 0 12px 0" }}>or start with one of these</p>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", textAlign: "left" }}>
+                      {STATION_SUGGESTIONS.map(s => (
+                        <button key={s} type="button" onClick={() => handleRasaSuggestion(s)}
+                          style={{ background: "#fff", border: "1px solid #eee", borderRadius: "12px", padding: "14px 16px", cursor: "pointer", boxShadow: "0 2px 8px rgba(0,0,0,0.04)", transition: "all 0.2s", textAlign: "left", font: "inherit" }}
+                          onMouseEnter={e => { e.currentTarget.style.borderColor = "#6366f1"; e.currentTarget.style.boxShadow = "0 4px 16px rgba(99,102,241,0.1)"; }}
+                          onMouseLeave={e => { e.currentTarget.style.borderColor = "#eee"; e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.04)"; }}>
+                          <p style={{ color: "#555", fontSize: "13px", margin: "0 0 6px 0", lineHeight: "1.4" }}>{s}</p>
+                          <span style={{ color: "#6366f1", fontSize: "12px", fontWeight: 600 }}>Ask this →</span>
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
 
