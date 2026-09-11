@@ -125,7 +125,6 @@ export default function PersonalisedInsightsFormComponent() {
   return (
     <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
       <header className="mb-6 text-center sm:mb-8">
-        <p className="mb-3 text-xs font-bold tracking-[0.16em] text-emerald-600">PERSONALISED INSIGHTS</p>
         <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Personalised EV Usage Insights</h1>
         <p className="mx-auto mt-3 max-w-3xl text-sm leading-6 text-slate-500 sm:text-base">
           Fill in your details to receive personalised EV insights based on your
