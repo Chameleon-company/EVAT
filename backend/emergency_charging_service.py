@@ -1,3 +1,4 @@
+import re
 from typing import Any, Dict, List, Optional
 
 from backend.charging_station_service import get_charging_stations
@@ -131,30 +132,64 @@ def connector_matches(
 ) -> bool:
     """Check whether station data is compatible with a connector type."""
 
-    connector = (connector or "").lower()
+    connector = (connector or "").lower().strip()
     conn_str = (connection_types or "").lower()
     power_str = (power or "").lower()
 
-    if connector in conn_str or connector in power_str:
+    searchable = f"{conn_str} {power_str}"
+
+    connector_aliases = {
+        "type 2": (
+            "type 2",
+            "mennekes",
+        ),
+        "ccs": (
+            "ccs",
+            "ccs2",
+            "combo",
+        ),
+        "chademo": (
+            "chademo",
+        ),
+        "tesla": (
+            "tesla",
+            "ccs",
+            "ccs2",
+            "type 2",
+        ),
+    }
+
+    aliases = connector_aliases.get(
+        connector,
+        (connector,),
+    )
+
+    if any(alias in searchable for alias in aliases):
         return True
 
-    if connector == "type 2":
-        connector_codes = ["25", "1036"]
+    connector_codes = {
+        "type 2": {"25", "1036"},
+        "ccs": {"33", "1", "21", "31"},
+        "chademo": {"2", "4", "24", "34"},
+        "tesla": {"33", "1036"},
+    }
 
-    elif connector == "ccs":
-        connector_codes = ["33", "1", "21", "31"]
+    expected_codes = connector_codes.get(connector)
 
-    elif connector == "chademo":
-        connector_codes = ["2", "4", "24", "34"]
-
-    elif connector == "tesla":
-        connector_codes = ["33", "1036"]
-
-    else:
+    if not expected_codes:
         return False
 
-    return any(code in conn_str for code in connector_codes)
+    # Only treat numbers as connector IDs when the source contains
+    # numeric IDs rather than normal text such as "Type 2".
+    if not re.search(r"[a-zA-Z]", conn_str):
+        actual_codes = set(
+            re.findall(r"\d+", conn_str)
+        )
 
+        if actual_codes & expected_codes:
+            return True
+
+    return False
 
 def filter_stations_by_connector(
     stations: List[Dict[str, Any]],
