@@ -3,31 +3,26 @@ import BarChart from "./BarChart";
 import { getMyInsights } from "../services/personalisedEvInsightsService";
 import { useNavigate } from 'react-router-dom';
 import { Button } from './Button';
+import { UserRound, ChartNoAxesColumn, TrendingUp } from 'lucide-react';
 
-import "../styles/Root.css";
-import "../styles/Fonts.css";
-import "../styles/Elements.css";
-import "../styles/Tables.css";
-import "../styles/PersonalisedInsights.css"
-import "../styles/Buttons.css"
 
 function Savings({estimatedSave}) {
     if (estimatedSave != 0) {
         return (
             <div>
-                <p className="text-xlarge text-center orange">Your potential EV savings</p>
-                <p className="text-center">Based on your responses, you could save around</p>
-                <p className="text-center text-xlarge green">${estimatedSave}</p>
-                <p className="text-center">per month on fuel alone.</p>
+                <p className="mb-4 text-xl font-bold text-slate-900 dark:text-white">Your potential EV savings</p>
+                <p className="text-sm leading-6 text-slate-500 dark:text-gray-400">Based on your responses, you could save around</p>
+                <p className="my-3 text-4xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400">${estimatedSave}</p>
+                <p className="text-sm leading-6 text-slate-500 dark:text-gray-400">per month on fuel alone.</p>
             </div>
         )
     }
     else {
         return (
             <div>
-                <p className="text-xlarge text-center orange">Your potential EV savings</p>
-                <p className="text-center">Based on your responses, you already own an EV</p>
-                <p className="text-center">savings do not apply.</p>
+                <p className="mb-4 text-xl font-bold text-slate-900 dark:text-white">Your potential EV savings</p>
+                <p className="text-sm leading-6 text-slate-500 dark:text-gray-400">Based on your responses, you already own an EV</p>
+                <p className="text-sm leading-6 text-slate-500 dark:text-gray-400">savings do not apply.</p>
             </div>
         )
     }
@@ -63,9 +58,9 @@ export default function InsightsDisplay() {
                 backgroundColor: [
                     'rgba(179, 91, 55, 0.8)',
                     'rgba(11, 107, 70, 0.8)',
-                    'rgba(250, 250, 250, 0.8)'
+                    'rgba(148, 163, 184, 0.8)'
                 ],
-                borderColor: 'rgb(0, 0, 0)',
+                borderColor: 'rgb(203, 213, 225)',
                 borderWidth: 1,
             },
         ],
@@ -98,80 +93,78 @@ export default function InsightsDisplay() {
     );
 
     return (
-        <div>
-            <div className="background-image"></div>
-            <div className="center eighty-width">
-                <div className="container vertical auto-width">
-                    <h4 className="text-center orange">COMPARE YOUR DRIVE</h4>
-                    <h6 className="text-center">Similar Drivers & EV Benefits</h6>
-                </div>
-                <div className="container no-borderBckgrd horizontal auto-width">
-                    <div className="container inner-left third-width">                       
-                        <table className="onlyTable">
-                            <caption className="text-xlarge orange">Your stats</caption>
-                            <tbody>
-                                <tr>
-                                    <td>You drive</td>
-                                    <td className="highlight text-xlarge">{data.weekly_km}km</td>
-                                    <td>a week.</td>
-                                </tr>
-                                <tr>
-                                    <td>You spend</td>
-                                    <td className="highlight text-xlarge">${data.monthly_fuel_spend}</td>
-                                    <td>a week.</td>
-                                </tr>
-                                <tr>
-                                    <td>Your car uses</td>
-                                    <td className="highlight text-xlarge">{data.fuel_efficiency}</td>
-                                    <td>L/100km</td>
-                                </tr>
-                            </tbody>
-                        </table>
+        <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+            <header className="mb-8 text-center">
+                <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl">Compare Your Drive</h1>
+                <p className="mt-3 text-sm leading-6 text-slate-500 dark:text-gray-400 sm:text-base">Similar Drivers &amp; EV Benefits</p>
+            </header>
+
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                <section className="rounded-2xl border border-slate-200 dark:border-gray-800 bg-white dark:bg-[#050806] p-5 shadow-[0_6px_25px_rgba(15,23,42,0.06)] dark:shadow-none sm:p-6">
+                    <div className="mb-4 flex flex-wrap items-center gap-3">
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400"><UserRound className="h-5 w-5" aria-hidden="true" /></span>
+                        <h2 className="text-xl font-bold text-slate-900 dark:text-white">Your profile type</h2>
+                        <span className="max-w-full rounded-full bg-emerald-50 dark:bg-emerald-950/40 px-3 py-1.5 text-sm font-semibold text-emerald-700 dark:text-emerald-400 md:ml-auto">{data.profileType}</span>
                     </div>
-                    <div className="container no-borderBckgrd vertical inner-right twoThird-width">
-                        <div className="container vertical full-width">
-                            <p className="text-xlarge text-center orange">Your profile type</p>
-                            <p className="text-large text-center font-italic">{data.profileType}</p>
-                            <p className="text-center">{data.description}</p>
-                        </div>
-                        <br></br>
-                        <div className="container vertical full-width">
-                            <Savings estimatedSave={data.estimatedSavings} />
-                        </div>
+                    <p className="text-sm leading-6 text-slate-500 dark:text-gray-400">{data.description}</p>
+                </section>
+                <section className="rounded-2xl border border-slate-200 dark:border-gray-800 bg-white dark:bg-[#050806] p-5 shadow-[0_6px_25px_rgba(15,23,42,0.06)] dark:shadow-none sm:p-6">
+                    <Savings estimatedSave={data.estimatedSavings} />
+                </section>
+            </div>
+
+            <section className="rounded-2xl border border-slate-200 dark:border-gray-800 bg-white dark:bg-[#050806] p-5 shadow-[0_6px_25px_rgba(15,23,42,0.06)] dark:shadow-none sm:p-6 mt-5" aria-labelledby="insights-stats">
+                <h2 id="insights-stats" className="mb-5 flex items-center gap-3 text-xl font-bold text-slate-900 dark:text-white"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400"><ChartNoAxesColumn className="h-5 w-5" aria-hidden="true" /></span>Your stats</h2>
+                <dl className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                    <div className="rounded-lg border border-slate-200 dark:border-gray-800 bg-slate-50 dark:bg-[#020403] p-4">
+                        <dt className="text-sm font-medium text-slate-500 dark:text-gray-400">Fuel Efficiency (L/100km)</dt>
+                        <dd className="mt-2 text-2xl font-semibold text-slate-900 dark:text-white">{data.fuel_efficiency}</dd>
                     </div>
-                </div>
-                <div className="container horizontal auto-width">
-                    <div className="inner-right third-width">
+                    <div className="rounded-lg border border-slate-200 dark:border-gray-800 bg-slate-50 dark:bg-[#020403] p-4">
+                        <dt className="text-sm font-medium text-slate-500 dark:text-gray-400">Monthly Fuel Spend ($)</dt>
+                        <dd className="mt-2 text-2xl font-semibold text-slate-900 dark:text-white">${data.monthly_fuel_spend}</dd>
+                    </div>
+                    <div className="rounded-lg border border-slate-200 dark:border-gray-800 bg-slate-50 dark:bg-[#020403] p-4">
+                        <dt className="text-sm font-medium text-slate-500 dark:text-gray-400">Weekly Distance (km)</dt>
+                        <dd className="mt-2 text-2xl font-semibold text-slate-900 dark:text-white">{data.weekly_km}</dd>
+                    </div>
+                </dl>
+            </section>
+
+            <section className="rounded-2xl border border-slate-200 dark:border-gray-800 bg-white dark:bg-[#050806] p-5 shadow-[0_6px_25px_rgba(15,23,42,0.06)] dark:shadow-none sm:p-6 mt-5" aria-labelledby="insights-comparisons">
+                <h2 id="insights-comparisons" className="mb-5 flex items-center gap-3 text-xl font-bold text-slate-900 dark:text-white"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400"><TrendingUp className="h-5 w-5" aria-hidden="true" /></span>Detailed Comparisons</h2>
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+                    <div className="min-w-0 rounded-xl border border-slate-200 dark:border-gray-800 p-4 dark:bg-[#020403]">
                         <BarChart data={graph1Data} title={"Average Fuel Efficiency of Vehicle (L/100km)"} />
-                        <p className="text-left">Your vehicle is{" "}
+                        <p className="mt-5 rounded-lg border border-slate-200 dark:border-gray-800 bg-slate-50 dark:bg-gray-950 p-4 text-sm leading-6 text-slate-700 dark:text-gray-300">Your vehicle is{" "}
                             {comparisonMap.sim_fuel_efficiency_difference?.value} L/100km{" "}
                             {comparisonMap.sim_fuel_efficiency_difference?.direction} than similar drivers and{" "}
                             {comparisonMap.all_fuel_efficiency_difference?.value} L/100km{" "}
                             {comparisonMap.all_fuel_efficiency_difference?.direction} efficient than the overall driver average.</p>
                     </div>
-                    <div className="center third-width">
+                    <div className="min-w-0 rounded-xl border border-slate-200 dark:border-gray-800 p-4 dark:bg-[#020403]">
                         <BarChart data={graph2Data} title={"Average Amount ($) Spent on Fuel Monthly"} />
-                        <p className="text-center">On Average, you spend $
+                        <p className="mt-5 rounded-lg border border-slate-200 dark:border-gray-800 bg-slate-50 dark:bg-gray-950 p-4 text-sm leading-6 text-slate-700 dark:text-gray-300">On Average, you spend $
                             {comparisonMap.sim_monthly_fuel_spend_difference?.value}{" "}
                             {comparisonMap.sim_monthly_fuel_spend_difference?.direction} per month on fuel than similar drivers and $
                             {comparisonMap.all_monthly_fuel_spend_difference?.value}{" "}
                             {comparisonMap.all_monthly_fuel_spend_difference?.direction} than the overall driver average.</p>
                     </div>
-                    <div className="inner-left third-width">
+                    <div className="min-w-0 rounded-xl border border-slate-200 dark:border-gray-800 p-4 dark:bg-[#020403]">
                         <BarChart data={graph3Data} title={"Average Weekly KMs driven"} />
-                        <p className="text-center">On Average, you drive{" "}
+                        <p className="mt-5 rounded-lg border border-slate-200 dark:border-gray-800 bg-slate-50 dark:bg-gray-950 p-4 text-sm leading-6 text-slate-700 dark:text-gray-300">On Average, you drive{" "}
                             {comparisonMap.sim_weekly_km_difference?.value}km{" "}
                             {comparisonMap.sim_weekly_km_difference?.direction} per week than similar drivers and{" "}
                             {comparisonMap.all_weekly_km_difference?.value}km{" "}
                             {comparisonMap.all_weekly_km_difference?.direction} than the overall driver average.</p>
                     </div>
                 </div>
-                <br></br>
-                <div className="full-width centerBtn">
-                    <Button type="button" onClick={() => navigate('/insights-form')}>Back to form</Button>
-                    <Button type="button" onClick={() => navigate('/profile')}>Back to Dashboard</Button>
-                </div>
+            </section>
+
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-between">
+                <Button type="button" variant="transparent" className="w-full sm:w-auto dark:bg-gray-950 dark:border-gray-700 dark:text-gray-200 dark:hover:enabled:bg-gray-900 dark:hover:enabled:border-gray-600" onClick={() => navigate('/insights-form')}>Back to form</Button>
+                <Button type="button" className="w-full sm:w-auto" onClick={() => navigate('/profile')}>Back to Dashboard</Button>
             </div>
-        </div>
+        </main>
     );
 }
