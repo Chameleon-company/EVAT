@@ -131,12 +131,46 @@ class LLMService:
         )
 
         tool_results = []
+        normalized_message = cleaned_message.lower()
+        availability_phrases = (
+            "live availability",
+            "live charging availability",
+            "check availability",
+            "current availability",
+            "currently available",
+        )
+        availability_requested = any(
+            phrase in normalized_message
+            for phrase in availability_phrases
+        )
+
+        tools_for_request = EVAT_TOOLS
+
+        if availability_requested:
+            tools_for_request = [
+                tool
+                for tool in EVAT_TOOLS
+                if tool.get("function", {}).get("name")
+                == "get_station_availability"
+            ]
+            messages.insert(
+                len(messages) - 1,
+                LLMMessage(
+                    role="system",
+                    content=(
+                        "The user is explicitly requesting live charging "
+                        "availability. Use get_station_availability with "
+                        "the application-provided location. Do not use a "
+                        "nearby-stations search for this request."
+                    ),
+                ),
+            )
 
         for _ in range(max_tool_rounds):
             response = await self._provider.chat(
                 messages=messages,
                 temperature=self._settings.temperature,
-                tools=EVAT_TOOLS,
+                tools=tools_for_request,
             )
 
             if not response.tool_calls:
@@ -204,10 +238,75 @@ class LLMService:
                             "charging stations:"
                         )
 
-                    else:
+                    elif (
+                        station_result.get("start_location")
+                        and station_result.get("end_location")
+                    ):
                         final_content = (
                             f"Here are {count} charging stations "
-                            "for your route:"
+                            "along your route:"
+                        )
+
+                    else:
+                        final_content = (
+                            f"Here are the {count} closest "
+                            "charging stations:"
+                        )
+
+                availability_result = next(
+                    (
+                        result
+                        for result in reversed(tool_results)
+                        if result.get("type") == "availability"
+                    ),
+                    None,
+                )
+
+                if availability_result:
+                    status = str(
+                        availability_result.get("status") or "Unknown"
+                    ).lower()
+                    availability_data = availability_result.get("data") or {}
+                    station = availability_data.get("station") or {}
+                    counts = availability_data.get("counts") or {}
+                    station_name = station.get("name")
+                    distance_km = station.get("distance_km")
+                    station_label = (
+                        f" at {station_name}"
+                        if station_name
+                        else " near your location"
+                    )
+                    distance_label = (
+                        f" ({distance_km:.1f} km away)"
+                        if isinstance(distance_km, (int, float))
+                        else ""
+                    )
+
+                    if status == "yes":
+                        available_count = int(counts.get("available") or 0)
+                        final_content = (
+                            f"{available_count} charging point"
+                            f"{' is' if available_count == 1 else 's are'} "
+                            f"currently available{station_label}{distance_label}."
+                        )
+                    elif status == "no":
+                        occupied = int(counts.get("occupied") or 0)
+                        reserved = int(counts.get("reserved") or 0)
+                        out_of_service = int(
+                            counts.get("out_of_service") or 0
+                        )
+                        final_content = (
+                            f"No charging points are currently available"
+                            f"{station_label}{distance_label}. "
+                            f"Current status: {occupied} occupied, "
+                            f"{reserved} reserved, and "
+                            f"{out_of_service} out of service."
+                        )
+                    else:
+                        message = availability_data.get("message")
+                        final_content = message or (
+                            "Live connector availability could not be confirmed "
+                            f"{station_label}{distance_label}."
                         )
 
                 return replace(

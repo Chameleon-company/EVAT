@@ -259,48 +259,150 @@ class ApiManager:
                 return _station_cache[station_key]["data"]
 
         try:
-            # Step 1: Find nearest EV charging station (categorySet=7309)
-            nearby_url = (
-                f"https://api.tomtom.com/search/2/nearbySearch/.json?"
-                f"lat={lat}&lon={lon}&key={api_key}&radius=500&limit=1&categorySet=7309"
+            # Find nearby EV stations and select the nearest result for which
+            # TomTom exposes a live charging-availability identifier. A normal
+            # POI id cannot be used with the availability endpoint.
+            nearby_url = f"{self.base_url}/search/2/nearbySearch/.json"
+            nearby_params = {
+                "lat": lat,
+                "lon": lon,
+                "key": api_key,
+                "radius": 5000,
+                "limit": 20,
+                "categorySet": 7309,
+            }
+            resp1 = requests.get(
+                nearby_url,
+                params=nearby_params,
+                timeout=self.timeout_seconds,
             )
-            resp1 = requests.get(nearby_url, timeout=5)
             resp1.raise_for_status()
             nearby_data = resp1.json()
 
-            if not nearby_data.get("results"):
-                return {"available": None, "updated_at": None, "data": "No station found"}
+            results = nearby_data.get("results") or []
+            if not results:
+                return {
+                    "available": None,
+                    "updated_at": None,
+                    "data": {
+                        "message": "No TomTom EV station was found within 5 km.",
+                        "source": "TomTom",
+                    },
+                }
 
-            station_id = nearby_data["results"][0]["id"]
-            # print("Nearest stationId:", station_id)
+            selected_station = None
+            availability_id = None
+            for candidate in results:
+                availability_source = (
+                    (candidate.get("dataSources") or {})
+                    .get("chargingAvailability")
+                    or {}
+                )
+                if not isinstance(availability_source, dict):
+                    continue
+                candidate_id = availability_source.get("id")
+                if candidate_id:
+                    selected_station = candidate
+                    availability_id = candidate_id
+                    break
+
+            if selected_station is None or availability_id is None:
+                return {
+                    "available": None,
+                    "updated_at": None,
+                    "data": {
+                        "message": (
+                            "Nearby EV stations were found, but TomTom does not "
+                            "provide live connector availability for them."
+                        ),
+                        "source": "TomTom",
+                        "nearby_station_count": len(results),
+                    },
+                }
 
             # Step 2: Get real-time availability
             avail_url = "https://api.tomtom.com/search/2/chargingAvailability.json"
             params = {
                 "key": api_key,
-                "chargingAvailability": station_id,
-                "minPowerKW": 1,
-                "maxPowerKW": 100,
+                "chargingAvailability": availability_id,
             }
-            resp2 = requests.get(avail_url, params=params, timeout=5)
+            resp2 = requests.get(
+                avail_url,
+                params=params,
+                timeout=self.timeout_seconds,
+            )
             resp2.raise_for_status()
             avail_data = resp2.json()
-            # print("Availability response:", avail_data)
 
-            # Simplified peek
-            available = None
-            updated_at = None
+            connectors = avail_data.get("connectors") or []
+            counts = {
+                "available": 0,
+                "occupied": 0,
+                "reserved": 0,
+                "unknown": 0,
+                "out_of_service": 0,
+            }
+            connector_details: List[Dict[str, Any]] = []
 
-            ca = avail_data.get("chargingAvailability", {})
-            connectors = avail_data.get("connectors", [])
+            for connector in connectors:
+                current = (
+                    (connector.get("availability") or {}).get("current")
+                    or {}
+                )
+                parsed = {
+                    "type": connector.get("type"),
+                    "total": connector.get("total"),
+                    "available": int(current.get("available") or 0),
+                    "occupied": int(current.get("occupied") or 0),
+                    "reserved": int(current.get("reserved") or 0),
+                    "unknown": int(current.get("unknown") or 0),
+                    "out_of_service": int(current.get("outOfService") or 0),
+                }
+                connector_details.append(parsed)
+                for key in counts:
+                    counts[key] += parsed[key]
 
-            if connectors:
-                free_count = sum(c.get("available", 0) for c in connectors)
-                available = free_count > 0
-                updated_at = datetime.datetime.utcnow().isoformat()
+            known_count = (
+                counts["available"]
+                + counts["occupied"]
+                + counts["reserved"]
+                + counts["out_of_service"]
+            )
+            available = (
+                counts["available"] > 0
+                if connectors and known_count > 0
+                else None
+            )
+            checked_at = datetime.datetime.now(datetime.timezone.utc).isoformat()
+            poi = selected_station.get("poi") or {}
+            address = selected_station.get("address") or {}
+            position = selected_station.get("position") or {}
 
-            result = {"available": available,
-                      "updated_at": updated_at, "data": avail_data}
+            result = {
+                "available": available,
+                "updated_at": checked_at,
+                "data": {
+                    "source": "TomTom",
+                    "station": {
+                        "name": poi.get("name") or "Nearest charging station",
+                        "address": address.get("freeformAddress"),
+                        "latitude": position.get("lat"),
+                        "longitude": position.get("lon"),
+                        "distance_km": (
+                            round(float(selected_station["dist"]) / 1000.0, 2)
+                            if isinstance(selected_station.get("dist"), (int, float))
+                            else None
+                        ),
+                    },
+                    "counts": counts,
+                    "connectors": connector_details,
+                    "message": (
+                        None
+                        if connectors
+                        else "TomTom returned no live connector records for this station."
+                    ),
+                },
+            }
 
             # --- Cache store (10 min TTL) ---
             _station_cache[station_key] = {

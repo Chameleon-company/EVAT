@@ -48,7 +48,8 @@ function getAvailabilityBadge(
 
   if (
     value === "yes" ||
-    value === "available"
+    value === "available" ||
+    value === "operational"
   ) {
 
     return {

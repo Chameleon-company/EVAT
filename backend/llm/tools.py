@@ -412,6 +412,7 @@ def execute_tool_call(
             or "unauthorized" in raw_error.lower()
         ):
             return {
+                "type": "availability",
                 "status": "Unknown",
                 "updated_at": None,
                 "data": {
@@ -422,11 +423,40 @@ def execute_tool_call(
                 },
             }
 
-        return {
+        result = {
+            "type": "availability",
             "status": status,
             "updated_at": updated_at,
             "data": data,
         }
+
+        # The frontend already renders station cards for any structured
+        # result containing a stations array. Include the exact station that
+        # TomTom checked so users can open directions to it.
+        if isinstance(data, dict):
+            station = data.get("station")
+            if isinstance(station, dict):
+                latitude = station.get("latitude")
+                longitude = station.get("longitude")
+                if isinstance(latitude, (int, float)) and isinstance(
+                    longitude,
+                    (int, float),
+                ):
+                    card_station = _station_for_card(
+                        {
+                            "name": station.get("name"),
+                            "address": station.get("address"),
+                            "latitude": latitude,
+                            "longitude": longitude,
+                            "distance_km": station.get("distance_km"),
+                            "availability": status,
+                        },
+                        (lat, lon),
+                    )
+                    result["show_availability"] = True
+                    result["stations"] = [card_station]
+
+        return result
 
     if name == "get_nearby_stations":
         latitude, longitude = _validate_coordinates(
