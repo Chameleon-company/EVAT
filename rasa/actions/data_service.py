@@ -19,8 +19,6 @@ PROJECT_ROOT = os.path.abspath(
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from backend.charging_station_service import get_charging_stations
-
 from backend.station_preference_service import (
     get_stations_by_preference as backend_get_stations_by_preference,
 )
@@ -40,6 +38,9 @@ from backend.availability_service import (
 )
 from backend.location_resolution_service import (
     get_location_coordinates as backend_get_location_coordinates,
+)
+from backend.nearby_stations_service import (
+    get_nearby_stations as backend_get_nearby_stations,
 )
 # Import the canonical backend implementation. Importing the same file as
 # top-level ``real_time_apis`` can create a second module/global instance.
@@ -106,24 +107,25 @@ class ChargingStationDataService:
     # Removed get_stations_by_suburb (unused)
 
     def get_nearby_stations(self, location: Tuple[float, float], radius_km: float = None) -> List[Dict[str, Any]]:
-        """Get charging stations within specified radius of location"""
+        """Get nearby charging stations via reusable backend service."""
         if radius_km is None:
             radius_km = SEARCH_CONFIG['DEFAULT_RADIUS_KM']
         try:
             user_lat, user_lon = location
-            stations, source = get_charging_stations(
+
+            stations = backend_get_nearby_stations(
                 latitude=float(user_lat),
                 longitude=float(user_lon),
-                distance_km=radius_km,
-                limit=SEARCH_CONFIG['MAX_RESULTS']
+                radius_km=radius_km,
+                limit=SEARCH_CONFIG['MAX_RESULTS'],
             )
+
             self.latest_stations = stations
-            logger.info(
-                f"Retrieved {len(stations)} charging stations from {source}")
+            logger.info(f"Retrieved {len(stations)} nearby charging stations")
             return stations
         except Exception as e:
             logger.error(f"Unable to retrieve nearby stations: {e}")
-            return
+            return []
 
     def get_route_stations(
         self,
