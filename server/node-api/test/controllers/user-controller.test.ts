@@ -451,25 +451,43 @@ describe("UserController", () => {
             });
           });
 
-        test("Case: Expired token but refresh token still valid", async () => {
+        test("Case: Expired access token but no refresh token submitted", async () => {
             // Arrange
             (jwt.verify as jest.Mock).mockImplementation(() => { throw new Error("TokenExpiredError"); });
             (jwt.decode as jest.Mock).mockReturnValue({ id: "3" });
-
-            const mockUser = {
-                id: "3",
-                refreshTokenExpiresAt: new Date(Date.now() + 10000),
-                save: jest.fn()
-            };
-            mockUserService.getUserById = jest.fn().mockResolvedValue(mockUser);
-            (generateToken as jest.Mock).mockReturnValue("new-access-token");
             mockRequest.headers = { authorization: "Bearer expiredtoken" };
+            mockRequest.body = {};
 
             // Act
             await userController.jwtLogin(mockRequest as Request, mockResponse as Response);
 
             // Assert
-            expect(generateToken).toHaveBeenCalledWith(mockUser, "1h");
+            expect(mockUserService.refreshAccessToken).not.toHaveBeenCalled();
+            expect(statusMock).toHaveBeenCalledWith(401);
+            expect(jsonMock).toHaveBeenCalledWith({
+                message: "Refresh token is required to renew an expired session"
+            });
+        });
+
+        test("Case: Expired access token with a valid, verified refresh token", async () => {
+            // Arrange
+            (jwt.verify as jest.Mock).mockImplementation(() => { throw new Error("TokenExpiredError"); });
+            (jwt.decode as jest.Mock).mockReturnValue({ id: "3" });
+
+            const mockUser = { id: "3", save: jest.fn() };
+            mockUserService.refreshAccessToken = jest.fn().mockResolvedValue({
+                accessToken: "new-access-token",
+                refreshToken: "new-refresh-token"
+            });
+            mockUserService.getUserById = jest.fn().mockResolvedValue(mockUser);
+            mockRequest.headers = { authorization: "Bearer expiredtoken" };
+            mockRequest.body = { refreshToken: "valid-refresh-token" };
+
+            // Act
+            await userController.jwtLogin(mockRequest as Request, mockResponse as Response);
+
+            // Assert
+            expect(mockUserService.refreshAccessToken).toHaveBeenCalledWith("valid-refresh-token");
             expect(statusMock).toHaveBeenCalledWith(200);
             expect(jsonMock).toHaveBeenCalledWith({
                 message: "Automatic Login Successful",
@@ -480,17 +498,14 @@ describe("UserController", () => {
             });
         });
 
-        test("Case: Expired token and refresh token expired", async () => {
+        test("Case: Expired access token with an invalid or expired refresh token", async () => {
             // Arrange
             (jwt.verify as jest.Mock).mockImplementation(() => { throw new Error("TokenExpiredError"); });
             (jwt.decode as jest.Mock).mockReturnValue({ id: "4" });
 
-            const mockUser = {
-                id: "4",
-                refreshTokenExpiresAt: new Date(Date.now() - 10000)
-            };
-            mockUserService.getUserById = jest.fn().mockResolvedValue(mockUser);
+            mockUserService.refreshAccessToken = jest.fn().mockRejectedValue(new Error("Failed to refresh token: Invalid refresh token"));
             mockRequest.headers = { authorization: "Bearer expiredtoken" };
+            mockRequest.body = { refreshToken: "stale-or-forged-refresh-token" };
 
             // Act
             await userController.jwtLogin(mockRequest as Request, mockResponse as Response);

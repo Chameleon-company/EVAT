@@ -2,7 +2,6 @@ import e, { Request, Response } from "express";
 import UserService from "../services/user-service";
 import { UserItemResponse } from "../dtos/user-item-response";
 import jwt from "jsonwebtoken";
-import generateToken from "../utils/generate-token";
 
 interface JwtPayload {
     id: string;
@@ -72,22 +71,21 @@ export default class UserController {
                     return res.status(401).json({ message: "Invalid token" });
                 }
 
-                const user = await this.userService.getUserById(decoded.id);
-                if (!user || !user.refreshTokenExpiresAt) {
-                    return res.status(404).json({ message: "User or refresh token not found" });
+                // Actual refresh token to be shown so it can be verified and matched against the stored one
+                const { refreshToken } = req.body;
+                if (!refreshToken) {
+                    return res.status(401).json({ message: "Refresh token is required to renew an expired session" });
                 }
 
-                const nowUnix = Math.floor(Date.now() / 1000);
-                const refreshTokenExpiryUnix = Math.floor(
-                    new Date(user.refreshTokenExpiresAt).getTime() / 1000
-                );
+                try {
+                    const { accessToken: newAccessToken } =
+                        await this.userService.refreshAccessToken(refreshToken);
 
-                if (refreshTokenExpiryUnix > nowUnix) {
-                    // if still valid, make a new AccessToken
-                    const newAccessToken = generateToken(user, "1h");
+                    const user = await this.userService.getUserById(decoded.id);
+                    if (!user) {
+                        return res.status(404).json({ message: "User not found" });
+                    }
 
-                    // Update last login
-                    //user.lastLogin = new Date();
                     await user.save();
 
                     // OK status with data and a new AccessToken
@@ -99,7 +97,7 @@ export default class UserController {
                         },
                     });
 
-                } else {
+                } catch (refreshError) {
                     return res.status(401).json({ message: "Refresh token expired, please log in again" });
                 }
             }

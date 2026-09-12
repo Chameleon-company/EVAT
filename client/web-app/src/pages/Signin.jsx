@@ -88,6 +88,7 @@ function Signin() {
                     `${data?.data?.user?.firstName || ''} ${data?.data?.user?.lastName || ''}`.trim(),
           mobile: data?.data?.user?.mobile,
           token: accessToken,
+          refreshToken: data?.data?.refreshToken,
           createdAt: data?.data?.user?.createdAt,
           avatarURL: profileData?.data?.avatarURL,
         };
@@ -129,7 +130,9 @@ function Signin() {
         method: "POST",
         headers: {
             Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
         },
+        body: JSON.stringify({ refreshToken: parsedUser.refreshToken }),
     })
         .then(res => res.json())
         .then(data => {
