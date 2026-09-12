@@ -1,6 +1,6 @@
 # EVAT – Electric Vehicle Adoption Tools
 
-A conversational AI chatbot designed to help electric vehicle users find charging stations, plan routes, and get relevant information using the Rasa framework.
+A conversational AI chatbot designed to help electric vehicle users find charging stations, plan routes, and get relevant information. The chatbot is now powered by **Qwen3 (via Ollama)** with EV charging tools (station search, availability, routing), with the original **Rasa** chatbot kept running as a fallback if the Qwen service is unavailable.
 
 ## 🌐 Live Demo
 The EVAT Chatbot is now deployed online and accessible via Netlify: https://t2-rasa-chatbpt-2025.netlify.app/
@@ -32,79 +32,89 @@ The EVAT Chatbot is now deployed online and accessible via Netlify: https://t2-r
 ---
 
 ## 📁 Project Structure
-EVAT_Chatbot/  
-├── rasa/                 # Rasa chatbot configuration  
-│   ├── domain.yml        # Intent, entity, and action definitions  
-│   ├── config.yml        # NLU pipeline and policy configuration  
-│   ├── endpoints.yml     # API endpoints  
-│   ├── credentials.yml   # Authentication settings  
-│   ├── actions/          # Custom action implementations  
-│   └── data/             # Training data (intents, stories, rules)  
-├── backend/              # Core business logic  
-│   ├── real_time_apis.py # TomTom client used by actions  
-│   └── utils/            # Utility functions  
-├── frontend/             # Web interface  
-│   ├── index.html        # Main chat interface  
-│   ├── script.js         # Frontend logic  
-│   └── style.css         # Styling  
-├── data/                 # Datasets  
-│   └── raw/              # CSV files (charging stations, coordinates)  
-├── ml/                   # Machine learning models  
-│   ├── classification.py # Station classification  
-│   ├── regression.py     # ETA prediction  
-│   └── README.md         # ML documentation  
-├── config/               # Configuration files  
-├── README.md             # Project overview  
-├── requirements.txt      # Dependencies  
-└── .gitignore            # Git ignore rules
+EVAT/
+├── backend/                    # Core business logic
+│   ├── llm/                    # Qwen/Ollama LLM API, service, providers, prompts and tools
+│   │   ├── api.py               # Flask app exposing /health and /api/chat
+│   │   ├── service.py            # LLM service (chat + tool calling)
+│   │   ├── tools.py              # EV charging/routing tools used by the LLM
+│   │   ├── prompts.py, models.py, config.py, providers/
+│   ├── utils/                   # Backend utilities
+│   ├── real_time_apis.py         # TomTom client
+│   ├── openchargeapi.py          # Open Charge Map client
+│   └── ...                       # Other station/route/availability services
+├── frontend/                    # Chatbot web UI
+│   ├── chat.html                 # Main chat interface
+│   ├── js/
+│   │   ├── chatbot-api.js         # Qwen-first API connection with Rasa fallback
+│   │   └── app.js                 # Frontend app logic
+│   ├── cards/                    # Station, directions and traffic response cards
+│   ├── chat/, ui/, location/     # Chat history, input/typing UI, geolocation helpers
+├── rasa/                        # Existing Rasa chatbot (now used as fallback)
+│   ├── domain.yml, config.yml, endpoints.yml, credentials.yml
+│   ├── actions/                  # Custom action implementations
+│   └── data/                     # Training data (intents, stories, rules)
+├── data/                        # Datasets
+│   └── raw/                      # CSV files (charging stations, coordinates)
+├── .env.example                 # Example environment configuration
+├── requirements.txt             # Python dependencies
+└── README.md                    # Project overview
 
 ---
 
 ## 🧩 How to Use the Chatbot (Local Setup)
 
-1. Quick setup  
-- Navigate to the project directory: `cd EVAT_Chatbot`  
-- Create a virtual environment: `python -m venv rasa_env`  
-- Activate the virtual environment:  
-  - On Mac/Linux: `source rasa_env/bin/activate`  
-  - On Windows (PowerShell): `.\rasa_env\Scripts\Activate`  
-- Install requirements: `pip install -r requirements.txt`
+### 1. Install dependencies
+From the repo root:
+```
+pip install -r requirements.txt
+```
 
-2. Train the Rasa model  
-- Navigate to the Rasa folder: `cd rasa`  
-- Train the model: `rasa train`
+### 2. Environment variables
+Copy the example file:
+```
+cp .env.example .env
+```
+API keys and config values are read from `.env`. Key variables include:
+- `TOMTOM_API_KEY` – used for routing/traffic
+- `OPENCHARGEMAP_API_KEY` – used for charging station data
+- `LLM_PROVIDER`, `LLM_MODEL`, `LLM_TIMEOUT_SECONDS`, `LLM_TEMPERATURE`, `OLLAMA_BASE_URL` – Qwen/Ollama settings
 
-3. Run Servers  
-- Tab 1: Run Actions Server  
-  - On Mac/Linux:  
-    `source ../rasa_env/bin/activate`  
-    `cd rasa`  
-    `rasa run actions --port 5055`  
-  - On Windows:  
-    `.\rasa_env\Scripts\Activate`  
-    `cd rasa`  
-    `rasa run actions --port 5055`  
-- Tab 2: Run Rasa Core Server  
-  - On Mac/Linux:  
-    `source ../rasa_env/bin/activate`  
-    `cd rasa`  
-    `rasa run --enable-api --cors "*"`  
-  - On Windows:  
-    `.\rasa_env\Scripts\Activate`  
-    `cd rasa`  
-    `rasa run --enable-api --cors "*"`
+Fill in your own values — do not commit real API keys.
 
-4. Frontend setup  
-- Navigate to the frontend folder: `cd frontend`  
-- Start a local server: `python -m http.server 8080` (or `python3 -m http.server 8080` on some systems)  
-- Open the application in your browser: `http://localhost:8080`  
-- The frontend (`index.html`) communicates with: `http://localhost:5005/webhooks/rest/webhook`
+### 3. Ollama
+[Ollama](https://ollama.com) must be installed and running locally. Pull the model configured in `.env.example`:
+```
+ollama pull qwen3:4b-instruct
+```
+By default Ollama is expected at `http://127.0.0.1:11434`.
+
+### 4. Qwen API
+Run the LLM API from the repo root:
+```
+python -m backend.llm.api
+```
+This starts the Flask app on `http://localhost:8000`:
+- Health check: `GET http://localhost:8000/health`
+- Chat endpoint: `POST http://localhost:8000/api/chat`
+
+### 5. Frontend
+Run from the repo root:
+```
+python3 -m http.server 8080 --directory frontend
+```
+Open `http://localhost:8080` in your browser and go to `chat.html`. The frontend sends chat messages to the Qwen API first.
+
+### 6. Rasa fallback (optional)
+Rasa is kept as a fallback chatbot, not the primary one. If the Qwen API is unreachable, the frontend automatically falls back to:
+```
+http://localhost:5005/webhooks/rest/webhook
+```
+To use the fallback, the Rasa server (and actions server) must be running separately — see the `rasa/` folder for its configuration. If Rasa isn't running, the fallback attempt will also fail and the chatbot will show a connection error.
 
 **Note:**
-- Windows users should run commands in **PowerShell**.  
-- Mac/Linux users should run commands in **Terminal**.  
-- Ensure that **Python 3.8+** is installed and accessible in your system path.  
-- Always activate the virtual environment before running servers.
+- Ensure Python 3.8+ is installed and accessible in your system path.
+- Use a virtual environment for Python dependencies if you prefer.
 
 ---
 
@@ -139,17 +149,19 @@ Flow:
 ---
 
 ## ⚙️ How It Works
-- Station resolution: Names/suburbs → coordinates via CSV dataset.  
-- Routing & traffic: TomTom API for distance, ETA, and traffic.  
-- Station cards: Show details + CTA buttons (directions, availability, compare).  
-- Frontend: Browser geolocation (lat/lon) sent as metadata → integrated into search.
+- Browser/frontend (`frontend/js/chatbot-api.js`) sends the user's message and location metadata to the Qwen Flask API (`backend/llm/api.py`).
+- The Qwen LLM service (`backend/llm/service.py`) processes the message and can call EV charging tools (`backend/llm/tools.py`) for things like nearby stations, availability, and routing.
+- Those tools use TomTom (routing/traffic) and Open Charge Map (station data) where configured.
+- Station resolution: Names/suburbs → coordinates via CSV dataset.
+- If the Qwen API is unavailable, the frontend falls back to the existing Rasa chatbot instead.
 
 ---
 
 ## 🖥️ Frontend (Current State)
-- Chat UI wired to Rasa REST webhook.  
-- Station cards implemented (previously text-only).  
-- Buttons link directly to Google Maps with live traffic.
+- Chat UI sends messages to the Qwen API first; Rasa is used as a fallback if Qwen is unavailable.
+- Structured tool results from the chatbot are rendered as response cards.
+- Current response card components: station cards, directions cards, and traffic cards (`frontend/cards/`).
+- Station cards include a Get Directions button that links to Google Maps where supported.
 
 **Current limitations:**
 - Only works in Melbourne Metropolitan area.
@@ -161,9 +173,9 @@ Flow:
 - `data/raw/charger_info_mel.csv` → charging station details
   
 ---
-## Next Step
-- Improve Searching Algorithm
-- Optimize Rasa to pick up most entities
-- Expand the dataset to cover all charging stations in Melbourne
-- Enhance UX/UI
+## Future Development
+- Continue improving chatbot reliability and tool handling.
+- Expand charging data coverage.
+- Maintain/update documentation as integrations change.
+- Continue UI/UX improvements.
   
