@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../context/user";
 import { predictPrice } from "../services/pricePredictionService";
+import { rateChatbotReply } from "../services/chatbotFeedbackService";
 import { BRAND_MODELS, FUEL_TYPES, TRANSMISSIONS, CONDITIONS, formatAud } from "../utils/priceOptions";
 
 const CHATBOT_URL = "https://evat-rasa-rajs2z2qwq-ts.a.run.app/webhooks/rest/webhook";
@@ -255,7 +256,7 @@ function Avatar({ type }) {
   );
 }
 
-function Bubble({ sender, children, time, copyText, onRetry }) {
+function Bubble({ sender, children, time, copyText, onRetry, rating, onRate, ratingFailed }) {
   const [copied, setCopied] = useState(false);
   const showCopy = sender === "bot" && Boolean(copyText);
   const showRetry = sender === "bot" && Boolean(onRetry);
@@ -329,6 +330,32 @@ function Bubble({ sender, children, time, copyText, onRetry }) {
             >
               {copied ? "Copied" : "Copy"}
             </button>
+          )}
+          {sender === "bot" && onRate && ["up", "down"].map(value => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => onRate(value)}
+              aria-label={value === "up" ? "Mark this reply as helpful" : "Mark this reply as not helpful"}
+              aria-pressed={rating === value}
+              title={value === "up" ? "Helpful" : "Not helpful"}
+              style={{
+                border: "none",
+                background: "transparent",
+                padding: 0,
+                cursor: "pointer",
+                fontSize: "12px",
+                lineHeight: 1,
+                // The chosen thumb shows in colour, the other fades out.
+                filter: rating === value ? "none" : "grayscale(1)",
+                opacity: rating && rating !== value ? 0.35 : rating === value ? 1 : 0.6,
+              }}
+            >
+              {value === "up" ? "👍" : "👎"}
+            </button>
+          ))}
+          {ratingFailed && (
+            <span style={{ fontSize: "10px", color: "#dc2626" }}>Not saved</span>
           )}
           </div>
           <span style={{ fontSize: "10px", color: sender === "user" ? "rgba(255,255,255,0.6)" : "#bbb" }}>{time}</span>
@@ -788,6 +815,38 @@ export default function Chatbot() {
     await askGemini(failed.retry, earlier);
   };
 
+  /**
+   * Record a thumbs up or down on a reply so the team can see which answers fall short.
+   * Clicking the same thumb again clears it. The choice shows straight away and is
+   * undone if the server does not save it.
+   */
+  const handleRate = async (tab, index, value) => {
+    const isStation = tab === "station";
+    const messages = isStation ? rasaMessages : geminiMessages;
+    const setMessages = isStation ? setRasaMessages : setGeminiMessages;
+    const target = messages[index];
+    if (!target) return;
+
+    // EVAT-AI messages have no id of their own, so the first rating gives them one.
+    const messageId = String(target.id ?? `${Date.now()}-${index}`);
+    const previous = target.rating || null;
+    const rating = previous === value ? null : value;
+    const question = messages.slice(0, index).reverse()
+      .find(m => (m.sender || m.from) === "user" && m.text)?.text || "";
+    const patch = (fields) => setMessages(prev => prev.map((m, i) => (
+      i === index ? { ...m, id: m.id ?? messageId, ...fields } : m
+    )));
+
+    patch({ rating, ratingFailed: false });
+    try {
+      if (!user?.token) throw new Error("Not signed in");
+      await rateChatbotReply({ messageId, rating, tab, reply: target.text, question }, user.token);
+    } catch (error) {
+      console.warn("Chatbot rating not saved:", error.message);
+      patch({ rating: previous, ratingFailed: true });
+    }
+  };
+
   const renderRasaMessage = (msg) => {
     if (msg.type === "text") {
       return (
@@ -797,6 +856,9 @@ export default function Chatbot() {
           time={msg.time}
           copyText={msg.text}
           onRetry={msg.retry && msg.id === rasaMessages[rasaMessages.length - 1]?.id ? () => handleRasaRetry(msg) : undefined}
+          rating={msg.rating}
+          ratingFailed={msg.ratingFailed}
+          onRate={!msg.retry ? (value) => handleRate("station", rasaMessages.findIndex(m => m.id === msg.id), value) : undefined}
         >
           <span style={{ whiteSpace: "pre-wrap" }}>{msg.text}</span>
         </Bubble>
@@ -1075,6 +1137,9 @@ export default function Chatbot() {
                     time={msg.time}
                     copyText={msg.text}
                     onRetry={(msg.retry || msg.retryValue) && i === geminiMessages.length - 1 ? () => handleGeminiRetry(i) : undefined}
+                    rating={msg.rating}
+                    ratingFailed={msg.ratingFailed}
+                    onRate={!msg.retry && !msg.retryValue ? (value) => handleRate("ai", i, value) : undefined}
                   >
                     {msg.from === "bot" ? (
                       <>
