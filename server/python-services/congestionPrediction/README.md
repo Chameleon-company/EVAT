@@ -48,10 +48,17 @@ The inference timing above measures Random Forest model prediction time only and
 - `random_forest_model.pkl` - optimized 175-tree Random Forest model
 - `EVAT.chargers.csv` - charging station coordinate data
 - `requirements.txt` - Python dependencies
-- `train_optimized_rf.py` - reproducible optimized model training script
-- `rf_efficiency_benchmark.py` - tree-count efficiency and performance benchmark
-- `rf_inference_benchmark.py` - repeated inference timing benchmark
 - `rf_efficiency_benchmark_results.csv` - benchmark results
+
+### Optimization evidence
+
+The optimized 175-tree model was selected through controlled Random Forest
+benchmarking against the original 300-tree model using the project training
+dataset.
+
+`rf_efficiency_benchmark_results.csv` contains the recorded benchmark results
+used during this optimization. The original training dataset and experimental
+benchmark scripts are not packaged with the runtime service.
 
 ## Running the Service
 

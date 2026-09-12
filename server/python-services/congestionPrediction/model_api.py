@@ -25,6 +25,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Deque
 from datetime import datetime
+from zoneinfo import ZoneInfo
 from collections import deque, defaultdict
 import pandas as pd
 import numpy as np
@@ -32,10 +33,12 @@ import joblib
 import requests
 import holidays
 import logging
+from pathlib import Path
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+BASE_DIR = Path(__file__).resolve().parent
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -78,6 +81,7 @@ REQUIRED_FEATURES = [
 MELBOURNE_LAT = -37.8136
 MELBOURNE_LON = 144.9631
 
+MELBOURNE_TZ = ZoneInfo("Australia/Melbourne")
 
 # ============================================================================
 # PYDANTIC MODELS
@@ -130,42 +134,45 @@ class HealthResponse(BaseModel):
 async def startup_event():
     """Load model and initialize resources on startup"""
     global MODEL, VIC_HOLIDAYS, STATIONS_DF, STATION_STATS, STATION_RECENT_DATA
-    
+
     try:
         # Load RandomForest model
-        MODEL = joblib.load('random_forest_model.pkl')
-       
+
+        MODEL = joblib.load(BASE_DIR / 'random_forest_model.pkl')
+
         logger.info(f"Model loaded: {type(MODEL).__name__}")
         logger.info(f"Features: {MODEL.n_estimators} trees, max_depth={MODEL.max_depth}")
-        
+
         # Load stations data
         try:
-            STATIONS_DF = pd.read_csv('EVAT.chargers.csv')
+
+            STATIONS_DF = pd.read_csv(BASE_DIR / 'EVAT.chargers.csv')
             logger.info(f"Stations data loaded: {len(STATIONS_DF)} stations")
         except Exception as e:
             logger.warning(f"Could not load EVAT.chargers.csv: {str(e)}. Using default coordinates.")
             STATIONS_DF = None
-        
+
         # Load and compute station statistics for lag/derived features
         try:
-            train_df = pd.read_csv('train_exogenous_3h.csv')
-            
+
+            train_df = pd.read_csv(BASE_DIR / 'train_exogenous_3h.csv')
+
             # Get most recent 50 records per station for realistic lag features
             STATION_RECENT_DATA = {}
             for station_id in train_df['stationId'].unique():
                 station_data = train_df[train_df['stationId'] == station_id].tail(50)
                 if len(station_data) > 0:
                     STATION_RECENT_DATA[station_id] = station_data
-            
+
             logger.info(f"Recent historical data loaded for {len(STATION_RECENT_DATA)} stations")
-            
+
             # Compute statistics as backup
-            lag_features = ['arrivals_lag1', 'arrivals_lag2', 'arrivals_lag4', 
-                           'arrivals_ma4', 'arrivals_ma8', 'arrivals_pct_change', 
+            lag_features = ['arrivals_lag1', 'arrivals_lag2', 'arrivals_lag4',
+                           'arrivals_ma4', 'arrivals_ma8', 'arrivals_pct_change',
                            'arrivals_diff', 'arrivals_ewma_4']
-            
+
             STATION_STATS = train_df.groupby('stationId')[lag_features].mean().to_dict('index')
-            
+
             # Also compute global averages as fallback
             global_stats = train_df[lag_features].mean().to_dict()
             STATION_STATS['_global_'] = global_stats
@@ -174,13 +181,13 @@ async def startup_event():
             logger.warning(f"Could not load train_exogenous_3h.csv: {str(e)}. Using default values.")
             STATION_STATS = None
             STATION_RECENT_DATA = None
-        
+
         # Initialize holidays
         VIC_HOLIDAYS = holidays.Australia(state='VIC', years=[2024, 2025, 2026, 2027])
         logger.info("Victoria holidays initialized")
-        
+
         logger.info("API startup complete")
-        
+
     except Exception as e:
         logger.error(f"Startup error: {str(e)}")
         raise
@@ -193,10 +200,10 @@ async def startup_event():
 def calculate_congestion_level(predicted_arrivals: float) -> str:
     """
     Calculate congestion level based on predicted arrivals
-    
+
     Args:
         predicted_arrivals: Number of predicted arrivals
-        
+
     Returns:
         Congestion level: "low", "medium", or "high"
     """
@@ -211,10 +218,10 @@ def calculate_congestion_level(predicted_arrivals: float) -> str:
 def get_station_coordinates(station_id: str) -> tuple:
     """
     Get latitude and longitude for a station
-    
+
     Args:
         station_id: Station identifier
-        
+
     Returns:
         Tuple of (latitude, longitude)
     """
@@ -228,7 +235,7 @@ def get_station_coordinates(station_id: str) -> tuple:
                 return float(lat), float(lon)
         except Exception as e:
             logger.warning(f"Could not get coordinates for station {station_id}: {str(e)}")
-    
+
     logger.info(f"Using default Melbourne coordinates for station {station_id}")
     return MELBOURNE_LAT, MELBOURNE_LON
 
@@ -256,43 +263,35 @@ def categorize_event(date) -> str:
 
 def fetch_weather_data(target_date: datetime, latitude: float, longitude: float) -> Dict:
     """
-    Fetch weather data from Open-Meteo API
-    
-    Args:
-        target_date: Date for which to fetch weather
-        latitude: Latitude of the station
-        longitude: Longitude of the station
-        
-    Returns:
-        Dictionary with weather features
+    Fetch weather data from Open-Meteo forecast API.
     """
     try:
         date_str = target_date.strftime('%Y-%m-%d')
-        
-        url = "https://archive-api.open-meteo.com/v1/archive"
+
+        url = "https://api.open-meteo.com/v1/forecast"
         params = {
             "latitude": latitude,
             "longitude": longitude,
             "start_date": date_str,
             "end_date": date_str,
-            "daily": "temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum,windspeed_10m_max",
+            "daily": "temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum,wind_speed_10m_max",
             "timezone": "Australia/Melbourne"
         }
-        
+
         response = requests.get(url, params=params, timeout=10)
         response.raise_for_status()
-        
+
         weather_json = response.json()
         daily = weather_json['daily']
-        
+
         return {
             'temp_max_c': daily['temperature_2m_max'][0],
             'temp_min_c': daily['temperature_2m_min'][0],
             'temp_avg_c': daily['temperature_2m_mean'][0],
             'precipitation_mm': daily['precipitation_sum'][0],
-            'wind_speed_kmh': daily['windspeed_10m_max'][0]
+            'wind_speed_kmh': daily['wind_speed_10m_max'][0]
         }
-        
+
     except Exception as e:
         logger.warning(f"Weather API error: {str(e)}. Using defaults.")
         return {
@@ -304,31 +303,114 @@ def fetch_weather_data(target_date: datetime, latitude: float, longitude: float)
         }
 
 
+def fetch_batch_weather_data(
+    target_date: datetime,
+    station_coordinates: Dict[str, tuple]
+) -> Dict[str, Dict]:
+    """
+    Fetch weather data for multiple stations in smaller Open-Meteo batches.
+    """
+    default_weather = {
+        'temp_max_c': 20.0,
+        'temp_min_c': 15.0,
+        'temp_avg_c': 17.5,
+        'precipitation_mm': 0.0,
+        'wind_speed_kmh': 10.0
+    }
+
+    if not station_coordinates:
+        return {}
+
+    date_str = target_date.strftime('%Y-%m-%d')
+    station_ids = list(station_coordinates.keys())
+    weather_by_station = {}
+
+    batch_size = 100
+
+    for start in range(0, len(station_ids), batch_size):
+        batch_ids = station_ids[start:start + batch_size]
+
+        try:
+            latitudes = [
+                str(station_coordinates[sid][0])
+                for sid in batch_ids
+            ]
+            longitudes = [
+                str(station_coordinates[sid][1])
+                for sid in batch_ids
+            ]
+
+            url = "https://api.open-meteo.com/v1/forecast"
+            params = {
+                "latitude": ",".join(latitudes),
+                "longitude": ",".join(longitudes),
+                "start_date": date_str,
+                "end_date": date_str,
+                "daily": (
+                    "temperature_2m_max,"
+                    "temperature_2m_min,"
+                    "temperature_2m_mean,"
+                    "precipitation_sum,"
+                    "wind_speed_10m_max"
+                ),
+                "timezone": "Australia/Melbourne"
+            }
+
+            response = requests.get(url, params=params, timeout=10)
+            response.raise_for_status()
+
+            weather_json = response.json()
+
+            if isinstance(weather_json, dict):
+                weather_json = [weather_json]
+
+            for station_id, location_weather in zip(batch_ids, weather_json):
+                daily = location_weather['daily']
+
+                weather_by_station[station_id] = {
+                    'temp_max_c': daily['temperature_2m_max'][0],
+                    'temp_min_c': daily['temperature_2m_min'][0],
+                    'temp_avg_c': daily['temperature_2m_mean'][0],
+                    'precipitation_mm': daily['precipitation_sum'][0],
+                    'wind_speed_kmh': daily['wind_speed_10m_max'][0]
+                }
+
+        except Exception as e:
+            logger.warning(
+                f"Batch weather API error: {str(e)}. Using defaults."
+            )
+
+            for station_id in batch_ids:
+                weather_by_station[station_id] = default_weather.copy()
+
+    return weather_by_station
+
+
 def fetch_pedestrian_data(target_hour: int) -> float:
     """Fetch pedestrian count data"""
     try:
         base_url = "https://melbournetestbed.opendatasoft.com/api/explore/v2.1/catalog/datasets/pedestrian-counting-system-monthly-counts-per-hour/records?"
-        
+
         params = {
             "select": "hourday,direction_1",
             "where": f"sensing_date >= now(days=-3) and sensing_date <= now(days=-2) and hourday={target_hour}",
             "timezone": "Australia/Melbourne",
             "limit": 10
         }
-        
+
         response = requests.get(base_url, params=params, timeout=10)
         response.raise_for_status()
-        
+
         data = response.json()
         records = data.get('results', [])
-        
+
         if records:
             # Average pedestrian counts for this hour
             counts = [r.get('direction_1', 0) for r in records if 'direction_1' in r]
             return float(np.mean(counts)) if counts else 0.0
-        
+
         return 0.0
-        
+
     except Exception as e:
         logger.warning(f"Pedestrian API error: {str(e)}. Using default.")
         return 0.0
@@ -337,50 +419,50 @@ def fetch_pedestrian_data(target_hour: int) -> float:
 def get_lag_features_from_data(station_id: str, target_time: datetime) -> Dict:
     """
     Get lag features from actual historical data or statistics
-    
+
     Args:
         station_id: Station identifier
         target_time: Target time for prediction (for time-aware selection)
-        
+
     Returns:
         Dictionary of lag and derived features
     """
     lag_features = {}
-    
+
     # Try to get from recent historical data first
     if STATION_RECENT_DATA is not None and station_id in STATION_RECENT_DATA:
         station_data = STATION_RECENT_DATA[station_id]
-        
+
         # Sample randomly from recent data to get more varied predictions
         # Use a weighted sample favoring recent records
         sample_size = min(10, len(station_data))
         sampled_data = station_data.sample(n=sample_size, replace=False)
-        
+
         # Use mean with std variation for more realistic range
-        lag_features['arrivals_lag1'] = float(sampled_data['arrivals_lag1'].mean() + 
+        lag_features['arrivals_lag1'] = float(sampled_data['arrivals_lag1'].mean() +
                                              np.random.normal(0, sampled_data['arrivals_lag1'].std() * 0.3))
-        lag_features['arrivals_lag2'] = float(sampled_data['arrivals_lag2'].mean() + 
+        lag_features['arrivals_lag2'] = float(sampled_data['arrivals_lag2'].mean() +
                                              np.random.normal(0, sampled_data['arrivals_lag2'].std() * 0.3))
-        lag_features['arrivals_lag4'] = float(sampled_data['arrivals_lag4'].mean() + 
+        lag_features['arrivals_lag4'] = float(sampled_data['arrivals_lag4'].mean() +
                                              np.random.normal(0, sampled_data['arrivals_lag4'].std() * 0.3))
-        lag_features['arrivals_ma4'] = float(sampled_data['arrivals_ma4'].mean() + 
+        lag_features['arrivals_ma4'] = float(sampled_data['arrivals_ma4'].mean() +
                                             np.random.normal(0, sampled_data['arrivals_ma4'].std() * 0.2))
-        lag_features['arrivals_ma8'] = float(sampled_data['arrivals_ma8'].mean() + 
+        lag_features['arrivals_ma8'] = float(sampled_data['arrivals_ma8'].mean() +
                                             np.random.normal(0, sampled_data['arrivals_ma8'].std() * 0.2))
         lag_features['arrivals_pct_change'] = float(sampled_data['arrivals_pct_change'].mean())
         lag_features['arrivals_diff'] = float(sampled_data['arrivals_diff'].mean())
-        lag_features['arrivals_ewma_4'] = float(sampled_data['arrivals_ewma_4'].mean() + 
+        lag_features['arrivals_ewma_4'] = float(sampled_data['arrivals_ewma_4'].mean() +
                                                np.random.normal(0, sampled_data['arrivals_ewma_4'].std() * 0.2))
-        
+
         # Ensure non-negative values
-        for key in ['arrivals_lag1', 'arrivals_lag2', 'arrivals_lag4', 
+        for key in ['arrivals_lag1', 'arrivals_lag2', 'arrivals_lag4',
                     'arrivals_ma4', 'arrivals_ma8', 'arrivals_ewma_4']:
             lag_features[key] = max(0.0, lag_features[key])
-        
+
         logger.debug(f"Station {station_id}: lag1={lag_features['arrivals_lag1']:.2f}, "
                     f"ma4={lag_features['arrivals_ma4']:.2f}")
         return lag_features
-    
+
     # Fallback to station statistics with variation
     if STATION_STATS is not None:
         station_stats = STATION_STATS.get(station_id, STATION_STATS.get('_global_', {}))
@@ -405,58 +487,69 @@ def get_lag_features_from_data(station_id: str, target_time: datetime) -> Dict:
         lag_features['arrivals_pct_change'] = np.random.uniform(-0.3, 0.3)
         lag_features['arrivals_diff'] = np.random.uniform(-1.0, 1.0)
         lag_features['arrivals_ewma_4'] = base_val * np.random.uniform(0.9, 1.1)
-    
+
     return lag_features
 
 
-def engineer_features(station_id: str, target_time: datetime) -> pd.DataFrame:
+def engineer_features(
+    station_id: str,
+    target_time: datetime,
+    pedestrian_count: Optional[float] = None ,
+    weather_data: Optional[Dict] = None
+) -> pd.DataFrame:
+
     """
-    Engineer all features required by the model
-    
+     Engineer all features required by the model
+
     Args:
         station_id: Station identifier
         target_time: Timestamp for prediction
-        
+
     Returns:
         DataFrame with all engineered features
     """
     # Initialize feature dictionary
     features = {'station_id': station_id}
-    
+
     # Get station-specific coordinates
     latitude, longitude = get_station_coordinates(station_id)
-    
+
     # Temporal features
     features['hour'] = target_time.hour
     features['dayofweek'] = target_time.weekday()
     features['is_weekend'] = int(target_time.weekday() >= 5)
-    
+
     # Get lag features from historical data
     lag_features = get_lag_features_from_data(station_id, target_time)
     features.update(lag_features)
-    
+
     # Cyclic time encoding
     features['hod_sin'] = np.sin(2 * np.pi * target_time.hour / 24)
     features['hod_cos'] = np.cos(2 * np.pi * target_time.hour / 24)
-    
+
     # Holiday feature
     features['is_holiday'] = int(target_time.date() in VIC_HOLIDAYS)
-    
+
     # Event feature
     event = categorize_event(target_time.date())
     features['is_major_event'] = int(event != 'No Event')
-    
+
     # Weather features using station-specific coordinates
-    weather = fetch_weather_data(target_time, latitude, longitude)
-    features.update(weather)
-    
+    if weather_data is None:
+         weather_data = fetch_weather_data(target_time, latitude, longitude)
+
+    features.update(weather_data)
+
     # Pedestrian count
-    features['direction_1'] = fetch_pedestrian_data(target_time.hour)
-    
+    if pedestrian_count is None:
+        pedestrian_count = fetch_pedestrian_data(target_time.hour)
+
+    features['direction_1'] = pedestrian_count
+
     # Interaction features
     features['weekend_x_hour'] = features['is_weekend'] * target_time.hour
     features['temp_x_precipitation'] = features['temp_avg_c'] * features['precipitation_mm']
-    
+
     return pd.DataFrame([features])
 
 
@@ -481,7 +574,7 @@ async def health_check():
     return HealthResponse(
         status="healthy" if MODEL is not None else "unhealthy",
         model_loaded=MODEL is not None,
-        timestamp=datetime.now()
+        timestamp=datetime.now(MELBOURNE_TZ)
     )
 
 
@@ -490,7 +583,7 @@ async def get_model_info():
     """Get model information"""
     if MODEL is None:
         raise HTTPException(status_code=503, detail="Model not loaded")
-    
+
     return ModelInfo(
         model_type=type(MODEL).__name__,
         n_estimators=MODEL.n_estimators,
@@ -504,47 +597,47 @@ async def get_model_info():
 async def predict_single(request: PredictionRequest):
     """
     Predict congestion for a single station
-    
+
     Args:Update station history with this prediction
             update_station_history(station_id, float(prediction))
-            
-            # 
+
+            #
         request: Prediction request with station_id
-        
+
     Returns:
         Prediction response with forecasted arrivals and context
     """
     if MODEL is None:
         raise HTTPException(status_code=503, detail="Model not loaded")
-    
+
     try:
-        # Use current time
-        target_time = datetime.now()
-        
+        # Use melbourne time
+        target_time = datetime.now(MELBOURNE_TZ)
+
         logger.info(f"Predicting for station {request.station_id} at {target_time}")
-        
+
         # Engineer features
         df_features = engineer_features(request.station_id, target_time)
-        
+
         # Extract feature matrix
         X = df_features[REQUIRED_FEATURES].values
-        
+
         # Make prediction
         prediction = MODEL.predict(X)[0]
-        
+
         # Calculate congestion level
         congestion_level = calculate_congestion_level(prediction)
-        
+
         # Log congestion level
         logger.info(f"Station {request.station_id}: congestion_level = {congestion_level}")
-        
+
         # Build response
         response = PredictionResponse(
             station_id=request.station_id,
             congestion_level=congestion_level
         )
         return response
-        
+
     except Exception as e:
         logger.error(f"Prediction error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
@@ -554,55 +647,76 @@ async def predict_single(request: PredictionRequest):
 async def predict_batch(request: BatchPredictionRequest):
     """
     Predict congestion for multiple stations
-    
+
     Args:
         request: Batch prediction request with list of station_ids
-        
+
     Returns:
         Batch response with predictions for all stations
     """
     if MODEL is None:
         raise HTTPException(status_code=503, detail="Model not loaded")
-    
+
     try:
-        target_time = datetime.now()
-        
+        target_time = datetime.now(MELBOURNE_TZ)
+
         logger.info(f"Batch predicting for {len(request.station_ids)} stations at {target_time}")
-        
+
         predictions = []
-        
+
+        # Fetch shared pedestrian data once for the whole batch
+        pedestrian_count = fetch_pedestrian_data(target_time.hour)
+
+        # Collect coordinates for all requested stations
+        station_coordinates = {
+            station_id: get_station_coordinates(station_id)
+            for station_id in request.station_ids
+        }
+
+        # Fetch weather for all stations in one request
+        weather_by_station = fetch_batch_weather_data(
+            target_time,
+            station_coordinates
+        )
+
         for station_id in request.station_ids:
-            # Engineer features
-            df_features = engineer_features(station_id, target_time)
-            
+            # Engineer features using prefetched external data
+            df_features = engineer_features(
+                station_id,
+                target_time,
+                pedestrian_count=pedestrian_count,
+                weather_data=weather_by_station.get(station_id)
+            )
+
             # Extract feature matrix
             X = df_features[REQUIRED_FEATURES].values
-            
+
             # Make prediction
             prediction = MODEL.predict(X)[0]
-            
+
+
             # Calculate congestion level
             congestion_level = calculate_congestion_level(prediction)
-            
+
             # Log congestion level for this station
             logger.info(f"Station {station_id}: congestion_level = {congestion_level}")
-            
+
             # Build response
             pred_response = PredictionResponse(
                 station_id=station_id,
                 congestion_level=congestion_level
             )
-            
+
             predictions.append(pred_response)
-        
+
         logger.info(f"Batch prediction complete: {len(predictions)} stations")
-        
+
         return BatchPredictionResponse(
             predictions=predictions,
             count=len(predictions),
             timestamp=target_time
         )
-        
+
     except Exception as e:
         logger.error(f"Batch prediction error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Batch prediction failed: {str(e)}")
