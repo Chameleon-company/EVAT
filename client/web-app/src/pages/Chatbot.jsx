@@ -255,9 +255,10 @@ function Avatar({ type }) {
   );
 }
 
-function Bubble({ sender, children, time, copyText }) {
+function Bubble({ sender, children, time, copyText, onRetry }) {
   const [copied, setCopied] = useState(false);
   const showCopy = sender === "bot" && Boolean(copyText);
+  const showRetry = sender === "bot" && Boolean(onRetry);
 
   const handleCopy = async () => {
     try {
@@ -286,10 +287,30 @@ function Bubble({ sender, children, time, copyText }) {
         <div style={{
           display: "flex",
           alignItems: "center",
-          justifyContent: showCopy ? "space-between" : "flex-end",
+          justifyContent: showCopy || showRetry ? "space-between" : "flex-end",
           gap: "10px",
           marginTop: "4px",
         }}>
+          <div style={{ display: "flex", gap: "10px" }}>
+          {showRetry && (
+            <button
+              type="button"
+              onClick={onRetry}
+              aria-label="Retry this message"
+              title="Send the message again"
+              style={{
+                border: "none",
+                background: "transparent",
+                padding: 0,
+                cursor: "pointer",
+                fontSize: "10px",
+                fontWeight: 700,
+                color: "#6366f1",
+              }}
+            >
+              ↻ Retry
+            </button>
+          )}
           {showCopy && (
             <button
               type="button"
@@ -309,6 +330,7 @@ function Bubble({ sender, children, time, copyText }) {
               {copied ? "Copied" : "Copy"}
             </button>
           )}
+          </div>
           <span style={{ fontSize: "10px", color: sender === "user" ? "rgba(255,255,255,0.6)" : "#bbb" }}>{time}</span>
         </div>
       </div>
@@ -502,13 +524,15 @@ export default function Chatbot() {
    * Price a vehicle through the existing Price Prediction API and report the result
    * as an EVAT-AI reply, so it can be copied, saved and exported like any other.
    */
-  const handleValueEstimate = async (features) => {
+  const handleValueEstimate = async (features, isRetry = false) => {
     const summary = `${features.Year} ${features.Brand} ${features.Model}, ` +
       `${Number(features.Mileage).toLocaleString()} km, ${features["Fuel Type"]}, ` +
       `${features.Transmission}, ${features.Condition}`;
-    const addBot = (text) => setGeminiMessages(prev => [...prev, { from: "bot", text, time: timestamp() }]);
+    const addBot = (text, extra) => setGeminiMessages(prev => [...prev, { from: "bot", text, time: timestamp(), ...extra }]);
 
-    setGeminiMessages(prev => [...prev, { from: "user", text: `Estimate the value of a ${summary}`, time: timestamp() }]);
+    if (!isRetry) {
+      setGeminiMessages(prev => [...prev, { from: "user", text: `Estimate the value of a ${summary}`, time: timestamp() }]);
+    }
 
     if (!user?.token) {
       setShowValueForm(false);
@@ -521,10 +545,12 @@ export default function Chatbot() {
       const result = await predictPrice(features, user.token, "chatbot");
       addBot(`Estimated value: **${formatAud(result.predicted_price)}** for a ${summary}.\n\nThis figure comes from EVAT's price prediction model.`);
     } catch (error) {
-      const reason = /token/i.test(error.message || "")
+      const expired = /token/i.test(error.message || "");
+      const reason = expired
         ? "Your session has expired. Please sign in again."
         : error.message || "Please try again.";
-      addBot(`Couldn't get a price estimate. ${reason}`);
+      // Resending with an expired session would fail the same way, so no retry then.
+      addBot(`Couldn't get a price estimate. ${reason}`, expired ? {} : { retryValue: features });
     } finally {
       setValueLoading(false);
       setShowValueForm(false);
@@ -575,6 +601,7 @@ export default function Chatbot() {
           type: "text",
           sender: "bot",
           text: await describeHttpFailure(res, "The station assistant"),
+          retry: text,
         });
         return;
       }
@@ -585,11 +612,19 @@ export default function Chatbot() {
         type: "text",
         sender: "bot",
         text: cancelledMessage(error, entry) || describeRequestError(error, "the station assistant"),
+        retry: text,
       });
     } finally {
       endRequest(rasaAbortRef, entry);
       setRasaLoading(false);
     }
+  };
+
+  /** Send a failed message again. The error bubble is replaced by the new reply. */
+  const handleRasaRetry = async (failed) => {
+    if (rasaLoading || !failed?.retry) return;
+    setRasaMessages(prev => prev.filter(m => m.id !== failed.id));
+    await sendToRasa(failed.retry);
   };
 
   const handleRasaResponse = (messages) => {
@@ -688,6 +723,14 @@ export default function Chatbot() {
     }
     setGeminiInput("");
     setGeminiMessages(prev => [...prev, { from: "user", text: msg, time: timestamp() }]);
+    await askGemini(msg, geminiMessages);
+  };
+
+  /**
+   * Send one question to Gemini with the earlier conversation as context. Error
+   * replies are left out of that context, since they were never real answers.
+   */
+  const askGemini = async (msg, earlier) => {
     const entry = beginRequest(geminiAbortRef);
     setGeminiLoading(true);
     try {
@@ -698,7 +741,7 @@ export default function Chatbot() {
         }, 400);
         return;
       }
-      const ctx = geminiMessages.map(m => ({ role: m.from === "user" ? "user" : "model", parts: [{ text: m.text }] }));
+      const ctx = earlier.filter(m => !m.retry && !m.retryValue).map(m => ({ role: m.from === "user" ? "user" : "model", parts: [{ text: m.text }] }));
       const res = await fetch(GEMINI_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -710,7 +753,7 @@ export default function Chatbot() {
       });
       if (!res.ok) {
         const failure = await describeHttpFailure(res, "EVAT-AI");
-        setGeminiMessages(prev => [...prev, { from: "bot", text: failure, time: timestamp() }]);
+        setGeminiMessages(prev => [...prev, { from: "bot", text: failure, time: timestamp(), retry: msg }]);
         return;
       }
       const data = await res.json();
@@ -719,17 +762,42 @@ export default function Chatbot() {
       setHistory(prev => [{ id: Date.now(), title: msg.slice(0, 40), tab: "ai", date: new Date().toISOString() }, ...prev.slice(0, 19)]);
     } catch (error) {
       const text = cancelledMessage(error, entry) || describeRequestError(error, "EVAT-AI");
-      setGeminiMessages(prev => [...prev, { from: "bot", text, time: timestamp() }]);
+      setGeminiMessages(prev => [...prev, { from: "bot", text, time: timestamp(), retry: msg }]);
     } finally {
       endRequest(geminiAbortRef, entry);
       setGeminiLoading(false);
     }
   };
 
+  /**
+   * Resend the question behind a failed EVAT-AI reply. Only the latest reply offers
+   * this, so the new answer lands where the error was, straight after the question.
+   */
+  const handleGeminiRetry = async (index) => {
+    const failed = geminiMessages[index];
+    if (!failed || geminiLoading || valueLoading) return;
+    setGeminiMessages(prev => prev.filter((_, i) => i !== index));
+    if (failed.retryValue) {
+      await handleValueEstimate(failed.retryValue, true);
+      return;
+    }
+    // The question itself is already on screen just above the error.
+    const earlier = geminiMessages.slice(0, index);
+    const last = earlier[earlier.length - 1];
+    if (last?.from === "user" && last.text === failed.retry) earlier.pop();
+    await askGemini(failed.retry, earlier);
+  };
+
   const renderRasaMessage = (msg) => {
     if (msg.type === "text") {
       return (
-        <Bubble key={msg.id} sender={msg.sender} time={msg.time} copyText={msg.text}>
+        <Bubble
+          key={msg.id}
+          sender={msg.sender}
+          time={msg.time}
+          copyText={msg.text}
+          onRetry={msg.retry && msg.id === rasaMessages[rasaMessages.length - 1]?.id ? () => handleRasaRetry(msg) : undefined}
+        >
           <span style={{ whiteSpace: "pre-wrap" }}>{msg.text}</span>
         </Bubble>
       );
@@ -1001,7 +1069,13 @@ export default function Chatbot() {
                 )}
 
                 {geminiMessages.map((msg, i) => (
-                  <Bubble key={i} sender={msg.from} time={msg.time} copyText={msg.text}>
+                  <Bubble
+                    key={i}
+                    sender={msg.from}
+                    time={msg.time}
+                    copyText={msg.text}
+                    onRetry={(msg.retry || msg.retryValue) && i === geminiMessages.length - 1 ? () => handleGeminiRetry(i) : undefined}
+                  >
                     {msg.from === "bot" ? (
                       <>
                         <p style={{ color: "#6366f1", fontSize: "10px", fontWeight: 700, letterSpacing: "1px", margin: "0 0 6px 0" }}>EVAT-AI</p>
