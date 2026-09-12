@@ -1,481 +1,473 @@
-import React, { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-export default function EnvironmentalImpact({
-  // This data is given from the Profile.jsx when the Environmental Impact button is pressed
-  user,
-  allElectricVehicles,
-  makes
+const selectClass =
+  "w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 " +
+  "text-sm text-slate-700 outline-none transition-all duration-200 " +
+  "hover:border-emerald-400 hover:bg-white focus:border-emerald-500 " +
+  "focus:bg-white focus:ring-2 focus:ring-emerald-100 " +
+  "disabled:cursor-not-allowed disabled:opacity-50";
+
+function SelectField({ label, value, options, onChange, disabled }) {
+  return (
+    <div>
+      <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+        {label}
+      </label>
+
+      <select
+        value={value}
+        onChange={onChange}
+        disabled={disabled}
+        className={selectClass}
+      >
+        <option value="Select">Select {label.toLowerCase()}</option>
+
+        {options.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+function MetricRow({ label, ev, ice }) {
+  return (
+    <div className="group grid grid-cols-3 items-center border-t border-slate-100 px-6 py-4 transition-all duration-200 hover:bg-slate-50">
+      <div className="text-center">
+        <span className="inline-flex min-w-16 justify-center rounded-md px-3 py-1 font-semibold text-emerald-600 transition group-hover:bg-emerald-50">
+          {ev ?? "—"}
+        </span>
+      </div>
+
+      <div className="text-center text-sm font-semibold text-slate-500">
+        {label}
+      </div>
+
+      <div className="text-center">
+        <span className="inline-flex min-w-16 justify-center rounded-md px-3 py-1 font-semibold text-blue-600 transition group-hover:bg-blue-50">
+          {ice ?? "—"}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function VehicleCard({
+  type,
+  make,
+  model,
+  variant,
+  year,
+  makes,
+  models,
+  variants,
+  years,
+  setMake,
+  setModel,
+  setVariant,
+  setYear,
 }) {
+  const isEV = type === "EV";
 
-  // Local state for EV dropdowns
-  const [selectedEvMake, setSelectedEvMake] = useState("Select");
-  const [selectedEvModel, setSelectedEvModel] = useState("Select");
-  const [selectedEvVariant, setSelectedEvVariant] = useState("Select");
-  const [selectedEvYear, setSelectedEvYear] = useState("Select");
-  const [selectedEv, setSelectedEv] = useState("Select");
+  return (
+    <div
+      className={`group rounded-2xl border bg-white p-6 shadow-sm
+        transition-all duration-300
+        hover:-translate-y-1 hover:shadow-xl
+        ${
+          isEV
+            ? "border-emerald-100 hover:border-emerald-300 hover:shadow-emerald-100"
+            : "border-blue-100 hover:border-blue-300 hover:shadow-blue-100"
+        }`}
+    >
+      {/* Card heading */}
+      <div className="mb-6 flex items-start justify-between">
+        <div>
+          <div
+            className={`mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider ${
+              isEV ? "text-emerald-600" : "text-blue-600"
+            }`}
+          >
+            <span
+              className={`h-2 w-2 rounded-full ${
+                isEV ? "bg-emerald-500" : "bg-blue-500"
+              }`}
+            />
 
-  // Local state for ICE dropdowns
-  const [selectedIceMake, setSelectedIceMake] = useState("Select");
-  const [selectedIceModel, setSelectedIceModel] = useState("Select");
-  const [selectedIceVariant, setSelectedIceVariant] = useState("Select");
-  const [selectedIceYear, setSelectedIceYear] = useState("Select");
-  const [selectedIce, setSelectedIce] = useState("Select");
+            {isEV ? "Electric Vehicle" : "Petrol / Diesel"}
+          </div>
 
-  // States for ICE data
-  const [allIceVehicles, setAllIceVehicles] = useState([]);
-  const [iceMakes, setIceMakes] = useState(["Select"]);
-  const [loadingIce, setLoadingIce] = useState(false);
-  const [iceError, setIceError] = useState(null);
+          <h2 className="text-xl font-bold text-slate-900">
+            {isEV ? "EV" : "ICE"} Selection
+          </h2>
 
-  // State for comparison result
-  const [comparisonResult, setComparisonResult] = useState(null);
-  const [loadingCompare, setLoadingCompare] = useState(false);
-  const [errorCompare, setErrorCompare] = useState(null);
+          <p className="mt-1 text-sm text-slate-500">
+            Choose a vehicle to compare.
+          </p>
+        </div>
 
-  // Fetch ICE vehicles ONLY when this component mounts
+        <div
+          className={`flex h-10 w-10 items-center justify-center rounded-xl text-lg ${
+            isEV
+              ? "bg-emerald-50 text-emerald-600"
+              : "bg-blue-50 text-blue-600"
+          }`}
+        >
+          {isEV ? "⚡" : "🚗"}
+        </div>
+      </div>
+
+      {/* Selects */}
+      <div className="grid gap-4 sm:grid-cols-2">
+        <SelectField
+          label="Make"
+          value={make}
+          options={makes}
+          onChange={(e) => {
+            setMake(e.target.value);
+            setModel("Select");
+            setVariant("Select");
+            setYear("Select");
+          }}
+        />
+
+        <SelectField
+          label="Model"
+          value={model}
+          options={models}
+          disabled={make === "Select"}
+          onChange={(e) => {
+            setModel(e.target.value);
+            setVariant("Select");
+            setYear("Select");
+          }}
+        />
+
+        <SelectField
+          label="Variant"
+          value={variant}
+          options={variants}
+          disabled={model === "Select"}
+          onChange={(e) => {
+            setVariant(e.target.value);
+            setYear("Select");
+          }}
+        />
+
+        <SelectField
+          label="Year"
+          value={year}
+          options={years}
+          disabled={variant === "Select"}
+          onChange={(e) => setYear(e.target.value)}
+        />
+      </div>
+    </div>
+  );
+}
+
+export default function EnvironmentalImpact({
+  user,
+  allElectricVehicles = [],
+  makes = [],
+}) {
+  const [iceVehicles, setIceVehicles] = useState([]);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState("");
+
+  const [evMake, setEvMake] = useState("Select");
+  const [evModel, setEvModel] = useState("Select");
+  const [evVariant, setEvVariant] = useState("Select");
+  const [evYear, setEvYear] = useState("Select");
+
+  const [iceMake, setIceMake] = useState("Select");
+  const [iceModel, setIceModel] = useState("Select");
+  const [iceVariant, setIceVariant] = useState("Select");
+  const [iceYear, setIceYear] = useState("Select");
+
   useEffect(() => {
-    const fetchIceVehicles = async () => {
-      if (!user?.token || loadingIce) return;
+    if (!user?.token) return;
 
-      setLoadingIce(true);
-      setIceError(null);
+    fetch(`${API_URL}/ice-vehicle`, {
+      headers: {
+        Authorization: `Bearer ${user.token}`,
+      },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to load ICE vehicles");
+        return res.json();
+      })
+      .then((data) => setIceVehicles(data.data || []))
+      .catch((err) => setError(err.message));
+  }, [user?.token]);
 
+  const options = (vehicles, field, filters = {}) =>
+    [...new Set(
+      vehicles
+        .filter((v) =>
+          Object.entries(filters).every(
+            ([key, value]) => v[key] === value
+          )
+        )
+        .map((v) => v[field])
+        .filter(Boolean)
+    )];
+
+  const evModels = useMemo(
+    () => options(allElectricVehicles, "model", { make: evMake }),
+    [allElectricVehicles, evMake]
+  );
+
+  const evVariants = useMemo(
+    () =>
+      options(allElectricVehicles, "variant", {
+        make: evMake,
+        model: evModel,
+      }),
+    [allElectricVehicles, evMake, evModel]
+  );
+
+  const evYears = useMemo(
+    () =>
+      options(allElectricVehicles, "year", {
+        make: evMake,
+        model: evModel,
+        variant: evVariant,
+      }).map(String),
+    [allElectricVehicles, evMake, evModel, evVariant]
+  );
+
+  const iceMakes = useMemo(
+    () => options(iceVehicles, "make"),
+    [iceVehicles]
+  );
+
+  const iceModels = useMemo(
+    () => options(iceVehicles, "model", { make: iceMake }),
+    [iceVehicles, iceMake]
+  );
+
+  const iceVariants = useMemo(
+    () =>
+      options(iceVehicles, "variant", {
+        make: iceMake,
+        model: iceModel,
+      }),
+    [iceVehicles, iceMake, iceModel]
+  );
+
+  const iceYears = useMemo(
+    () =>
+      options(iceVehicles, "year", {
+        make: iceMake,
+        model: iceModel,
+        variant: iceVariant,
+      }).map(String),
+    [iceVehicles, iceMake, iceModel, iceVariant]
+  );
+
+  const ev = allElectricVehicles.find(
+    (v) =>
+      v.make === evMake &&
+      v.model === evModel &&
+      v.variant === evVariant &&
+      String(v.year) === String(evYear)
+  );
+
+  const ice = iceVehicles.find(
+    (v) =>
+      v.make === iceMake &&
+      v.model === iceModel &&
+      v.variant === iceVariant &&
+      String(v.year) === String(iceYear)
+  );
+
+  useEffect(() => {
+    if (!ev?.id || !ice?.id) {
+      setResult(null);
+      return;
+    }
+
+    const compare = async () => {
       try {
-        const res = await fetch(`${API_URL}/ice-vehicle`, {   // ← adjust endpoint if needed
-          headers: { Authorization: `Bearer ${user.token}` },
-        });
+        setError("");
 
-        if (!res.ok) throw new Error("Failed to fetch ICE vehicles");
+        const response = await fetch(
+          `${API_URL}/env-impact-analysis/compare`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${user.token}`,
+            },
+            body: JSON.stringify({
+              evVehicleId: ev.id,
+              iceVehicleId: ice.id,
+            }),
+          }
+        );
 
-        const data = await res.json();
-        const items = (data.data || []).map((v) => ({
-          ...v,
-          id: v.id || v._id,
-          year: v.year || v.model_release_year,
-        }))
-        .filter((v) => v.fuel_type && v.fuel_type !== "Pure Electric");  // Ensure we only keep ICE vehicles
+        if (!response.ok) {
+          throw new Error("Failed to fetch comparison");
+        }
 
-        setAllIceVehicles(items);
-        setIceMakes(["Select", ...new Set(items.map((v) => v.make))]);
+        const data = await response.json();
+        setResult(data.data);
       } catch (err) {
-        console.error("Failed to load ICE vehicles:", err);
-        setIceError(err.message);
-      } finally {
-        setLoadingIce(false);
+        setError(err.message);
       }
     };
 
-    fetchIceVehicles();
-  }, [user?.token]);
-
-  // Filter EV models, variants and years based on selection
-  const filteredEvModels = allElectricVehicles
-    .filter(v => v.make === selectedEvMake)
-    .map(v => v.model);
-
-  const filteredEvVariants = allElectricVehicles
-    .filter(v => v.make === selectedEvMake && v.model === selectedEvModel)
-    .map(v => v.variant);
-
-  const filteredEvYears = allElectricVehicles
-    .filter(v => v.make === selectedEvMake && v.model === selectedEvModel && v.variant === selectedEvVariant)
-    .map(v => v.year || v.model_release_year)
-    .filter(Boolean);
-
-  // Save the selected EV object to access other data
-  useEffect(() => {
-    if (selectedEvMake === "Select" || selectedEvModel === "Select" || selectedEvYear === "Select") {
-      setSelectedEv(null);
-      return;
-    }
-
-    const found = allElectricVehicles.find(v =>
-      v.make === selectedEvMake &&
-      v.model === selectedEvModel &&
-      v.variant === selectedEvVariant &&
-      String(v.year || v.model_release_year) === String(selectedEvYear)
-    );
-
-    setSelectedEv(found || null);
-  }, [selectedEvMake, selectedEvModel, selectedEvVariant, selectedEvYear, allElectricVehicles]);
-
-  // Fetch comparison result whenever selected EV or ICE changes
-  useEffect(() => {
-  const fetchComparison = async () => {
-    if (!selectedEv?.id || !selectedIce?.id) {
-  setComparisonResult(null);
-  setErrorCompare(null);
-  return;
-}
-
-    try {
-      setLoadingCompare(true);
-      setErrorCompare(null);
-      setComparisonResult(null);
-
-  const res = await fetch(
-    `${API_URL}/env-impact-analysis/compare`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${user.token}`,
-      },
-      body: JSON.stringify({
-        evVehicleId: selectedEv.id,
-        iceVehicleId: selectedIce.id,
-      }),
-    }
-  );
-
-      if (!res.ok) {
-        throw new Error("Failed to fetch comparison");
-      }
-
-      const data = await res.json();
-      console.log("COMPARE RESULT:", data);
-
-      setComparisonResult(data.data);
-    } catch (err) {
-      console.error(err);
-      setErrorCompare(err.message);
-    } finally {
-      setLoadingCompare(false);
-    }
-  };
-
-  fetchComparison();
-}, [selectedEv, selectedIce]);
-
-  // Filter ICE models, variants and years based on selection
-  const filteredIceModels = allIceVehicles
-    .filter(v => v.make === selectedIceMake)
-    .map(v => v.model);
-
-  const filteredIceVariants = allIceVehicles
-    .filter(v => v.make === selectedIceMake && v.model === selectedIceModel)
-    .map(v => v.variant);
-
-  const filteredIceYears = allIceVehicles
-    .filter(v => v.make === selectedIceMake && v.model === selectedIceModel && v.variant === selectedIceVariant)
-    .map(v => v.year || v.model_release_year)
-    .filter(Boolean);
-
-  // Save the selected ICE object to access other data
-  useEffect(() => {
-    if (selectedIceMake === "Select" || selectedIceModel === "Select" || selectedIceYear === "Select") {
-      setSelectedIce(null);
-      return;
-    }
-
-    const found = allIceVehicles.find(v =>
-      v.make === selectedIceMake &&
-      v.model === selectedIceModel &&
-      v.variant === selectedIceVariant &&
-      String(v.year || v.model_release_year) === String(selectedIceYear)
-    );
-
-    setSelectedIce(found || null);
-  }, [selectedIceMake, selectedIceModel, selectedIceVariant, selectedIceYear, allIceVehicles]);
-
-      const hasValue = (value) =>
-        value !== null && value !== undefined && value !== "";
-
-      const displayValue = (value) => {
-        return hasValue(value) ? value : "N/A";
-      };
-
-  // Loading ICE data
-  if (loadingIce) return <div className="horizontal center">Loading petrol/diesel vehicles...</div>;
-  // Error while loading ICE data
-  if (iceError) return <div className="horizontal center">Error loading ICE vehicles: {iceError}</div>;
+    compare();
+  }, [ev, ice, user?.token]);
 
   return (
-    <div className="horizontal center">
-      <table className="env-impact-table">
-        <thead>
-          <tr>
-  <td className="three-hundred-width wrap-center" style={{ textAlign: "center", fontWeight: "bold", fontSize: "18px", color: "#00b482", paddingBottom: "10px" }}>
-     Electric Vehicle (EV)
-  </td>
-  <td className="two-hundred-width"></td>
-  <td className="three-hundred-width wrap-center" style={{ textAlign: "center", fontWeight: "bold", fontSize: "18px", color: "#6b9ed2", paddingBottom: "10px" }}>
-     Petrol / Diesel (ICE)
-  </td>
-</tr>
-          <tr>
-            <td className="three-hundred-width wrap-center">
-              {/* EV Make Dropdown */}
-              <select
-                className="input two-hundred-width"
-                value={selectedEvMake}
-                onChange={(e) => {
-                  setSelectedEvMake(e.target.value);
-                  setSelectedEvModel("Select");
-                  setSelectedEvVariant("Select");
-                  setSelectedEvYear("Select");
-                }}
-              >
-                {makes.map((make, idx) => (
-                  <option key={idx} value={make}>
-                    {make}
-                  </option>
-                ))}
-              </select>
+    <div className="mx-auto max-w-6xl px-4 pb-12">
 
-              {/* EV Model Dropdown */}
-              <select
-                className="input two-hundred-width"
-                value={selectedEvModel}
-                onChange={(e) => {
-                  setSelectedEvModel(e.target.value);
-                  setSelectedEvVariant("Select");
-                  setSelectedEvYear("Select");
-                }}
-                // Disable unless make is chosen
-                disabled={selectedEvMake === "Select"}
-              >
-                {["Select", ...new Set(filteredEvModels)].map((model, idx) => (
-                  <option key={idx} value={model}>
-                    {model}
-                  </option>
-                ))}
-              </select>
+      {/* Vehicle selection */}
+      <div className="grid gap-6 lg:grid-cols-2">
 
-              {/* EV variant Dropdown */}
-              <select
-                className="input two-hundred-width"
-                value={selectedEvVariant}
-                onChange={(e) => {
-                  setSelectedEvVariant(e.target.value);
-                  setSelectedEvYear("Select");
-                }}
-                // Disable unless model is chosen
-                disabled={selectedEvModel === "Select"}
-              >
-                {["Select", ...new Set(filteredEvVariants)].map((variant, idx) => (
-                  <option key={idx} value={variant}>
-                    {variant}
-                  </option>
-                ))}
-              </select>
+        <VehicleCard
+          type="EV"
+          make={evMake}
+          model={evModel}
+          variant={evVariant}
+          year={evYear}
+          makes={makes}
+          models={evModels}
+          variants={evVariants}
+          years={evYears}
+          setMake={setEvMake}
+          setModel={setEvModel}
+          setVariant={setEvVariant}
+          setYear={setEvYear}
+        />
 
-              {/* EV Year Dropdown */}
-              <select
-                className="input two-hundred-width"
-                value={selectedEvYear}
-                onChange={(e) => setSelectedEvYear(e.target.value)}
-                // Disable unless variant is chosen
-                disabled={selectedEvVariant === "Select"}
-              >
-                {["Select", ...new Set(filteredEvYears.map(String))].map((year, idx) => (
-                  <option key={idx} value={year}>
-                    {year}
-                  </option>
-                ))}
-              </select>
-            </td>
+        <VehicleCard
+          type="ICE"
+          make={iceMake}
+          model={iceModel}
+          variant={iceVariant}
+          year={iceYear}
+          makes={iceMakes}
+          models={iceModels}
+          variants={iceVariants}
+          years={iceYears}
+          setMake={setIceMake}
+          setModel={setIceModel}
+          setVariant={setIceVariant}
+          setYear={setIceYear}
+        />
 
-            <td className="two-hundred-width"></td>  {/* Blank */}
-            <td className="three-hundred-width wrap-center">
-              {/* ICE Make Dropdown */}
-              <select
-                className="input two-hundred-width"
-                value={selectedIceMake}
-                onChange={(e) => {
-                  setSelectedIceMake(e.target.value);
-                  setSelectedIceModel("Select");
-                  setSelectedIceVariant("Select");
-                  setSelectedIceYear("Select");
-                }}
-              >
-                {iceMakes.map((make, idx) => (
-                  <option key={idx} value={make}>
-                    {make}
-                  </option>
-                ))}
-              </select>
+      </div>
 
-              {/* ICE Model Dropdown */}
-              <select
-                className="input two-hundred-width"
-                value={selectedIceModel}
-                onChange={(e) => {
-                  setSelectedIceModel(e.target.value);
-                  setSelectedIceVariant("Select");
-                  setSelectedIceYear("Select");
-                }}
-                // Disable unless make is chosen
-                disabled={selectedIceMake === "Select"}
-              >
-                {["Select", ...new Set(filteredIceModels)].map((model, idx) => (
-                  <option key={idx} value={model}>
-                    {model}
-                  </option>
-                ))}
-              </select>
+      {/* Comparison */}
+      <section className="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow duration-300 hover:shadow-lg">
 
-              {/* ICE variant Dropdown */}
-              <select
-                className="input two-hundred-width"
-                value={selectedIceVariant}
-                onChange={(e) => {
-                  setSelectedIceVariant(e.target.value);
-                  setSelectedIceYear("Select");
-                }}
-                // Disable unless model is chosen
-                disabled={selectedIceModel === "Select"}
-              >
-                {["Select", ...new Set(filteredIceVariants)].map((variant, idx) => (
-                  <option key={idx} value={variant}>
-                    {variant}
-                  </option>
-                ))}
-              </select>
+        <div className="border-b border-slate-200 px-6 py-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-bold text-slate-900">
+                Environmental Comparison
+              </h2>
 
-              {/* ICE Year Dropdown */}
-              <select
-                className="input two-hundred-width"
-                value={selectedIceYear}
-                onChange={(e) => setSelectedIceYear(e.target.value)}
-                // Disable unless variant is chosen
-                disabled={selectedIceVariant === "Select"}
-              >
-                {["Select", ...new Set(filteredIceYears.map(String))].map((year, idx) => (
-                  <option key={idx} value={year}>
-                    {year}
-                  </option>
-                ))}
-              </select>
-            </td>
-          </tr>
-        </thead>
+              <p className="mt-1 text-sm text-slate-500">
+                Compare the environmental performance of both vehicles.
+              </p>
+            </div>
 
-        <tbody>
-          <tr>
-            {/* EV vehicle details */}
-            <td className="table-col-left ev-cell vehicle-name">
-              {selectedEv != null && (
-                <>
-                  <div className="text-xlarge font-bold">{selectedEv.make} {selectedEv.model} </div>
-                  <div className="text-small">
-                    {selectedEv.variant}<br />
-                    {selectedEv.fuel_type} - {selectedEv.year}
-                  </div>
-                </>
-              )}
-            </td>
-            <td></td>
-            {/* ICE vehicle details */}
-            <td className="table-col-left ice-cell vehicle-name">
-              {selectedIce != null && (
-                <>
-                  <div className="text-xlarge font-bold">{selectedIce.make} {selectedIce.model} </div>
-                  <div className="text-small">
-                    {selectedIce.variant}<br />
-                    {selectedIce.fuel_type} - {selectedIce.year}
-                  </div>
-                </>
-              )}
-            </td>
-          </tr>
-          {/* co2 emissions row */}
-          <tr>
-            <td className="table-col-center ev-cell">
-              {selectedEv != null && (
-                <>
-                  {displayValue(selectedEv.co2_emissions_combined)}
-                </>
-              )}
-            </td>
-            <td className="font-bold comp-cell">CO2 Emissions</td>
-            <td className="table-col-center ice-cell">
-              {selectedIce != null && (
-                <>
-                  {displayValue(selectedIce.co2_emissions_combined)}
-                </>
-              )}
-            </td>
-          </tr>
-          {/* fuel consumption row */}
-          <tr>
-            <td className="table-col-center ev-cell">
-              {selectedEv != null && (
-                <>
-                  {displayValue(selectedEv.fuel_consumption_combined)}
-                </>
-              )}
-            </td>
-            <td className="font-bold comp-cell">Fuel Consumption</td>
-            <td className="table-col-center ice-cell">
-              {selectedIce != null && (
-                <>
-                  {displayValue(selectedIce.fuel_consumption_combined)}
-                </>
-              )}
-            </td>
-          </tr>
-          {/* life cycle co2 row */}
-          <tr>
-            <td className="table-col-center ev-cell">
-              {selectedEv != null && (
-                <>
-                  {displayValue(selectedEv.fuel_life_cycle_co2)}
-                </>
-              )}
-            </td>
-            <td className="font-bold comp-cell">Fuel Life Cycle CO2</td>
-            <td className="table-col-center ice-cell">
-              {selectedIce != null && (
-                <>
-                  {displayValue(selectedIce.fuel_life_cycle_co2)}
-                </>
-              )}
-            </td>
-          </tr>
-          {/* annual tailpipe co2 row */}
-          <tr>
-            <td className="table-col-center ev-cell">
-              {selectedEv != null && (
-                <>
-                  {displayValue(selectedEv.annual_tailpipe_co2)}
-                </>
-              )}
-            </td>
-            <td className="font-bold comp-cell">Annual Tailpipe CO2</td>
-            <td className="table-col-center ice-cell">
-              {selectedIce != null && (
-                <>
-                  {displayValue(selectedIce.annual_tailpipe_co2)}
-                </>
-              )}
-            </td>
-          </tr>
-        </tbody>
-      </table>
+            {result && (
+              <span className="hidden rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-600 sm:block">
+                Comparison complete
+              </span>
+            )}
+          </div>
+        </div>
 
-{/* Result summary returned by the backend */}
-<div>
-  {loadingCompare && <p className="center">Calculating environmental impact...</p>}
+        {/* Vehicle names */}
+        <div className="grid grid-cols-2">
 
-  {errorCompare && (
-    <p className="center">
-      Unable to calculate the environmental impact: {errorCompare}
-    </p>
-  )}
+          <div className="border-r border-slate-100 p-6 transition-colors hover:bg-emerald-50/40">
+            <p className="text-xs font-bold uppercase tracking-wide text-emerald-600">
+              Electric Vehicle
+            </p>
 
-  {comparisonResult?.comparison && !loadingCompare && !errorCompare && (
-  <>
-    <h4>Results</h4>
-    <p className="center">
-      {comparisonResult.comparison.summary}
-    </p>
-  </>
-  )}
+            <h3 className="mt-2 text-lg font-bold text-slate-900">
+              {ev ? `${ev.make} ${ev.model}` : "Select vehicle"}
+            </h3>
 
-</div>
+            <p className="text-sm text-slate-500">
+              {ev?.variant || "—"}
+            </p>
+
+            <p className="text-sm text-slate-500">
+              {ev ? `${ev.fuel_type || "Electric"} · ${ev.year}` : "—"}
+            </p>
+          </div>
+
+          <div className="p-6 transition-colors hover:bg-blue-50/40">
+            <p className="text-xs font-bold uppercase tracking-wide text-blue-600">
+              Petrol / Diesel Vehicle
+            </p>
+
+            <h3 className="mt-2 text-lg font-bold text-slate-900">
+              {ice ? `${ice.make} ${ice.model}` : "Select vehicle"}
+            </h3>
+
+            <p className="text-sm text-slate-500">
+              {ice?.variant || "—"}
+            </p>
+
+            <p className="text-sm text-slate-500">
+              {ice ? `${ice.fuel_type || "Petrol / Diesel"} · ${ice.year}` : "—"}
+            </p>
+          </div>
+
+        </div>
+
+        {/* Metrics */}
+        <MetricRow
+          label="CO₂ Emissions"
+          ev={ev?.co2_emissions_combined}
+          ice={ice?.co2_emissions_combined}
+        />
+
+        <MetricRow
+          label="Fuel Consumption"
+          ev={ev?.fuel_consumption_combined}
+          ice={ice?.fuel_consumption_combined}
+        />
+
+        <MetricRow
+          label="Fuel Life Cycle CO₂"
+          ev={ev?.fuel_life_cycle_co2}
+          ice={ice?.fuel_life_cycle_co2}
+        />
+
+        <MetricRow
+          label="Annual Tailpipe CO₂"
+          ev={ev?.annual_tailpipe_co2}
+          ice={ice?.annual_tailpipe_co2}
+        />
+      </section>
+
+      {/* Error / status */}
+      {error && (
+        <div className="mt-5 rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-center text-sm font-medium text-red-600">
+          Unable to calculate environmental impact: {error}
+        </div>
+      )}
+
+      {!error && ev && ice && !result && (
+        <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 px-5 py-4 text-center text-sm text-slate-500">
+          Calculating environmental impact...
+        </div>
+      )}
+
     </div>
   );
 }

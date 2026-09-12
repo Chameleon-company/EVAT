@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { X } from "lucide-react";
+import { Button } from './Button';
 
 /**
  * SmartFilter Component
@@ -162,22 +163,13 @@ const SmartFilter = ({
   if (!isOpen) return null;
 
   // -----------------------------
-  // Reusable option button
-  // -----------------------------
-  const optionButtonClasses = (selected) =>
-    `rounded-lg border px-3 py-2 text-xs font-medium transition-all duration-200 ${
-      selected
-        ? "border-emerald-500 bg-emerald-50 text-emerald-700 shadow-sm"
-        : "border-slate-200 bg-white text-slate-600 hover:border-emerald-300 hover:bg-emerald-50/50"
-    }`;
-
-  // -----------------------------
   // Reusable Toggle Switch
   // -----------------------------
   const ToggleSwitch = ({ checked, onChange, label }) => {
     return (
-      <button
+      <Button
         type="button"
+        variant="unstyled"
         role="switch"
         aria-checked={checked}
         aria-label={label}
@@ -194,7 +186,7 @@ const SmartFilter = ({
             checked ? "translate-x-5" : "translate-x-0"
           }`}
         />
-      </button>
+      </Button>
     );
   };
 
@@ -218,14 +210,15 @@ const SmartFilter = ({
             </p>
           </div>
 
-          <button
+          <Button
             type="button"
+            variant="unstyled"
             onClick={onClose}
             className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-all duration-200 hover:border-red-200 hover:bg-red-50 hover:text-red-600"
             aria-label="Close filters"
           >
             <X size={19} />
-          </button>
+          </Button>
         </div>
 
         {/* =========================
@@ -242,16 +235,18 @@ const SmartFilter = ({
 
             <div className="flex flex-wrap justify-center gap-2">
               {connectorTypes.map((type) => (
-                <button
+                <Button
                   key={type}
                   type="button"
+                  variant="options"
+                  size="tiny"
                   onClick={() => handleChargerTypeToggle(type)}
-                  className={optionButtonClasses(
-                    filters.chargerType.includes(type)
-                  )}
+                  className={`px-3 py-2 hover:translate-y-0 hover:shadow-none ${
+                    filters.chargerType.includes(type) ? 'selected hover:shadow-sm' : ''
+                  }`}
                 >
                   {type}
-                </button>
+                </Button>
               ))}
             </div>
           </section>
@@ -268,16 +263,18 @@ const SmartFilter = ({
 
             <div className="flex flex-wrap justify-center gap-2">
               {chargingSpeeds.map((speed) => (
-                <button
+                <Button
                   key={speed}
                   type="button"
+                  variant="options"
+                  size="tiny"
                   onClick={() => handleChargingSpeedToggle(speed)}
-                  className={optionButtonClasses(
-                    filters.chargingSpeed.includes(speed)
-                  )}
+                  className={`px-3 py-2 hover:translate-y-0 hover:shadow-none ${
+                    filters.chargingSpeed.includes(speed) ? 'selected hover:shadow-sm' : ''
+                  }`}
                 >
                   {speed}
-                </button>
+                </Button>
               ))}
             </div>
           </section>
@@ -337,16 +334,18 @@ const SmartFilter = ({
 
             <div className="flex flex-wrap justify-center gap-2">
               {operatorTypes.map((type) => (
-                <button
+                <Button
                   key={type}
                   type="button"
+                  variant="options"
+                  size="tiny"
                   onClick={() => handleOperatorToggle(type)}
-                  className={optionButtonClasses(
-                    filters.operatorType.includes(type)
-                  )}
+                  className={`px-3 py-2 hover:translate-y-0 hover:shadow-none ${
+                    filters.operatorType.includes(type) ? 'selected hover:shadow-sm' : ''
+                  }`}
                 >
                   {type}
-                </button>
+                </Button>
               ))}
             </div>
           </section>
@@ -409,22 +408,23 @@ const SmartFilter = ({
 
           <div className="flex gap-3">
             {/* Reset */}
-            <button
+            <Button
               type="button"
+              variant="transparent"
               onClick={handleReset}
-              className="flex-1 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 transition-all duration-200 hover:border-slate-400 hover:bg-slate-50"
+              className="flex-1 text-slate-600 hover:translate-y-0 hover:shadow-none"
             >
               Reset
-            </button>
+            </Button>
 
             {/* Apply */}
-            <button
+            <Button
               type="button"
               onClick={handleApplyFilter}
-              className="flex-1 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-emerald-700 hover:shadow-md"
+              className="flex-1 hover:translate-y-0"
             >
               Apply Filter
-            </button>
+            </Button>
           </div>
         </div>
       </div>

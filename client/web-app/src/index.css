@@ -6,17 +6,17 @@ html, body, #root {
   @apply min-h-screen w-full;
 }
 
-@custom-variant dark (&:where(.dark, .dark *));
-
+/* Theme adjust dynamically based on variables in :root, overwritten by variables in .dark when dark mode is active. */
+/* DO NOT CHANGE THE THEME UNLESS YOU KNOW WHAT YOU'RE DOING */
+/* There's hardly any values that is hardcoded in theme. Either it should be in :root or .dark. */
 @theme {
   --color-primary: var(--primary);
   --color-secondary: var(--secondary);
   --color-muted: var(--muted);
-
   --color-success: var(--success);
   --color-warning: var(--warning);
+  --color-danger: var(--error);
   --color-error: var(--error);
-
   --color-background: var(--background);
   --color-surface-50: var(--surface-50);
   --color-surface-100: var(--surface-100);
@@ -29,26 +29,37 @@ html, body, #root {
   --color-surface-800: var(--surface-800);
   --color-surface-900: var(--surface-900);
   --color-surface-950: var(--surface-950);
-
   --color-foreground: var(--foreground);
 
-  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', Arial, sans-serif;
-  /* --font-brand: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"; */
+  --font-sans:
+    "Inter",
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
 
   --header-height: --spacing(18);
   --content-height: calc(100% - var(--header-height));
 }
 
 :root {
-  --primary: var(--color-indigo-600);
+  --primary: var(--color-emerald-600);
   --secondary: var(--color-stone-600);
   --muted: var(--color-stone-600);
-  
+
   --success: var(--color-emerald-600);
   --warning: var(--color-yellow-600);
   --error: var(--color-red-600);
 
-  --background: var(--color-stone-50);
+  --background: var(--color-white);
+
   --surface-50: var(--color-stone-50);
   --surface-100: var(--color-stone-100);
   --surface-200: var(--color-stone-200);
@@ -61,19 +72,39 @@ html, body, #root {
   --surface-900: var(--color-stone-900);
   --surface-950: var(--color-stone-950);
 
+  /* Needs a little bit of rework if this is based on the primary color
+     since the gradients don't scale well.
+     And generally swapping is fine where the sum of the "intensity" is 1000 (for dark mode) */
+
+  /* --surface-50: #e8fff2;
+  --surface-100: #559274;
+  --surface-200: #2b694b;
+  --surface-300: #205039;
+  --surface-400: #183a29;
+  --surface-500: #122b1e;
+  --surface-600: #0e2117;
+  --surface-700: #0a1710;
+  --surface-800: #07100b;
+  --surface-900: #040806;
+  --surface-950: #020504; */
+  
   --foreground: var(--color-stone-950);
+
+  --evchatbubble-button-bottom: calc(var(--spacing) * 2);
+  --evchatbubble-button-bottom-md: calc(var(--spacing) * 2);
 }
 
 .dark {
-  --primary: var(--color-indigo-500);
-  --secondary: var(--color-stone-500);
-  --muted: var(--color-stone-500);
-  
-  --success: var(--color-emerald-500);
-  --warning: var(--color-yellow-500);
-  --error: var(--color-red-500);
+  --primary: var(--color-emerald-500);
+  --secondary: #9bb8aa;
+  --muted: #789487;
 
-  --background: var(--color-stone-900);
+  --success: var(--color-emerald-500);
+  --warning: var(--color-amber-400);
+  --error: var(--color-red-400);
+
+  --background: var(--color-black);
+
   --surface-50: var(--color-stone-950);
   --surface-100: var(--color-stone-900);
   --surface-200: var(--color-stone-800);
@@ -86,19 +117,60 @@ html, body, #root {
   --surface-900: var(--color-stone-100);
   --surface-950: var(--color-stone-50);
 
-  --foreground: var(--color-stone-100);
+  --foreground: #f2fff7;
 }
 
-/* body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+html,
+body,
+#root {
+  @apply h-screen w-screen;
+}
+
+html {
+  @apply bg-background text-foreground;
+  color-scheme: light;
+}
+
+html.dark {
+  background:
+    radial-gradient(
+      circle at 12% 18%,
+      rgba(16, 185, 129, 0.11),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 88% 72%,
+      rgba(16, 185, 129, 0.08),
+      transparent 32%
+    ),
+    radial-gradient(
+      circle at 50% 110%,
+      rgba(5, 150, 105, 0.07),
+      transparent 38%
+    ),
+    #000000;
+  
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-background text-foreground m-0 min-w-80 font-sans;
+
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
-} */
+.dark body {
+  background:
+    radial-gradient(
+      circle at 10% 15%,
+      rgba(16, 185, 129, 0.08),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 90% 80%,
+      rgba(16, 185, 129, 0.06),
+      transparent 30%
+    ),
+    #000000;
+}

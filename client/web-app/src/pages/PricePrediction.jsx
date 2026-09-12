@@ -1,16 +1,10 @@
 import React, { useEffect, useState } from "react";
 import NavBar from "../components/NavBar";
-import { getPriceHealth, predictPrice } from "../services/pricePredictionService";
-import "../styles/Root.css";
-import "../styles/Buttons.css";
-import "../styles/Elements.css";
-import "../styles/Fonts.css";
-import "../styles/Forms.css";
-import "../styles/NavBar.css";
-import "../styles/Validation.css";
-import "../styles/PricePrediction.css";
+import {
+  getPriceHealth,
+  predictPrice,
+} from "../services/pricePredictionService";
 
-/** Dropdown values from the Price Prediction training dataset (artifacts). */
 const BRAND_MODELS = {
   Audi: ["A3", "A4", "Q5", "Q7"],
   BMW: ["3 Series", "5 Series", "X3", "X5"],
@@ -24,6 +18,16 @@ const BRAND_MODELS = {
 const FUEL_TYPES = ["Diesel", "Electric", "Hybrid", "Petrol"];
 const TRANSMISSIONS = ["Automatic", "Manual"];
 const CONDITIONS = ["Like New", "New", "Used"];
+
+const inputClass =
+  "w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 " +
+  "text-sm text-slate-700 outline-none transition-all duration-200 " +
+  "hover:border-emerald-400 hover:bg-white focus:border-emerald-500 " +
+  "focus:bg-white focus:ring-2 focus:ring-emerald-100 " +
+  "disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400";
+
+const labelClass =
+  "mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500";
 
 const formatAud = (value) =>
   new Intl.NumberFormat("en-AU", {
@@ -47,24 +51,26 @@ export default function PricePrediction() {
   const [serverError, setServerError] = useState("");
   const [result, setResult] = useState(null);
 
-  const tokenFull = localStorage.getItem("currentUser");
-  const token = tokenFull ? JSON.parse(tokenFull).token : null;
+  const user = localStorage.getItem("currentUser");
+  const token = user ? JSON.parse(user).token : null;
+
+  const brands = Object.keys(BRAND_MODELS);
+  const models = BRAND_MODELS[brand] || [];
 
   useEffect(() => {
     getPriceHealth()
       .then(setHealth)
       .catch((err) => {
-        // Detailed reason stays in the console; the banner must not claim a model failure
-        // when the service was simply unreachable.
         console.warn("Price prediction health check failed:", err.message);
         setHealth({ status: "unavailable", unreachable: true });
       });
   }, []);
 
   useEffect(() => {
-    const models = BRAND_MODELS[brand] || [];
-    if (!models.includes(model)) setModel(models[0] || "");
-  }, [brand, model]);
+    if (!models.includes(model)) {
+      setModel(models[0] || "");
+    }
+  }, [brand]);
 
   useEffect(() => {
     if (fuelType === "Electric") {
@@ -73,9 +79,6 @@ export default function PricePrediction() {
       setEngineSize(2.5);
     }
   }, [fuelType]);
-
-  const brands = Object.keys(BRAND_MODELS);
-  const models = BRAND_MODELS[brand] || [];
 
   const handlePredict = async (e) => {
     e.preventDefault();
@@ -87,12 +90,18 @@ export default function PricePrediction() {
       return;
     }
 
-    if (fuelType !== "Electric" && (!engineSize || Number(engineSize) <= 0)) {
-      setServerError("Engine Size must be greater than 0 for non-electric vehicles.");
+    if (
+      fuelType !== "Electric" &&
+      (!engineSize || Number(engineSize) <= 0)
+    ) {
+      setServerError(
+        "Engine Size must be greater than 0 for non-electric vehicles."
+      );
       return;
     }
 
     setLoading(true);
+
     try {
       const features = {
         Brand: brand,
@@ -104,6 +113,7 @@ export default function PricePrediction() {
         Transmission: transmission,
         Condition: condition,
       };
+
       const prediction = await predictPrice(features, token, "web-ui");
       setResult(prediction);
     } catch (err) {
@@ -114,217 +124,334 @@ export default function PricePrediction() {
   };
 
   return (
-    <div className="price-prediction-page">
+    <div className="min-h-screen bg-slate-50">
       <NavBar />
-      <div className="background-image" />
 
-      <div className="pp-container">
-        <div className="pp-header">
-          <div className="pp-badge">USE CASE</div>
-          <h1 className="pp-title">Vehicle Price Prediction</h1>
-          <p className="pp-subtitle">
-            Estimates purchase price via the Price Prediction model (`Log_Price` → `expm1`).
-            Engineered features are auto-derived; enrichment signals use training-data defaults.
+      <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+
+        {/* Header */}
+        <header className="mb-8 text-center">
+          <span className="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-emerald-600">
+            Vehicle Pricing
+          </span>
+
+          <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+            Vehicle Price{" "}
+            <span className="text-emerald-600">Prediction</span>
+          </h1>
+
+          <p className="mx-auto mt-2 max-w-2xl text-sm text-slate-500">
+            Estimate the purchase price of a vehicle using the EVAT price
+            prediction model.
           </p>
-          {health && (
-            <p className={`pp-health ${health.model_loaded ? "pp-health--ok" : "pp-health--down"}`}>
-              {health.unreachable
-                ? "ML service unavailable"
-                : `ML service: ${health.status}${
-                    health.model_loaded
-                      ? ` · model loaded (${health.feature_count} features)`
-                      : " · model not loaded"
-                  }`}
-            </p>
-          )}
-        </div>
 
-        <div className="pp-layout">
-          <form className="pp-panel" onSubmit={handlePredict}>
-            <div className="pp-fields">
-              <div className="pp-field">
-                <label className="pp-label">Brand</label>
+          {health && (
+            <div className="mt-4">
+              <span
+                className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
+                  health.unreachable || !health.model_loaded
+                    ? "bg-red-50 text-red-600"
+                    : "bg-emerald-50 text-emerald-600"
+                }`}
+              >
+                {health.unreachable
+                  ? "ML service unavailable"
+                  : health.model_loaded
+                  ? `ML service ready · ${health.feature_count} features`
+                  : "ML model not loaded"}
+              </span>
+            </div>
+          )}
+        </header>
+
+        {/* Main layout */}
+        <div className="grid gap-6 lg:grid-cols-5">
+
+          {/* Form */}
+          <form
+            onSubmit={handlePredict}
+            className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg lg:col-span-3"
+          >
+            <div className="mb-6">
+              <h2 className="text-xl font-bold text-slate-900">
+                Vehicle Details
+              </h2>
+              <p className="mt-1 text-sm text-slate-500">
+                Enter the vehicle information below.
+              </p>
+            </div>
+
+            <div className="grid gap-5 sm:grid-cols-2">
+
+              {/* Brand */}
+              <div>
+                <label className={labelClass}>Brand</label>
                 <select
-                  className="input pp-input"
+                  className={inputClass}
                   value={brand}
                   onChange={(e) => setBrand(e.target.value)}
                 >
-                  {brands.map((b) => (
-                    <option key={b} value={b}>{b}</option>
+                  {brands.map((item) => (
+                    <option key={item}>{item}</option>
                   ))}
                 </select>
               </div>
 
-              <div className="pp-field">
-                <label className="pp-label">Model</label>
+              {/* Model */}
+              <div>
+                <label className={labelClass}>Model</label>
                 <select
-                  className="input pp-input"
+                  className={inputClass}
                   value={model}
                   onChange={(e) => setModel(e.target.value)}
                 >
-                  {models.map((m) => (
-                    <option key={m} value={m}>{m}</option>
+                  {models.map((item) => (
+                    <option key={item}>{item}</option>
                   ))}
                 </select>
               </div>
 
-              <div className="pp-field">
-                <label className="pp-label">Year</label>
+              {/* Year */}
+              <div>
+                <label className={labelClass}>Year</label>
                 <input
-                  className="input pp-input"
+                  className={inputClass}
                   type="number"
-                  value={year}
-                  min={1990}
+                  min="1990"
                   max={new Date().getFullYear() + 1}
+                  value={year}
                   onChange={(e) => setYear(e.target.value)}
                 />
               </div>
 
-              <div className="pp-field">
-                <label className="pp-label">Mileage (km)</label>
+              {/* Mileage */}
+              <div>
+                <label className={labelClass}>Mileage (km)</label>
                 <input
-                  className="input pp-input"
+                  className={inputClass}
                   type="number"
+                  min="0"
                   value={mileage}
-                  min={0}
                   onChange={(e) => setMileage(e.target.value)}
                 />
               </div>
 
-              <div className="pp-field">
-                <label className="pp-label">Fuel Type</label>
+              {/* Fuel */}
+              <div>
+                <label className={labelClass}>Fuel Type</label>
                 <select
-                  className="input pp-input"
+                  className={inputClass}
                   value={fuelType}
                   onChange={(e) => setFuelType(e.target.value)}
                 >
-                  {FUEL_TYPES.map((f) => (
-                    <option key={f} value={f}>{f}</option>
+                  {FUEL_TYPES.map((item) => (
+                    <option key={item}>{item}</option>
                   ))}
                 </select>
               </div>
 
-              <div className="pp-field">
-                <label className="pp-label">Transmission</label>
+              {/* Transmission */}
+              <div>
+                <label className={labelClass}>Transmission</label>
                 <select
-                  className="input pp-input"
+                  className={inputClass}
                   value={transmission}
                   onChange={(e) => setTransmission(e.target.value)}
                 >
-                  {TRANSMISSIONS.map((t) => (
-                    <option key={t} value={t}>{t}</option>
+                  {TRANSMISSIONS.map((item) => (
+                    <option key={item}>{item}</option>
                   ))}
                 </select>
               </div>
 
-              <div className="pp-field">
-                <label className="pp-label">Condition</label>
+              {/* Condition */}
+              <div>
+                <label className={labelClass}>Condition</label>
                 <select
-                  className="input pp-input"
+                  className={inputClass}
                   value={condition}
                   onChange={(e) => setCondition(e.target.value)}
                 >
-                  {CONDITIONS.map((c) => (
-                    <option key={c} value={c}>{c}</option>
+                  {CONDITIONS.map((item) => (
+                    <option key={item}>{item}</option>
                   ))}
                 </select>
               </div>
 
-              <div className="pp-field">
-                <label className="pp-label">Engine Size (L)</label>
+              {/* Engine */}
+              <div>
+                <label className={labelClass}>Engine Size (L)</label>
                 <input
-                  className="input pp-input"
+                  className={inputClass}
                   type="number"
                   step="0.1"
+                  min="0"
                   value={engineSize}
-                  min={0}
                   disabled={fuelType === "Electric"}
                   onChange={(e) => setEngineSize(e.target.value)}
                 />
               </div>
             </div>
 
-            {serverError && <p className="pp-error">{serverError}</p>}
+            {/* Error */}
+            {serverError && (
+              <div className="mt-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
+                {serverError}
+              </div>
+            )}
 
-            <button type="submit" className="pp-submit" disabled={loading}>
-              {loading ? "Predicting…" : "Predict Price"}
+            {/* Button */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="mt-6 w-full rounded-lg bg-emerald-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-emerald-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {loading ? "Predicting..." : "Predict Vehicle Price →"}
             </button>
           </form>
 
-          <div className={`pp-panel pp-result-panel${result ? " has-result" : ""}`}>
-            {!result && !loading && (
-              <p className="pp-placeholder">
-                Enter vehicle details and run a prediction to see the estimated price.
+          {/* Result */}
+          <section
+            className={`rounded-2xl border bg-white p-6 shadow-sm transition-all duration-300 lg:col-span-2 ${
+              result
+                ? "border-emerald-200 shadow-emerald-100"
+                : "border-slate-200"
+            }`}
+          >
+            <div className="mb-6">
+              <p className="text-xs font-bold uppercase tracking-wider text-emerald-600">
+                Prediction Result
               </p>
+
+              <h2 className="mt-2 text-xl font-bold text-slate-900">
+                Estimated Vehicle Price
+              </h2>
+            </div>
+
+            {!result && !loading && (
+              <div className="flex min-h-64 flex-col items-center justify-center rounded-xl bg-slate-50 px-6 text-center">
+                <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 text-2xl">
+                  $
+                </div>
+
+                <p className="text-sm leading-6 text-slate-500">
+                  Enter your vehicle details and run a prediction to see the
+                  estimated price.
+                </p>
+              </div>
             )}
 
-            {loading && <p className="pp-loading">Running ML model…</p>}
+            {loading && (
+              <div className="flex min-h-64 items-center justify-center rounded-xl bg-slate-50">
+                <div className="text-center">
+                  <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-emerald-500" />
+                  <p className="text-sm font-medium text-slate-600">
+                    Running ML prediction...
+                  </p>
+                </div>
+              </div>
+            )}
 
             {result && (
-              <>
-                <div className="pp-label pp-result-label">Predicted Price</div>
-                <div className="pp-price">{formatAud(result.predicted_price)}</div>
+              <div className="space-y-4">
 
-                <div className="pp-cards">
-                  <div className="pp-card">
-                    <div className="pp-label">Log Price</div>
-                    <div className="pp-card-value">
-                      {Number(result.predicted_log_price).toFixed(4)}
-                    </div>
-                  </div>
+                {/* Price */}
+                <div className="rounded-xl bg-emerald-50 p-6 text-center">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-emerald-600">
+                    Predicted Price
+                  </p>
 
-                  <div className="pp-card pp-card--info">
-                    <div className="pp-label pp-label--info">Price calculation</div>
-                    <div className="pp-calc">
-                      <div>
-                        Model predicts <code>Log_Price</code> ={" "}
-                        <strong>{Number(result.predicted_log_price).toFixed(4)}</strong>
-                      </div>
-                      <div className="pp-calc-row">
-                        <code>Price</code> = <code>expm1(Log_Price)</code> ={" "}
-                        <code>e^{Number(result.predicted_log_price).toFixed(4)} − 1</code>
-                      </div>
-                      <div className="pp-calc-row">
-                        ={" "}
-                        <strong>
-                          {formatAud(Math.max(0, Math.expm1(Number(result.predicted_log_price))))}
-                        </strong>{" "}
-                        (floored at 0)
-                      </div>
-                    </div>
-                  </div>
-
-                  {result.missing_features?.length > 0 ? (
-                    <div className="pp-card pp-card--warn">
-                      <div className="pp-label pp-label--warn">Missing features</div>
-                      <div className="pp-meta">{result.missing_features.join(", ")}</div>
-                    </div>
-                  ) : null}
-
-                  {result.extra_features?.length > 0 ? (
-                    <div className="pp-card pp-card--muted">
-                      <div className="pp-label">Extra features (ignored)</div>
-                      <div className="pp-meta">{result.extra_features.join(", ")}</div>
-                    </div>
-                  ) : null}
-
-                  {!result.missing_features?.length && (
-                    <div className="pp-card pp-card--ok">
-                      <div className="pp-label pp-label--accent">Features</div>
-                      <div className="pp-meta">
-                        All model features filled
-                        {result.derived_features?.length
-                          ? ` (${result.derived_features.length} auto-derived)`
-                          : ""}
-                      </div>
-                    </div>
-                  )}
+                  <p className="mt-2 text-4xl font-bold tracking-tight text-slate-900">
+                    {formatAud(result.predicted_price)}
+                  </p>
                 </div>
-              </>
+
+                {/* Log price */}
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <p className={labelClass}>Log Price</p>
+                  <p className="text-lg font-bold text-slate-900">
+                    {Number(result.predicted_log_price).toFixed(4)}
+                  </p>
+                </div>
+
+                {/* Calculation */}
+                <div className="rounded-xl border border-blue-100 bg-blue-50 p-4">
+                  <p className="text-xs font-bold uppercase tracking-wide text-blue-600">
+                    Price Calculation
+                  </p>
+
+                  <div className="mt-3 space-y-2 text-sm text-slate-600">
+                    <p>
+                      Model predicts{" "}
+                      <code className="rounded bg-white px-1.5 py-0.5 text-xs">
+                        Log_Price
+                      </code>{" "}
+                      ={" "}
+                      <strong>
+                        {Number(result.predicted_log_price).toFixed(4)}
+                      </strong>
+                    </p>
+
+                    <p>
+                      Price = expm1(Log_Price)
+                    </p>
+
+                    <p className="font-semibold text-slate-900">
+                      ={" "}
+                      {formatAud(
+                        Math.max(
+                          0,
+                          Math.expm1(Number(result.predicted_log_price))
+                        )
+                      )}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Feature status */}
+                {result.missing_features?.length > 0 && (
+                  <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+                    <p className="text-xs font-bold uppercase tracking-wide text-amber-600">
+                      Missing Features
+                    </p>
+
+                    <p className="mt-2 text-sm text-slate-600">
+                      {result.missing_features.join(", ")}
+                    </p>
+                  </div>
+                )}
+
+                {result.extra_features?.length > 0 && (
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                    <p className={labelClass}>
+                      Extra Features
+                    </p>
+
+                    <p className="text-sm text-slate-500">
+                      {result.extra_features.join(", ")}
+                    </p>
+                  </div>
+                )}
+
+                {!result.missing_features?.length && (
+                  <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+                    <p className="text-xs font-bold uppercase tracking-wide text-emerald-600">
+                      Features Ready
+                    </p>
+
+                    <p className="mt-1 text-sm text-slate-600">
+                      All model features filled
+                      {result.derived_features?.length
+                        ? ` · ${result.derived_features.length} auto-derived`
+                        : ""}
+                    </p>
+                  </div>
+                )}
+              </div>
             )}
-          </div>
+          </section>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

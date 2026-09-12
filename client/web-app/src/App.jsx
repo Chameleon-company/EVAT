@@ -3,6 +3,7 @@ import {
   Routes,
   Route,
 } from 'react-router-dom';
+
 import Signup from './pages/Signup';
 import Signin from './pages/Signin';
 import Profile from './pages/Profile';
@@ -15,10 +16,14 @@ import ContactSupport from './pages/ContactSupport';
 import ApiTester from './pages/ApiTester';
 import VoiceQueryPage from './pages/VoiceQueryPage';
 import Achievements from './pages/Achievements';
+
 import { UserProvider } from './context/user';
 import { FavouritesProvider } from './context/FavouritesContext';
+import { ThemeProvider } from './context/ThemeContext';
+
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+
 import EVChatBubble from './components/EVChatBubble';
 
 // Use Case Dashboard and pages
@@ -34,46 +39,48 @@ import PersonalisedInsights from './pages/PersonalisedInsights';
 
 function App() {
   return (
-    <UserProvider>
-      <FavouritesProvider>
-        <Router>
-          <Routes>
-            <Route path="/" element={<Signin />} />
-            <Route path="/signin" element={<Signin />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/map" element={<Map />} />
-            <Route path="/feedback" element={<Feedback />} />
-            <Route path="/favourites" element={<Favourite />} />
-            <Route path="/cost" element={<Cost />} />
-            <Route path="/game" element={<Game />} />
-            <Route path="/support" element={<ContactSupport />} />
-            <Route path="/apitester" element={<ApiTester />} />
-            <Route path="/voice-query" element={<VoiceQueryPage />} />
-            <Route path="/achievements" element={<Achievements />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/use-cases" element={<Dashboard />} />
-            <Route path="/congestion-prediction" element={<Map />} />
-            <Route path="/weather-aware-routing" element={<WeatherRouting />} />
-            <Route path="/weather-routing" element={<WeatherRouting />} />
-            <Route path="/environmental-impact" element={<EnvironmentalImpact />} />
-            <Route path="/demand-forecasting" element={<DemandForecasting />} />
-            <Route path="/price-prediction" element={<PricePrediction />} />
-            <Route path="/reliability-scoring" element={<ReliabilityScoring />} />
-            <Route path="/chatbot" element={<Chatbot />} />
-            <Route path="/insights-form" element={<PersonalisedInsightsForm />} />
-            <Route path="/insights" element={<PersonalisedInsights />} />
-            <Route path="/cost-comparison" element={<Cost />} />
-            <Route path="/demand-forecasting" element={<DemandForecasting />} />
-            <Route path="/price-prediction" element={<PricePrediction />} />
-            {/* Catch-all Route */}
-            <Route path="*" element={<div>404 Page Not Found</div>} />
-          </Routes>
-        </Router>
-      </FavouritesProvider>
-      <ToastContainer position="top-center" autoClose={3000} />
-      <EVChatBubble />
-    </UserProvider>
+    <ThemeProvider>
+      <UserProvider>
+        <FavouritesProvider>
+          <Router>
+            <Routes>
+              <Route path="/" element={<Signin />} />
+              <Route path="/signin" element={<Signin />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/map" element={<Map />} />
+              <Route path="/feedback" element={<Feedback />} />
+              <Route path="/favourites" element={<Favourite />} />
+              <Route path="/cost" element={<Cost />} />
+              <Route path="/game" element={<Game />} />
+              <Route path="/support" element={<ContactSupport />} />
+              <Route path="/apitester" element={<ApiTester />} />
+              <Route path="/voice-query" element={<VoiceQueryPage />} />
+              <Route path="/achievements" element={<Achievements />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/use-cases" element={<Dashboard />} />
+              <Route path="/congestion-prediction" element={<Map />} />
+              <Route path="/weather-aware-routing" element={<WeatherRouting />} />
+              <Route path="/weather-routing" element={<WeatherRouting />} />
+              <Route path="/environmental-impact" element={<EnvironmentalImpact />} />
+              <Route path="/demand-forecasting" element={<DemandForecasting />} />
+              <Route path="/price-prediction" element={<PricePrediction />} />
+              <Route path="/reliability-scoring" element={<ReliabilityScoring />} />
+              <Route path="/chatbot" element={<Chatbot />} />
+              <Route path="/insights-form" element={<PersonalisedInsightsForm />} />
+              <Route path="/insights" element={<PersonalisedInsights />} />
+              <Route path="/cost-comparison" element={<Cost />} />
+
+              {/* Catch-all Route */}
+              <Route path="*" element={<div>404 Page Not Found</div>} />
+            </Routes>
+          </Router>
+        </FavouritesProvider>
+
+        <ToastContainer position="top-center" autoClose={3000} />
+        <EVChatBubble />
+      </UserProvider>
+    </ThemeProvider>
   );
 }
 

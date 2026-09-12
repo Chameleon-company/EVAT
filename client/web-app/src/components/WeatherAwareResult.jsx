@@ -1,533 +1,364 @@
 import React, { useState } from "react";
 
 const WeatherAwareResult = ({ result }) => {
-    const [showDetails, setShowDetails] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
 
-    if (!result) {
-        return null;
+  if (!result) return null;
+
+  const formatNumber = (value, decimals = 1) => {
+    if (value === null || value === undefined || value === "") return "N/A";
+
+    const number = Number(value);
+    return Number.isNaN(number) ? "N/A" : number.toFixed(decimals);
+  };
+
+  const cleanInstruction = (instruction) => {
+    if (!instruction) return "N/A";
+
+    return instruction
+      .replace(/<[^>]*>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  };
+
+  const formatDuration = (minutes) => {
+    if (!minutes && minutes !== 0) return "N/A";
+
+    if (minutes >= 60) {
+      const hours = Math.floor(minutes / 60);
+      const mins = Math.round(minutes % 60);
+      return `${hours}h ${mins}m`;
     }
 
-    const formatNumber = (value, decimals = 1) => {
-        if (value === null || value === undefined || value === "") return "N/A";
+    return `${Math.round(minutes)} min`;
+  };
 
-        const number = Number(value);
-        return Number.isNaN(number) ? "N/A" : number.toFixed(decimals);
-    };
+  const weather = result.weather || {};
+  const chargingStops = result.charging_stops || [];
+  const steps = result.steps || [];
 
-    const cleanInstruction = (instruction) => {
-        if (!instruction) return "N/A";
+  const weatherText =
+    weather.temp_c !== undefined
+      ? `${formatNumber(weather.temp_c)}°C`
+      : "N/A";
 
-        return instruction
-            .replace(/<[^>]*>/g, " ")
-            .replace(/\s+/g, " ")
-            .trim();
-    };
+  return (
+    <>
+      {/* Route Result Card */}
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md sm:p-5">
+        {/* Header */}
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-sm" />
+            <span className="text-xs font-bold tracking-wide text-emerald-700 sm:text-sm">
+              ROUTE CALCULATED
+            </span>
+          </div>
 
-    const formatDuration = (minutes) => {
-        if (!minutes && minutes !== 0) return "N/A";
+          <span className="rounded-lg bg-emerald-50 px-2.5 py-1.5 text-xs font-bold text-emerald-700">
+            {result.charging_required
+              ? `${chargingStops.length} charging stop${
+                  chargingStops.length !== 1 ? "s" : ""
+                }`
+              : "No charging stop"}
+          </span>
+        </div>
 
-        if (minutes >= 60) {
-            const hours = Math.floor(minutes / 60);
-            const mins = Math.round(minutes % 60);
-            return `${hours}h ${mins}m`;
-        }
+        {/* Summary Grid */}
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <SummaryItem
+            icon="〽️"
+            label="Distance"
+            value={`${formatNumber(result.distance_km)} km`}
+          />
 
-        return `${Math.round(minutes)} min`;
-    };
+          <SummaryItem
+            icon="🕒"
+            label="Duration"
+            value={formatDuration(result.duration_in_traffic_min)}
+          />
 
-    const weather = result.weather || {};
-    const chargingStops = result.charging_stops || [];
-    const steps = result.steps || [];
+          <SummaryItem
+            icon="🚧"
+            label="Traffic"
+            value={result.traffic_condition || "N/A"}
+          />
 
-    const weatherText =
-        weather.temp_c !== undefined
-            ? `${formatNumber(weather.temp_c)}°C`
-            : "N/A";
+          <SummaryItem
+            icon="⚡"
+            label={result.ac_on ? "Energy (AC On)" : "Energy"}
+            value={`${formatNumber(result.energy_with_ac_kwh, 2)} kWh`}
+          />
 
-    return (
-        <>
-            <div style={styles.card}>
-                <div style={styles.header}>
-                    <div style={styles.statusRow}>
-                        <span style={styles.statusDot}></span>
-                        <span style={styles.statusText}>ROUTE CALCULATED</span>
-                    </div>
+          <SummaryItem
+            icon="🔋"
+            label="SOC Needed"
+            value={`${formatNumber(result.soc_needed_pct)}%`}
+          />
 
-                    <span style={styles.chargingBadge}>
-                        {result.charging_required
-                            ? `${chargingStops.length} charging stop`
-                            : "No charging stop"}
-                    </span>
-                </div>
+          <SummaryItem
+            icon="☁️"
+            label="Weather"
+            value={weatherText}
+          />
+        </div>
 
-                <div style={styles.grid}>
-                    <SummaryItem
-                        icon="〽️"
-                        label="Distance"
-                        value={`${formatNumber(result.distance_km)} km`}
-                    />
+        {/* Details Button */}
+        <button
+          type="button"
+          onClick={() => setShowDetails(true)}
+          className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+        >
+          See Full Detail
+          <span className="text-lg leading-none">→</span>
+        </button>
+      </div>
 
-                    <SummaryItem
-                        icon="🕒"
-                        label="Duration"
-                        value={formatDuration(result.duration_in_traffic_min)}
-                    />
+      {/* Details Modal */}
+      {showDetails && (
+        <div
+          className="fixed inset-0 z-[5000] flex items-center justify-center bg-slate-900/70 p-4 backdrop-blur-sm sm:p-6"
+          onClick={() => setShowDetails(false)}
+        >
+          <div
+            className="max-h-[90vh] w-full max-w-5xl overflow-y-auto rounded-2xl bg-slate-50 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="relative bg-gradient-to-br from-emerald-600 to-emerald-500 px-5 py-6 text-white sm:px-8 sm:py-7">
+              <button
+                type="button"
+                onClick={() => setShowDetails(false)}
+                className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full border border-white/50 text-xl text-white transition hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-white"
+                aria-label="Close details"
+              >
+                ×
+              </button>
 
-                    <SummaryItem
-                        icon="🚧"
-                        label="Traffic"
-                        value={result.traffic_condition || "N/A"}
-                    />
+              <p className="mb-2 text-xs font-black tracking-[0.18em] text-emerald-100">
+                ⚡ TRIP PLAN
+              </p>
 
-                    <SummaryItem
-                        icon="⚡"
-                        label={result.ac_on ? "Energy (AC On)" : "Energy"}
-                        value={`${formatNumber(result.energy_with_ac_kwh, 2)} kWh`}
-                    />
+              <h2 className="pr-10 text-xl font-extrabold sm:text-2xl">
+                {result.origin_resolved || "Origin"} →{" "}
+                {result.destination_resolved || "Destination"}
+              </h2>
 
-                    <SummaryItem
-                        icon="🔋"
-                        label="SOC Needed"
-                        value={`${formatNumber(result.soc_needed_pct)}%`}
-                    />
-
-                    <SummaryItem
-                        icon="☁️"
-                        label="Weather"
-                        value={weatherText}
-                    />
-                </div>
-
-                <button
-                    type="button"
-                    style={styles.detailButton}
-                    onClick={() => setShowDetails(true)}
-                >
-                    See Full Detail <span style={styles.arrow}>→</span>
-                </button>
+              {/* Quick Stats */}
+              <div className="mt-5 flex flex-wrap gap-3 text-sm font-semibold sm:gap-5">
+                <span>〽️ {formatNumber(result.distance_km)} km</span>
+                <span>
+                  🕒 {formatDuration(result.duration_in_traffic_min)}
+                </span>
+                <span>
+                  🔌{" "}
+                  {result.charging_required
+                    ? `${chargingStops.length} stop${
+                        chargingStops.length !== 1 ? "s" : ""
+                      }`
+                    : "No stop"}
+                </span>
+                <span>
+                  ⚡ {formatNumber(result.energy_with_ac_kwh, 2)} kWh
+                </span>
+              </div>
             </div>
 
-            {showDetails && (
-                <div style={styles.modalOverlay}>
-                    <div style={styles.modal}>
-                        <div style={styles.modalHeader}>
-                            <button
-                                type="button"
-                                style={styles.closeButton}
-                                onClick={() => setShowDetails(false)}
-                            >
-                                ×
-                            </button>
+            {/* Modal Body */}
+            <div className="p-5 sm:p-8">
+              <div className="grid gap-8 lg:grid-cols-2">
+                {/* Energy Breakdown */}
+                <div>
+                  <SectionTitle title="Energy Breakdown" />
 
-                            <p style={styles.modalLabel}>⚡ TRIP PLAN</p>
+                  <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <DetailRow
+                      label="Base consumption"
+                      value={`${formatNumber(
+                        result.energy_nominal_kwh,
+                        2
+                      )} kWh`}
+                    />
 
-                            <h2 style={styles.modalTitle}>
-                                {result.origin_resolved || "Origin"} →{" "}
-                                {result.destination_resolved || "Destination"}
-                            </h2>
+                    <DetailRow
+                      label="AC energy usage"
+                      value={`${formatNumber(
+                        result.energy_with_ac_kwh -
+                          result.energy_nominal_kwh,
+                        2
+                      )} kWh`}
+                    />
 
-                            <div style={styles.modalQuickStats}>
-                                <span>〽️ {formatNumber(result.distance_km)} km</span>
-                                <span>🕒 {formatDuration(result.duration_in_traffic_min)}</span>
-                                <span>
-                                    🔌{" "}
-                                    {result.charging_required
-                                        ? `${chargingStops.length} stop`
-                                        : "No stop"}
-                                </span>
-                                <span>⚡ {formatNumber(result.energy_with_ac_kwh, 2)} kWh</span>
-                            </div>
-                        </div>
+                    <DetailRow
+                      label="SOC needed"
+                      value={`${formatNumber(result.soc_needed_pct)}%`}
+                    />
 
-                        <div style={styles.modalBody}>
-                            <div style={styles.modalGrid}>
-                                <div>
-                                    <SectionTitle title="Energy Breakdown" />
+                    <DetailRow
+                      label="SOC with contingency"
+                      value={`${formatNumber(
+                        result.soc_with_contingency_pct
+                      )}%`}
+                    />
 
-                                    <div style={styles.energyBox}>
-                                        <DetailRow
-                                            label="Base consumption"
-                                            value={`${formatNumber(result.energy_nominal_kwh, 2)} kWh`}
-                                        />
-
-                                        <DetailRow
-                                            label="AC energy usage"
-                                            value={`${formatNumber(
-                                                result.energy_with_ac_kwh - result.energy_nominal_kwh,
-                                                2
-                                            )} kWh`}
-                                        />
-
-                                        <DetailRow
-                                            label="SOC needed"
-                                            value={`${formatNumber(result.soc_needed_pct)}%`}
-                                        />
-
-                                        <DetailRow
-                                            label="SOC with contingency"
-                                            value={`${formatNumber(
-                                                result.soc_with_contingency_pct
-                                            )}%`}
-                                        />
-
-                                        <div style={styles.totalEnergyRow}>
-                                            <span>Total energy</span>
-                                            <strong>
-                                                {formatNumber(result.energy_with_ac_kwh, 2)} kWh
-                                            </strong>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <SectionTitle title="Weather Conditions" />
-
-                                    <div style={styles.weatherGrid}>
-                                        <MiniDetailCard
-                                            icon="🌡️"
-                                            label="Temperature"
-                                            value={`${formatNumber(weather.temp_c)}°C`}
-                                        />
-
-                                        <MiniDetailCard
-                                            icon="💨"
-                                            label="Wind"
-                                            value={`${formatNumber(weather.wind_speed_ms, 2)} m/s`}
-                                        />
-
-                                        <MiniDetailCard
-                                            icon="🧭"
-                                            label="Wind Direction"
-                                            value={`${formatNumber(weather.wind_deg, 0)}°`}
-                                        />
-
-                                        <MiniDetailCard
-                                            icon="🚧"
-                                            label="Traffic"
-                                            value={result.traffic_condition || "N/A"}
-                                        />
-                                    </div>
-
-                                    <SectionTitle title="Charging Stop" />
-
-                                    {result.charging_required && chargingStops.length > 0 ? (
-                                        <div style={styles.chargingStopBox}>
-                                            <strong>{chargingStops[0].name}</strong>
-                                            <p>{chargingStops[0].address}</p>
-                                            <div style={styles.stopTags}>
-                                                <span>⭐ {chargingStops[0].rating || "N/A"}</span>
-                                                <span>
-                                                    {chargingStops[0].open_now ? "Open now" : "Status N/A"}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div style={styles.noChargingBox}>
-                                            No charging stop is required for this route.
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
+                    <div className="mt-3 flex items-center justify-between rounded-xl bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800">
+                      <span>Total energy</span>
+                      <strong>
+                        {formatNumber(result.energy_with_ac_kwh, 2)} kWh
+                      </strong>
                     </div>
+                  </div>
                 </div>
-            )}
-        </>
-    );
+
+                {/* Weather & Charging */}
+                <div>
+                  <SectionTitle title="Weather Conditions" />
+
+                  <div className="mb-7 grid grid-cols-2 gap-3">
+                    <MiniDetailCard
+                      icon="🌡️"
+                      label="Temperature"
+                      value={`${formatNumber(weather.temp_c)}°C`}
+                    />
+
+                    <MiniDetailCard
+                      icon="💨"
+                      label="Wind"
+                      value={`${formatNumber(
+                        weather.wind_speed_ms,
+                        2
+                      )} m/s`}
+                    />
+
+                    <MiniDetailCard
+                      icon="🧭"
+                      label="Wind Direction"
+                      value={`${formatNumber(weather.wind_deg, 0)}°`}
+                    />
+
+                    <MiniDetailCard
+                      icon="🚧"
+                      label="Traffic"
+                      value={result.traffic_condition || "N/A"}
+                    />
+                  </div>
+
+                  <SectionTitle title="Charging Stop" />
+
+                  {result.charging_required && chargingStops.length > 0 ? (
+                    <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-5 text-emerald-900">
+                      <strong className="text-base">
+                        {chargingStops[0].name}
+                      </strong>
+
+                      <p className="mt-1 text-sm text-emerald-800">
+                        {chargingStops[0].address}
+                      </p>
+
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-emerald-700">
+                          ⭐ {chargingStops[0].rating || "N/A"}
+                        </span>
+
+                        <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-emerald-700">
+                          {chargingStops[0].open_now
+                            ? "Open now"
+                            : "Status N/A"}
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="rounded-2xl bg-emerald-50 p-5 text-sm font-semibold text-emerald-700">
+                      No charging stop is required for this route.
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Route Steps */}
+              {steps.length > 0 && (
+                <div className="mt-8">
+                  <SectionTitle title="Route Instructions" />
+
+                  <div className="space-y-3">
+                    {steps.map((step, index) => (
+                      <div
+                        key={index}
+                        className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+                      >
+                        <div className="flex gap-3">
+                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-700">
+                            {index + 1}
+                          </span>
+
+                          <p className="text-sm leading-6 text-slate-600">
+                            {cleanInstruction(
+                              typeof step === "string"
+                                ? step
+                                : step.instruction || step.html_instructions
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
 };
 
 const SummaryItem = ({ icon, label, value }) => {
-    return (
-        <div style={styles.summaryItem}>
-            <div style={styles.icon}>{icon}</div>
-            <p style={styles.summaryLabel}>{label}</p>
-            <p style={styles.summaryValue}>{value}</p>
-        </div>
-    );
+  return (
+    <div className="min-h-[82px] rounded-xl border border-slate-200 bg-slate-50 p-3 transition hover:border-emerald-200 hover:bg-emerald-50/40">
+      <div className="mb-1.5 text-sm">{icon}</div>
+
+      <p className="text-xs font-semibold text-slate-500">
+        {label}
+      </p>
+
+      <p className="mt-1 text-base font-bold capitalize text-slate-800">
+        {value}
+      </p>
+    </div>
+  );
 };
 
 const SectionTitle = ({ title }) => {
-    return <h3 style={styles.sectionTitle}>{title}</h3>;
+  return (
+    <h3 className="mb-3 text-sm font-extrabold uppercase tracking-wider text-slate-500">
+      {title}
+    </h3>
+  );
 };
 
 const DetailRow = ({ label, value }) => {
-    return (
-        <div style={styles.detailRow}>
-            <span>{label}</span>
-            <strong>{value}</strong>
-        </div>
-    );
+  return (
+    <div className="flex items-center justify-between gap-4 border-b border-slate-100 py-3 text-sm last:border-0">
+      <span className="text-slate-500">{label}</span>
+      <strong className="text-right text-slate-800">{value}</strong>
+    </div>
+  );
 };
 
 const MiniDetailCard = ({ icon, label, value }) => {
-    return (
-        <div style={styles.miniDetailCard}>
-            <div style={styles.icon}>{icon}</div>
-            <p style={styles.summaryLabel}>{label}</p>
-            <p style={styles.summaryValue}>{value}</p>
-        </div>
-    );
-};
+  return (
+    <div className="min-h-[90px] rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-emerald-200">
+      <div className="mb-2 text-sm">{icon}</div>
 
-const styles = {
-    card: {
-        backgroundColor: "#ffffff",
-        borderRadius: "16px",
-        padding: "18px",
-        boxShadow: "0 8px 24px rgba(0,0,0,0.18)",
-        fontFamily: "inherit",
-        color: "#111827",
-    },
+      <p className="text-xs font-semibold text-slate-500">
+        {label}
+      </p>
 
-    header: {
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginBottom: "14px",
-    },
-
-    statusRow: {
-        display: "flex",
-        alignItems: "center",
-        gap: "8px",
-    },
-
-    statusDot: {
-        width: "8px",
-        height: "8px",
-        borderRadius: "50%",
-        backgroundColor: "#16a34a",
-    },
-
-    statusText: {
-        fontSize: "13px",
-        fontWeight: "700",
-        color: "#166534",
-    },
-
-    chargingBadge: {
-        backgroundColor: "#ecfdf5",
-        color: "#166534",
-        padding: "6px 10px",
-        borderRadius: "8px",
-        fontSize: "12px",
-        fontWeight: "700",
-    },
-
-    grid: {
-        display: "grid",
-        gridTemplateColumns: "1fr 1fr",
-        gap: "10px",
-    },
-
-    summaryItem: {
-        backgroundColor: "#f9fafb",
-        border: "1px solid #e5e7eb",
-        borderRadius: "10px",
-        padding: "10px 12px",
-        minHeight: "72px",
-    },
-
-    icon: {
-        fontSize: "14px",
-        marginBottom: "6px",
-        color: "#16a34a",
-        fontWeight: "700",
-    },
-
-    summaryLabel: {
-        margin: 0,
-        color: "#374151",
-        fontSize: "12px",
-        fontWeight: "700",
-    },
-
-    summaryValue: {
-        margin: "5px 0 0 0",
-        color: "#111827",
-        fontSize: "17px",
-        fontWeight: "700",
-        textTransform: "capitalize",
-    },
-
-    detailButton: {
-        marginTop: "12px",
-        width: "100%",
-        border: "none",
-        borderRadius: "10px",
-        backgroundColor: "#16a34a",
-        color: "#ffffff",
-        padding: "11px",
-        fontSize: "14px",
-        fontWeight: "700",
-        cursor: "pointer",
-    },
-
-    arrow: {
-        marginLeft: "8px",
-    },
-
-    modalOverlay: {
-        position: "fixed",
-        inset: 0,
-        backgroundColor: "rgba(15, 23, 42, 0.72)",
-        zIndex: 5000,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "24px",
-    },
-
-    modal: {
-        width: "960px",
-        maxWidth: "96vw",
-        maxHeight: "88vh",
-        overflowY: "auto",
-        backgroundColor: "#f3f4f6",
-        borderRadius: "18px",
-        boxShadow: "0 30px 80px rgba(0, 0, 0, 0.35)",
-    },
-
-    modalHeader: {
-        position: "relative",
-        background: "linear-gradient(135deg, #43a047, #65c84f)",
-        color: "#ffffff",
-        padding: "28px 32px",
-    },
-
-    closeButton: {
-        position: "absolute",
-        top: "16px",
-        right: "16px",
-        width: "30px",
-        height: "30px",
-        borderRadius: "50%",
-        border: "2px solid rgba(255,255,255,0.7)",
-        backgroundColor: "transparent",
-        color: "#ffffff",
-        fontSize: "22px",
-        cursor: "pointer",
-    },
-
-    modalLabel: {
-        margin: "0 0 12px 0",
-        fontSize: "13px",
-        fontWeight: "900",
-        letterSpacing: "0.16em",
-    },
-
-    modalTitle: {
-        margin: "0 0 22px 0",
-        fontSize: "24px",
-        fontWeight: "900",
-    },
-
-    modalQuickStats: {
-        display: "flex",
-        flexWrap: "wrap",
-        gap: "18px",
-        fontSize: "18px",
-        fontWeight: "700",
-    },
-
-    modalBody: {
-        padding: "28px 32px 34px",
-    },
-
-    modalGrid: {
-        display: "grid",
-        gridTemplateColumns: "1fr 1fr",
-        gap: "28px",
-    },
-
-    sectionTitle: {
-        margin: "0 0 14px 0",
-        color: "#64748b",
-        fontSize: "18px",
-        fontWeight: "900",
-        letterSpacing: "0.08em",
-        textTransform: "uppercase",
-    },
-
-    energyBox: {
-        backgroundColor: "#ffffff",
-        borderRadius: "18px",
-        padding: "20px",
-    },
-
-    detailRow: {
-        display: "flex",
-        justifyContent: "space-between",
-        padding: "10px 0",
-        fontSize: "16px",
-        color: "#111827",
-    },
-
-    totalEnergyRow: {
-        marginTop: "10px",
-        backgroundColor: "#dcfce7",
-        color: "#166534",
-        borderRadius: "12px",
-        padding: "12px 14px",
-        display: "flex",
-        justifyContent: "space-between",
-        fontSize: "16px",
-        fontWeight: "800",
-    },
-
-    weatherGrid: {
-        display: "grid",
-        gridTemplateColumns: "1fr 1fr",
-        gap: "12px",
-        marginBottom: "24px",
-    },
-
-    miniDetailCard: {
-        backgroundColor: "#ffffff",
-        borderRadius: "14px",
-        padding: "15px",
-        minHeight: "90px",
-    },
-
-    chargingStopBox: {
-        backgroundColor: "#dcfce7",
-        color: "#14532d",
-        borderRadius: "16px",
-        padding: "18px",
-    },
-
-    stopTags: {
-        display: "flex",
-        gap: "10px",
-        marginTop: "10px",
-    },
-
-    noChargingBox: {
-        backgroundColor: "#dcfce7",
-        color: "#166534",
-        borderRadius: "16px",
-        padding: "18px",
-        fontWeight: "800",
-    },
-
-    stepsList: {
-        display: "flex",
-        flexDirection: "column",
-        gap: "10px",
-        marginTop: "12px",
-    },
-
-    stepItem: {
-        backgroundColor: "#ffffff",
-        borderRadius: "14px",
-        padding: "14px",
-        border: "1px solid #e5e7eb",
-    },
-
-    emptyText: {
-        color: "#6b7280",
-        fontWeight: "700",
-    },
+      <p className="mt-1 text-base font-bold text-slate-800">
+        {value}
+      </p>
+    </div>
+  );
 };
 
 export default WeatherAwareResult;
