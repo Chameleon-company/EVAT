@@ -19,5 +19,6 @@ def rank_charging_stations(
     recommendations = rank_candidates(
         eligible_candidates,
         request.userProfile.favouriteStationIds,
+        request.userProfile.userHistory,
     )
     return RankChargingStationsResponse(recommendations=recommendations)
