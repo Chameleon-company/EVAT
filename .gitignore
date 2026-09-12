@@ -8,6 +8,7 @@ rasa/.rasa/
 rasa/.cache/
 rasa/.config/
 rasa/models/
+.rasa/cache/
 apps/EVAT_Flask/
 cloudbuild.yaml
 .claude/

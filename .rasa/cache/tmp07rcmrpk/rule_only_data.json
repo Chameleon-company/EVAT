@@ -1,6 +1,0 @@
-{
-  "rule_only_slots": [
-    "conversation_context"
-  ],
-  "rule_only_loops": []
-}
