@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../context/user";
+import { predictPrice } from "../services/pricePredictionService";
+import { BRAND_MODELS, FUEL_TYPES, TRANSMISSIONS, CONDITIONS, formatAud } from "../utils/priceOptions";
 
 const CHATBOT_URL = "https://evat-rasa-rajs2z2qwq-ts.a.run.app/webhooks/rest/webhook";
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
@@ -142,7 +144,104 @@ const STATION_SUGGESTIONS = [
   "Which chargers are available right now?",
 ];
 
+// Questions about what a vehicle is worth. These go to the price prediction model
+// rather than Gemini, which could only guess. Kept deliberately narrow so general
+// questions such as "is an EV worth it?" still reach Gemini.
+const VALUE_QUESTION =
+  /\b(my|this)\s+(car|vehicle|ev|tesla)\b.{0,40}\b(worth|value|sell for)\b|\b(resale|trade[- ]?in) value\b|\bvaluation\b|\bvalue (of )?my (car|vehicle|ev)\b/i;
+
 // ── Sub-components ──────────────────────────────────────────
+
+/** Inline form collecting the eight vehicle details the price model needs. */
+function VehicleValueForm({ onSubmit, onCancel, busy }) {
+  const [brand, setBrand] = useState("Tesla");
+  const [model, setModel] = useState("Model 3");
+  const [year, setYear] = useState(2022);
+  const [mileage, setMileage] = useState(15000);
+  const [fuelType, setFuelType] = useState("Electric");
+  const [transmission, setTransmission] = useState("Automatic");
+  const [condition, setCondition] = useState("Like New");
+  const [engineSize, setEngineSize] = useState(0);
+
+  const isElectric = fuelType === "Electric";
+
+  const changeBrand = (value) => {
+    setBrand(value);
+    setModel((BRAND_MODELS[value] || [])[0] || "");
+  };
+
+  const changeFuel = (value) => {
+    setFuelType(value);
+    // An electric vehicle has no engine; anything else needs a size the model can use.
+    if (value === "Electric") setEngineSize(0);
+    else if (!engineSize || Number(engineSize) <= 0) setEngineSize(2.5);
+  };
+
+  const submit = (e) => {
+    e.preventDefault();
+    onSubmit({
+      Brand: brand,
+      Model: model,
+      Year: Number(year),
+      Mileage: Number(mileage),
+      "Engine Size": isElectric ? 0 : Number(engineSize),
+      "Fuel Type": fuelType,
+      Transmission: transmission,
+      Condition: condition,
+    });
+  };
+
+  const field = { display: "flex", flexDirection: "column", gap: "4px", fontSize: "11px", fontWeight: 600, color: "#888" };
+  const input = { border: "1px solid #e8e8f0", borderRadius: "8px", padding: "7px 9px", fontSize: "13px", color: "#1a1a2e", background: "#fff", font: "inherit" };
+
+  return (
+    <form onSubmit={submit} style={{ background: "#fff", border: "1px solid #e8e8f0", borderRadius: "14px", padding: "16px", marginBottom: "12px", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
+      <p style={{ margin: "0 0 12px 0", fontSize: "13px", fontWeight: 700, color: "#1a1a2e" }}>Estimate a vehicle&apos;s value</p>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px" }}>
+        <label style={field}>Brand
+          <select style={input} value={brand} onChange={(e) => changeBrand(e.target.value)}>
+            {Object.keys(BRAND_MODELS).map((b) => <option key={b} value={b}>{b}</option>)}
+          </select>
+        </label>
+        <label style={field}>Model
+          <select style={input} value={model} onChange={(e) => setModel(e.target.value)}>
+            {(BRAND_MODELS[brand] || []).map((m) => <option key={m} value={m}>{m}</option>)}
+          </select>
+        </label>
+        <label style={field}>Year
+          <input style={input} type="number" min={1990} max={new Date().getFullYear() + 1} value={year} onChange={(e) => setYear(e.target.value)} required />
+        </label>
+        <label style={field}>Mileage (km)
+          <input style={input} type="number" min={0} value={mileage} onChange={(e) => setMileage(e.target.value)} required />
+        </label>
+        <label style={field}>Fuel type
+          <select style={input} value={fuelType} onChange={(e) => changeFuel(e.target.value)}>
+            {FUEL_TYPES.map((f) => <option key={f} value={f}>{f}</option>)}
+          </select>
+        </label>
+        <label style={field}>Transmission
+          <select style={input} value={transmission} onChange={(e) => setTransmission(e.target.value)}>
+            {TRANSMISSIONS.map((t) => <option key={t} value={t}>{t}</option>)}
+          </select>
+        </label>
+        <label style={field}>Condition
+          <select style={input} value={condition} onChange={(e) => setCondition(e.target.value)}>
+            {CONDITIONS.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </label>
+        <label style={field}>Engine size (L)
+          <input style={input} type="number" step="0.1" min={isElectric ? 0 : 0.1} value={engineSize} disabled={isElectric} onChange={(e) => setEngineSize(e.target.value)} required={!isElectric} />
+        </label>
+      </div>
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "14px" }}>
+        <button type="button" onClick={onCancel} disabled={busy}
+          style={{ background: "none", border: "1px solid #e8e8f0", borderRadius: "8px", padding: "7px 14px", fontSize: "12px", fontWeight: 600, color: "#888", cursor: "pointer" }}>Cancel</button>
+        <button type="submit" disabled={busy}
+          style={{ background: busy ? "#ddd" : "linear-gradient(135deg,#6366f1,#10b981)", color: "#fff", border: "none", borderRadius: "8px", padding: "7px 16px", fontSize: "12px", fontWeight: 700, cursor: busy ? "wait" : "pointer" }}>{busy ? "Estimating…" : "Get estimate"}</button>
+      </div>
+    </form>
+  );
+}
 
 function Avatar({ type }) {
   return (
@@ -340,6 +439,8 @@ export default function Chatbot() {
   const [geminiMessages, setGeminiMessages] = useState(() => loadStoredMessages(GEMINI_STORE_KEY));
   const [geminiInput, setGeminiInput] = useState("");
   const [geminiLoading, setGeminiLoading] = useState(false);
+  const [showValueForm, setShowValueForm] = useState(false);
+  const [valueLoading, setValueLoading] = useState(false);
 
   const [history, setHistory] = useState(() => {
     try { return JSON.parse(localStorage.getItem("evat_chat_history") || "[]"); } catch { return []; }
@@ -395,6 +496,39 @@ export default function Chatbot() {
       `evat-${isStation ? "station" : "ai"}-chat-${date}.txt`,
       formatConversation(exportableMessages, label)
     );
+  };
+
+  /**
+   * Price a vehicle through the existing Price Prediction API and report the result
+   * as an EVAT-AI reply, so it can be copied, saved and exported like any other.
+   */
+  const handleValueEstimate = async (features) => {
+    const summary = `${features.Year} ${features.Brand} ${features.Model}, ` +
+      `${Number(features.Mileage).toLocaleString()} km, ${features["Fuel Type"]}, ` +
+      `${features.Transmission}, ${features.Condition}`;
+    const addBot = (text) => setGeminiMessages(prev => [...prev, { from: "bot", text, time: timestamp() }]);
+
+    setGeminiMessages(prev => [...prev, { from: "user", text: `Estimate the value of a ${summary}`, time: timestamp() }]);
+
+    if (!user?.token) {
+      setShowValueForm(false);
+      addBot("Please sign in to get a price estimate.");
+      return;
+    }
+
+    setValueLoading(true);
+    try {
+      const result = await predictPrice(features, user.token, "chatbot");
+      addBot(`Estimated value: **${formatAud(result.predicted_price)}** for a ${summary}.\n\nThis figure comes from EVAT's price prediction model.`);
+    } catch (error) {
+      const reason = /token/i.test(error.message || "")
+        ? "Your session has expired. Please sign in again."
+        : error.message || "Please try again.";
+      addBot(`Couldn't get a price estimate. ${reason}`);
+    } finally {
+      setValueLoading(false);
+      setShowValueForm(false);
+    }
   };
 
   // Drop any in-flight request if the page is closed mid-answer.
@@ -540,6 +674,18 @@ export default function Chatbot() {
   const handleGeminiSend = async (text) => {
     const msg = (text || geminiInput).trim();
     if (!msg || geminiLoading) return;
+
+    // A question about what a car is worth goes to the price model, which needs all
+    // eight details, so open the form rather than letting Gemini guess a figure.
+    if (VALUE_QUESTION.test(msg)) {
+      setGeminiInput("");
+      setGeminiMessages(prev => [...prev,
+        { from: "user", text: msg, time: timestamp() },
+        { from: "bot", text: "I can estimate that with EVAT's price prediction model. Fill in the vehicle details below.", time: timestamp() },
+      ]);
+      setShowValueForm(true);
+      return;
+    }
     setGeminiInput("");
     setGeminiMessages(prev => [...prev, { from: "user", text: msg, time: timestamp() }]);
     const entry = beginRequest(geminiAbortRef);
@@ -671,7 +817,7 @@ export default function Chatbot() {
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
             <p style={{ color: "#999", fontSize: "10px", fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", margin: 0 }}>Recent Chats</p>
             <button onClick={() => {
-              stopRasa(); stopGemini();
+              stopRasa(); stopGemini(); setShowValueForm(false);
               setStarted(false); setRasaMessages([]); setGeminiMessages([]);
               localStorage.removeItem("evat_chat_session");
               localStorage.removeItem(RASA_STORE_KEY);
@@ -843,6 +989,14 @@ export default function Chatbot() {
                         </div>
                       ))}
                     </div>
+                    <button type="button" onClick={() => setShowValueForm(true)}
+                      style={{ marginTop: "12px", width: "100%", background: "linear-gradient(135deg,#eef2ff,#ecfdf5)", border: "1px solid #e0e7ff", borderRadius: "12px", padding: "14px 16px", cursor: "pointer", textAlign: "left", font: "inherit", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <span>
+                        <span style={{ display: "block", color: "#1a1a2e", fontSize: "13px", fontWeight: 700 }}>Estimate my car&apos;s value</span>
+                        <span style={{ display: "block", color: "#888", fontSize: "12px", marginTop: "2px" }}>Uses EVAT&apos;s price prediction model</span>
+                      </span>
+                      <span style={{ color: "#6366f1", fontSize: "12px", fontWeight: 600 }}>Open →</span>
+                    </button>
                   </div>
                 )}
 
@@ -874,6 +1028,21 @@ export default function Chatbot() {
                 {!GEMINI_API_KEY && (
                   <div style={{ background: "#fffbeb", border: "1px solid #fcd34d", borderRadius: "10px", padding: "10px 16px", marginBottom: "10px", textAlign: "center" }}>
                     <span style={{ color: "#92400e", fontSize: "12px" }}>⚠️ Add VITE_GEMINI_API_KEY to your .env to enable EVAT-AI</span>
+                  </div>
+                )}
+                {showValueForm && (
+                  <VehicleValueForm
+                    busy={valueLoading}
+                    onSubmit={handleValueEstimate}
+                    onCancel={() => setShowValueForm(false)}
+                  />
+                )}
+                {!showValueForm && geminiMessages.length > 0 && (
+                  <div style={{ marginBottom: "8px" }}>
+                    <button type="button" onClick={() => setShowValueForm(true)}
+                      style={{ background: "#fff", border: "1px solid #e0e7ff", borderRadius: "999px", padding: "5px 12px", fontSize: "12px", fontWeight: 600, color: "#6366f1", cursor: "pointer" }}>
+                      Estimate a car&apos;s value
+                    </button>
                   </div>
                 )}
                 <div className="input-bar">
