@@ -10,27 +10,7 @@ import "../styles/NavBar.css";
 import "../styles/Validation.css";
 import "../styles/PricePrediction.css";
 
-/** Dropdown values from the Price Prediction training dataset (artifacts). */
-const BRAND_MODELS = {
-  Audi: ["A3", "A4", "Q5", "Q7"],
-  BMW: ["3 Series", "5 Series", "X3", "X5"],
-  Ford: ["Explorer", "Fiesta", "Focus", "Mustang"],
-  Honda: ["Accord", "CR-V", "Civic", "Fit"],
-  Mercedes: ["C-Class", "E-Class", "GLA", "GLC"],
-  Tesla: ["Model 3", "Model S", "Model X", "Model Y"],
-  Toyota: ["Camry", "Corolla", "Prius", "RAV4"],
-};
-
-const FUEL_TYPES = ["Diesel", "Electric", "Hybrid", "Petrol"];
-const TRANSMISSIONS = ["Automatic", "Manual"];
-const CONDITIONS = ["Like New", "New", "Used"];
-
-const formatAud = (value) =>
-  new Intl.NumberFormat("en-AU", {
-    style: "currency",
-    currency: "AUD",
-    maximumFractionDigits: 0,
-  }).format(value || 0);
+import { BRAND_MODELS, FUEL_TYPES, TRANSMISSIONS, CONDITIONS, formatAud } from "../utils/priceOptions";
 
 export default function PricePrediction() {
   const [brand, setBrand] = useState("Tesla");

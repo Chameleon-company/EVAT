@@ -1,20 +1,137 @@
 import { useState, useEffect, useRef, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../context/user";
+import { predictPrice } from "../services/pricePredictionService";
+import { rateChatbotReply } from "../services/chatbotFeedbackService";
+import { BRAND_MODELS, FUEL_TYPES, TRANSMISSIONS, CONDITIONS, formatAud } from "../utils/priceOptions";
 
 const CHATBOT_URL = "https://evat-rasa-rajs2z2qwq-ts.a.run.app/webhooks/rest/webhook";
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+// The named replacement for the retired gemini-2.0-flash. The gemini-flash-latest
+// alias was tried first but routes to a busier shared pool and returns 503 far more
+// often, so pin the version and revisit if it is deprecated in turn.
+const GEMINI_MODEL = "gemini-3.6-flash";
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
-const getSessionId = () => {
-  const s = localStorage.getItem("evat_chat_session");
+// Saved chat data is keyed by account, so a shared browser never mixes two users' chats.
+const storageKey = (name, owner) => `evat_chat_${name}:${owner}`;
+// The keys used before chats were saved per account.
+const LEGACY_STORE_KEYS = ["evat_chat_rasa", "evat_chat_gemini", "evat_chat_history", "evat_chat_session"];
+
+// Rasa keeps one conversation per sender id, so each account gets its own.
+const getSessionId = (owner) => {
+  const key = storageKey("session", owner);
+  const s = localStorage.getItem(key);
   if (s) return s;
   const id = "evat-" + Math.random().toString(36).substring(2, 10);
-  localStorage.setItem("evat_chat_session", id);
+  localStorage.setItem(key, id);
   return id;
 };
 
 const timestamp = () => new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+// Give up on a request that has not answered by now, so the tab cannot hang forever.
+const REQUEST_TIMEOUT_MS = 30000;
+
+// Conversations survive a refresh. Keep a bounded number of messages: AI answers are
+// long and localStorage is a few megabytes per origin.
+const MAX_STORED_MESSAGES = 50;
+
+/**
+ * Turn a failed HTTP response into something the user can act on. Without this a
+ * busy service, a rate limit and a bad key all look identical.
+ */
+const describeHttpFailure = async (res, serviceName) => {
+  let detail = "";
+  try {
+    const body = await res.json();
+    detail = body?.error?.message || body?.message || "";
+  } catch {
+    // The error body was not JSON; fall back to the status code below.
+  }
+  if (res.status === 503) return `${serviceName} is busy right now. Please try again in a moment.`;
+  if (res.status === 429) return `Too many requests. Please wait a moment before asking ${serviceName} again.`;
+  if (res.status === 401 || res.status === 403) return `${serviceName} rejected the request. The API key may be missing or invalid.`;
+  if (res.status === 404) return detail || `${serviceName} could not be reached at the configured address.`;
+  return detail || `${serviceName} returned an error (${res.status}).`;
+};
+
+/**
+ * Explain a request that failed before any response could be read. A service that is
+ * down often answers without CORS headers; the browser then hides the status entirely
+ * and fetch rejects with a TypeError, so describeHttpFailure never gets to run.
+ */
+const describeRequestError = (error, serviceName) =>
+  error instanceof TypeError
+    ? `Couldn't reach ${serviceName}. The service may be unavailable right now.`
+    : `Got an unreadable reply from ${serviceName}. Please try again.`;
+
+const loadStoredMessages = (key) => {
+  try {
+    const raw = localStorage.getItem(key);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
+const storeMessages = (key, messages) => {
+  try {
+    localStorage.setItem(key, JSON.stringify(messages.slice(-MAX_STORED_MESSAGES)));
+  } catch {
+    // Storage can be full or blocked; losing the saved copy must not break the chat.
+  }
+};
+
+/**
+ * Render a conversation as plain text. Station Assistant replies are not all text,
+ * so cards and option lists are summarised rather than dropped silently.
+ */
+const formatConversation = (messages, botLabel) => {
+  const header = [
+    `EVAT ${botLabel} conversation`,
+    `Exported ${new Date().toLocaleString()}`,
+    "",
+  ];
+
+  const body = messages.map((message) => {
+    const who = (message.sender || message.from) === "user" ? "You" : botLabel;
+    const time = message.time ? `[${message.time}] ` : "";
+    let text = message.text;
+
+    if (!text) {
+      if (message.type === "chips") {
+        text = `(options offered: ${(message.chips || []).join(", ")})`;
+      } else if (message.type === "stations") {
+        const names = (message.payload?.stations || []).map((s) => s.name || "unnamed").join(", ");
+        text = names ? `(charging stations: ${names})` : "(charging stations)";
+      } else if (message.type === "directions") {
+        text = `(directions: ${message.payload?.origin ?? "?"} to ${message.payload?.destination ?? "?"})`;
+      } else if (message.type === "traffic") {
+        text = "(traffic update)";
+      } else {
+        text = "(attachment)";
+      }
+    }
+
+    // Indent wrapped lines so a multi-paragraph reply still reads as one message.
+    return `${time}${who}: ${String(text).split("\n").join("\n    ")}`;
+  });
+
+  return [...header, ...body, ""].join("\n");
+};
+
+const downloadTextFile = (filename, contents) => {
+  const url = URL.createObjectURL(new Blob([contents], { type: "text/plain;charset=utf-8" }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+};
 
 const GEMINI_SUGGESTIONS = [
   "How far can an EV travel on a full charge?",
@@ -23,7 +140,114 @@ const GEMINI_SUGGESTIONS = [
   "What are the benefits of switching to an EV?",
 ];
 
+// Openers for the Station Assistant, worded around what its replies are built to
+// show: station lists, availability, and the cheapest / fastest choices. Each works
+// as a first message, so none depend on a station having been picked already.
+const STATION_SUGGESTIONS = [
+  "Find charging stations near me",
+  "Find the cheapest charger nearby",
+  "Show me the fastest chargers",
+  "Which chargers are available right now?",
+];
+
+// Questions about what a vehicle is worth. These go to the price prediction model
+// rather than Gemini, which could only guess. Kept deliberately narrow so general
+// questions such as "is an EV worth it?" still reach Gemini.
+const VALUE_QUESTION =
+  /\b(my|this)\s+(car|vehicle|ev|tesla)\b.{0,40}\b(worth|value|sell for)\b|\b(resale|trade[- ]?in) value\b|\bvaluation\b|\bvalue (of )?my (car|vehicle|ev)\b/i;
+
 // ── Sub-components ──────────────────────────────────────────
+
+/** Inline form collecting the eight vehicle details the price model needs. */
+function VehicleValueForm({ onSubmit, onCancel, busy }) {
+  const [brand, setBrand] = useState("Tesla");
+  const [model, setModel] = useState("Model 3");
+  const [year, setYear] = useState(2022);
+  const [mileage, setMileage] = useState(15000);
+  const [fuelType, setFuelType] = useState("Electric");
+  const [transmission, setTransmission] = useState("Automatic");
+  const [condition, setCondition] = useState("Like New");
+  const [engineSize, setEngineSize] = useState(0);
+
+  const isElectric = fuelType === "Electric";
+
+  const changeBrand = (value) => {
+    setBrand(value);
+    setModel((BRAND_MODELS[value] || [])[0] || "");
+  };
+
+  const changeFuel = (value) => {
+    setFuelType(value);
+    // An electric vehicle has no engine; anything else needs a size the model can use.
+    if (value === "Electric") setEngineSize(0);
+    else if (!engineSize || Number(engineSize) <= 0) setEngineSize(2.5);
+  };
+
+  const submit = (e) => {
+    e.preventDefault();
+    onSubmit({
+      Brand: brand,
+      Model: model,
+      Year: Number(year),
+      Mileage: Number(mileage),
+      "Engine Size": isElectric ? 0 : Number(engineSize),
+      "Fuel Type": fuelType,
+      Transmission: transmission,
+      Condition: condition,
+    });
+  };
+
+  const field = { display: "flex", flexDirection: "column", gap: "4px", fontSize: "11px", fontWeight: 600, color: "#888" };
+  const input = { border: "1px solid #e8e8f0", borderRadius: "8px", padding: "7px 9px", fontSize: "13px", color: "#1a1a2e", background: "#fff", font: "inherit" };
+
+  return (
+    <form onSubmit={submit} style={{ background: "#fff", border: "1px solid #e8e8f0", borderRadius: "14px", padding: "16px", marginBottom: "12px", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
+      <p style={{ margin: "0 0 12px 0", fontSize: "13px", fontWeight: 700, color: "#1a1a2e" }}>Estimate a vehicle&apos;s value</p>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px" }}>
+        <label style={field}>Brand
+          <select style={input} value={brand} onChange={(e) => changeBrand(e.target.value)}>
+            {Object.keys(BRAND_MODELS).map((b) => <option key={b} value={b}>{b}</option>)}
+          </select>
+        </label>
+        <label style={field}>Model
+          <select style={input} value={model} onChange={(e) => setModel(e.target.value)}>
+            {(BRAND_MODELS[brand] || []).map((m) => <option key={m} value={m}>{m}</option>)}
+          </select>
+        </label>
+        <label style={field}>Year
+          <input style={input} type="number" min={1990} max={new Date().getFullYear() + 1} value={year} onChange={(e) => setYear(e.target.value)} required />
+        </label>
+        <label style={field}>Mileage (km)
+          <input style={input} type="number" min={0} value={mileage} onChange={(e) => setMileage(e.target.value)} required />
+        </label>
+        <label style={field}>Fuel type
+          <select style={input} value={fuelType} onChange={(e) => changeFuel(e.target.value)}>
+            {FUEL_TYPES.map((f) => <option key={f} value={f}>{f}</option>)}
+          </select>
+        </label>
+        <label style={field}>Transmission
+          <select style={input} value={transmission} onChange={(e) => setTransmission(e.target.value)}>
+            {TRANSMISSIONS.map((t) => <option key={t} value={t}>{t}</option>)}
+          </select>
+        </label>
+        <label style={field}>Condition
+          <select style={input} value={condition} onChange={(e) => setCondition(e.target.value)}>
+            {CONDITIONS.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </label>
+        <label style={field}>Engine size (L)
+          <input style={input} type="number" step="0.1" min={isElectric ? 0 : 0.1} value={engineSize} disabled={isElectric} onChange={(e) => setEngineSize(e.target.value)} required={!isElectric} />
+        </label>
+      </div>
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "14px" }}>
+        <button type="button" onClick={onCancel} disabled={busy}
+          style={{ background: "none", border: "1px solid #e8e8f0", borderRadius: "8px", padding: "7px 14px", fontSize: "12px", fontWeight: 600, color: "#888", cursor: "pointer" }}>Cancel</button>
+        <button type="submit" disabled={busy}
+          style={{ background: busy ? "#ddd" : "linear-gradient(135deg,#6366f1,#10b981)", color: "#fff", border: "none", borderRadius: "8px", padding: "7px 16px", fontSize: "12px", fontWeight: 700, cursor: busy ? "wait" : "pointer" }}>{busy ? "Estimating…" : "Get estimate"}</button>
+      </div>
+    </form>
+  );
+}
 
 function Avatar({ type }) {
   return (
@@ -37,7 +261,21 @@ function Avatar({ type }) {
   );
 }
 
-function Bubble({ sender, children, time }) {
+function Bubble({ sender, children, time, copyText, onRetry, rating, onRate, ratingFailed }) {
+  const [copied, setCopied] = useState(false);
+  const showCopy = sender === "bot" && Boolean(copyText);
+  const showRetry = sender === "bot" && Boolean(onRetry);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(copyText);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // Clipboard is unavailable outside a secure context; leave the label unchanged.
+    }
+  };
+
   return (
     <div style={{ display: "flex", gap: "10px", alignItems: "flex-start", marginBottom: "14px", flexDirection: sender === "user" ? "row-reverse" : "row" }}>
       <Avatar type={sender} />
@@ -52,7 +290,81 @@ function Bubble({ sender, children, time }) {
         fontSize: "14px", lineHeight: "1.6",
       }}>
         {children}
-        <div style={{ fontSize: "10px", color: sender === "user" ? "rgba(255,255,255,0.6)" : "#bbb", marginTop: "4px", textAlign: "right" }}>{time}</div>
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: showCopy || showRetry ? "space-between" : "flex-end",
+          gap: "10px",
+          marginTop: "4px",
+        }}>
+          <div style={{ display: "flex", gap: "10px" }}>
+          {showRetry && (
+            <button
+              type="button"
+              onClick={onRetry}
+              aria-label="Retry this message"
+              title="Send the message again"
+              style={{
+                border: "none",
+                background: "transparent",
+                padding: 0,
+                cursor: "pointer",
+                fontSize: "10px",
+                fontWeight: 700,
+                color: "#6366f1",
+              }}
+            >
+              ↻ Retry
+            </button>
+          )}
+          {showCopy && (
+            <button
+              type="button"
+              onClick={handleCopy}
+              aria-label={copied ? "Message copied to clipboard" : "Copy message"}
+              title={copied ? "Copied" : "Copy message"}
+              style={{
+                border: "none",
+                background: "transparent",
+                padding: 0,
+                cursor: "pointer",
+                fontSize: "10px",
+                fontWeight: 600,
+                color: copied ? "#16a34a" : "#bbb",
+              }}
+            >
+              {copied ? "Copied" : "Copy"}
+            </button>
+          )}
+          {sender === "bot" && onRate && ["up", "down"].map(value => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => onRate(value)}
+              aria-label={value === "up" ? "Mark this reply as helpful" : "Mark this reply as not helpful"}
+              aria-pressed={rating === value}
+              title={value === "up" ? "Helpful" : "Not helpful"}
+              style={{
+                border: "none",
+                background: "transparent",
+                padding: 0,
+                cursor: "pointer",
+                fontSize: "12px",
+                lineHeight: 1,
+                // The chosen thumb shows in colour, the other fades out.
+                filter: rating === value ? "none" : "grayscale(1)",
+                opacity: rating && rating !== value ? 0.35 : rating === value ? 1 : 0.6,
+              }}
+            >
+              {value === "up" ? "👍" : "👎"}
+            </button>
+          ))}
+          {ratingFailed && (
+            <span style={{ fontSize: "10px", color: "#dc2626" }}>Not saved</span>
+          )}
+          </div>
+          <span style={{ fontSize: "10px", color: sender === "user" ? "rgba(255,255,255,0.6)" : "#bbb" }}>{time}</span>
+        </div>
       </div>
     </div>
   );
@@ -162,32 +474,166 @@ function Chips({ options, onSelect }) {
 
 // ── Main component ──────────────────────────────────────────
 
+/** The signed-in account's id, falling back to the saved login while the context loads. */
+const chatOwner = (user) => {
+  let account = user;
+  if (!account) {
+    try { account = JSON.parse(localStorage.getItem("currentUser") || "null"); } catch { account = null; }
+  }
+  return account?.id || account?._id || account?.email || "guest";
+};
+
+/**
+ * Chats are saved per account, and the page is rebuilt when the account changes, so
+ * one user never sees, or sends to Gemini as context, another user's conversation.
+ */
 export default function Chatbot() {
+  const { user } = useContext(UserContext);
+  const owner = chatOwner(user);
+
+  // Chats saved before they were kept per account could belong to anyone, so drop them.
+  useEffect(() => {
+    LEGACY_STORE_KEYS.forEach((key) => localStorage.removeItem(key));
+  }, []);
+
+  return <ChatbotPage key={owner} owner={owner} />;
+}
+
+function ChatbotPage({ owner }) {
   const navigate = useNavigate();
   const { user } = useContext(UserContext);
   const firstName = user?.firstName || "there";
+  const rasaStoreKey = storageKey("rasa", owner);
+  const geminiStoreKey = storageKey("gemini", owner);
+  const historyStoreKey = storageKey("history", owner);
 
   const [activeTab, setActiveTab] = useState("station");
   const [showHistory, setShowHistory] = useState(false);
 
   // Messages — each: { id, type, sender, text, payload, chips, time }
-  const [rasaMessages, setRasaMessages] = useState([]);
+  const [rasaMessages, setRasaMessages] = useState(() => loadStoredMessages(rasaStoreKey));
   const [rasaInput, setRasaInput] = useState("");
   const [rasaLoading, setRasaLoading] = useState(false);
-  const [started, setStarted] = useState(false);
+  // A restored conversation is already started, otherwise the input stays locked
+  // behind "Click Start Chat to begin" with the previous messages visible above it.
+  const [started, setStarted] = useState(() => loadStoredMessages(rasaStoreKey).length > 0);
 
-  const [geminiMessages, setGeminiMessages] = useState([]);
+  const [geminiMessages, setGeminiMessages] = useState(() => loadStoredMessages(geminiStoreKey));
   const [geminiInput, setGeminiInput] = useState("");
   const [geminiLoading, setGeminiLoading] = useState(false);
+  const [showValueForm, setShowValueForm] = useState(false);
+  const [valueLoading, setValueLoading] = useState(false);
 
   const [history, setHistory] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("evat_chat_history") || "[]"); } catch { return []; }
+    try { return JSON.parse(localStorage.getItem(historyStoreKey) || "[]"); } catch { return []; }
   });
 
   const [location, setLocation] = useState(null);
   const rasaBottomRef = useRef(null);
   const geminiBottomRef = useRef(null);
   const rasaInputRef = useRef(null);
+  const rasaAbortRef = useRef(null);
+  const geminiAbortRef = useRef(null);
+  // Bumped by "+ New". A request remembers the value it started with and drops its
+  // reply if the chat has been cleared since.
+  const rasaGenerationRef = useRef(0);
+  const geminiGenerationRef = useRef(0);
+  // Per rated reply: the rating last chosen, the rating last saved, and whether a save is running.
+  const ratingSyncRef = useRef(new Map());
+
+  /**
+   * Track the in-flight request for a tab so it can be cancelled, either by the
+   * user pressing stop or by the timeout below when a service stops responding.
+   */
+  const beginRequest = (ref) => {
+    ref.current?.controller.abort();
+    const entry = { controller: new AbortController(), timedOut: false };
+    entry.timer = setTimeout(() => {
+      entry.timedOut = true;
+      entry.controller.abort();
+    }, REQUEST_TIMEOUT_MS);
+    ref.current = entry;
+    return entry;
+  };
+
+  const endRequest = (ref, entry) => {
+    clearTimeout(entry.timer);
+    if (ref.current === entry) ref.current = null;
+  };
+
+  /** Message to show when a request did not finish normally. */
+  const cancelledMessage = (error, entry) => {
+    if (error?.name !== "AbortError") return null;
+    return entry.timedOut
+      ? "That took longer than expected. Please try again."
+      : "Stopped.";
+  };
+
+  const stopRasa = () => rasaAbortRef.current?.controller.abort();
+  const stopGemini = () => geminiAbortRef.current?.controller.abort();
+
+  /** Download the conversation the user is currently looking at. */
+  const exportableMessages = activeTab === "station" ? rasaMessages : geminiMessages;
+
+  const handleExportChat = () => {
+    if (exportableMessages.length === 0) return;
+    const isStation = activeTab === "station";
+    const label = isStation ? "Station Assistant" : "EVAT-AI";
+    const date = new Date().toISOString().slice(0, 10);
+    downloadTextFile(
+      `evat-${isStation ? "station" : "ai"}-chat-${date}.txt`,
+      formatConversation(exportableMessages, label)
+    );
+  };
+
+  /**
+   * Price a vehicle through the existing Price Prediction API and report the result
+   * as an EVAT-AI reply, so it can be copied, saved and exported like any other.
+   */
+  const handleValueEstimate = async (features, isRetry = false) => {
+    const summary = `${features.Year} ${features.Brand} ${features.Model}, ` +
+      `${Number(features.Mileage).toLocaleString()} km, ${features["Fuel Type"]}, ` +
+      `${features.Transmission}, ${features.Condition}`;
+    // An estimate that arrives after "+ New" belongs to the cleared chat, so it is dropped.
+    const generation = geminiGenerationRef.current;
+    const addBot = (text, extra) => {
+      if (generation === geminiGenerationRef.current) {
+        setGeminiMessages(prev => [...prev, { from: "bot", text, time: timestamp(), ...extra }]);
+      }
+    };
+
+    if (!isRetry) {
+      setGeminiMessages(prev => [...prev, { from: "user", text: `Estimate the value of a ${summary}`, time: timestamp() }]);
+    }
+
+    if (!user?.token) {
+      setShowValueForm(false);
+      addBot("Please sign in to get a price estimate.");
+      return;
+    }
+
+    setValueLoading(true);
+    try {
+      const result = await predictPrice(features, user.token, "chatbot");
+      addBot(`Estimated value: **${formatAud(result.predicted_price)}** for a ${summary}.\n\nThis figure comes from EVAT's price prediction model.`);
+    } catch (error) {
+      const expired = /token/i.test(error.message || "");
+      const reason = expired
+        ? "Your session has expired. Please sign in again."
+        : error.message || "Please try again.";
+      // Resending with an expired session would fail the same way, so no retry then.
+      addBot(`Couldn't get a price estimate. ${reason}`, expired ? {} : { retryValue: features });
+    } finally {
+      setValueLoading(false);
+      setShowValueForm(false);
+    }
+  };
+
+  // Drop any in-flight request if the page is closed mid-answer.
+  useEffect(() => () => {
+    rasaAbortRef.current?.controller.abort();
+    geminiAbortRef.current?.controller.abort();
+  }, []);
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -200,34 +646,67 @@ export default function Chatbot() {
 
   useEffect(() => { rasaBottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [rasaMessages, rasaLoading]);
   useEffect(() => { geminiBottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [geminiMessages, geminiLoading]);
-  useEffect(() => { localStorage.setItem("evat_chat_history", JSON.stringify(history)); }, [history]);
+  useEffect(() => { localStorage.setItem(historyStoreKey, JSON.stringify(history)); }, [history, historyStoreKey]);
+  useEffect(() => { storeMessages(rasaStoreKey, rasaMessages); }, [rasaMessages, rasaStoreKey]);
+  useEffect(() => { storeMessages(geminiStoreKey, geminiMessages); }, [geminiMessages, geminiStoreKey]);
 
   const addRasaMessage = (msg) => {
     setRasaMessages(prev => [...prev, { id: Date.now() + Math.random(), time: timestamp(), ...msg }]);
   };
 
   const sendToRasa = async (text) => {
+    // A reply that arrives after "+ New" belongs to the cleared chat, so it is dropped.
+    const generation = rasaGenerationRef.current;
+    const addReply = (msg) => {
+      if (generation === rasaGenerationRef.current) addRasaMessage(msg);
+    };
+    const entry = beginRequest(rasaAbortRef);
     setRasaLoading(true);
     try {
       const res = await fetch(CHATBOT_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          sender: getSessionId(),
+          sender: getSessionId(owner),
           message: text,
           metadata: location || {},
         }),
+        signal: entry.controller.signal,
       });
+      if (!res.ok) {
+        addReply({
+          type: "text",
+          sender: "bot",
+          text: await describeHttpFailure(res, "The station assistant"),
+          retry: text,
+        });
+        return;
+      }
       const data = await res.json();
-      handleRasaResponse(data || []);
-    } catch {
-      addRasaMessage({ type: "text", sender: "bot", text: "Server error. Please try again." });
+      handleRasaResponse(data || [], addReply);
+    } catch (error) {
+      addReply({
+        type: "text",
+        sender: "bot",
+        text: cancelledMessage(error, entry) || describeRequestError(error, "the station assistant"),
+        retry: text,
+      });
     } finally {
+      endRequest(rasaAbortRef, entry);
       setRasaLoading(false);
     }
   };
 
-  const handleRasaResponse = (messages) => {
+  /** Send a failed message again. The error bubble is replaced by the new reply. */
+  const handleRasaRetry = async (failed) => {
+    if (rasaLoading || !failed?.retry) return;
+    setRasaMessages(prev => prev.filter(m => m.id !== failed.id));
+    await sendToRasa(failed.retry);
+  };
+
+  // addReply comes from sendToRasa, so the staggered messages below are also dropped
+  // if the chat is cleared while they are still being shown.
+  const handleRasaResponse = (messages, addReply = addRasaMessage) => {
     messages.forEach((msg, i) => {
       setTimeout(() => {
         // Text message
@@ -236,17 +715,17 @@ export default function Chatbot() {
           const needsNumberChips = /press|type/i.test(clean) && /1.*2.*3|1, 2, or 3/i.test(clean);
           const needsFcpChips = /fastest|cheapest|premium/i.test(clean) && !/1.*2.*3/.test(clean);
 
-          addRasaMessage({ type: "text", sender: "bot", text: clean });
+          addReply({ type: "text", sender: "bot", text: clean });
 
           if (needsNumberChips) {
-            setTimeout(() => addRasaMessage({ type: "chips", sender: "bot", chips: ["1", "2", "3"] }), 200);
+            setTimeout(() => addReply({ type: "chips", sender: "bot", chips: ["1", "2", "3"] }), 200);
           }
           if (needsFcpChips) {
-            setTimeout(() => addRasaMessage({ type: "chips", sender: "bot", chips: ["Cheapest", "Fastest", "Premium"] }), 200);
+            setTimeout(() => addReply({ type: "chips", sender: "bot", chips: ["Cheapest", "Fastest", "Premium"] }), 200);
           }
           // Rasa buttons
           if (msg.buttons?.length) {
-            setTimeout(() => addRasaMessage({ type: "chips", sender: "bot", chips: msg.buttons.map(b => b.title), payloads: msg.buttons.map(b => b.payload) }), 200);
+            setTimeout(() => addReply({ type: "chips", sender: "bot", chips: msg.buttons.map(b => b.title), payloads: msg.buttons.map(b => b.payload) }), 200);
           }
         }
 
@@ -254,11 +733,11 @@ export default function Chatbot() {
         const payload = msg.custom || msg.json_message || null;
         if (payload && typeof payload === "object") {
           if (payload.type === "directions") {
-            addRasaMessage({ type: "directions", sender: "bot", payload });
+            addReply({ type: "directions", sender: "bot", payload });
           } else if (payload.type === "traffic") {
-            addRasaMessage({ type: "traffic", sender: "bot", payload });
+            addReply({ type: "traffic", sender: "bot", payload });
           } else if (Array.isArray(payload.stations)) {
-            addRasaMessage({ type: "stations", sender: "bot", payload });
+            addReply({ type: "stations", sender: "bot", payload });
           }
         }
       }, i * 350);
@@ -276,6 +755,14 @@ export default function Chatbot() {
     setStarted(true);
     addRasaMessage({ type: "text", sender: "user", text: "hello" });
     await sendToRasa("hello");
+  };
+
+  /** Start the conversation with a suggested question instead of a greeting. */
+  const handleRasaSuggestion = async (text) => {
+    if (rasaLoading) return;
+    setStarted(true);
+    addRasaMessage({ type: "text", sender: "user", text });
+    await sendToRasa(text);
   };
 
   const handleRasaSubmit = async () => {
@@ -301,18 +788,45 @@ export default function Chatbot() {
   const handleGeminiSend = async (text) => {
     const msg = (text || geminiInput).trim();
     if (!msg || geminiLoading) return;
+
+    // A question about what a car is worth goes to the price model, which needs all
+    // eight details, so open the form rather than letting Gemini guess a figure.
+    if (VALUE_QUESTION.test(msg)) {
+      setGeminiInput("");
+      setGeminiMessages(prev => [...prev,
+        { from: "user", text: msg, time: timestamp() },
+        { from: "bot", text: "I can estimate that with EVAT's price prediction model. Fill in the vehicle details below.", time: timestamp() },
+      ]);
+      setShowValueForm(true);
+      return;
+    }
     setGeminiInput("");
     setGeminiMessages(prev => [...prev, { from: "user", text: msg, time: timestamp() }]);
+    await askGemini(msg, geminiMessages);
+  };
+
+  /**
+   * Send one question to Gemini with the earlier conversation as context. Error
+   * replies are left out of that context, since they were never real answers.
+   */
+  const askGemini = async (msg, earlier) => {
+    // A reply that arrives after "+ New" belongs to the cleared chat, so it is dropped.
+    const generation = geminiGenerationRef.current;
+    const isCurrent = () => generation === geminiGenerationRef.current;
+    const addReply = (reply) => {
+      if (isCurrent()) setGeminiMessages(prev => [...prev, { from: "bot", time: timestamp(), ...reply }]);
+    };
+    const entry = beginRequest(geminiAbortRef);
     setGeminiLoading(true);
     try {
       if (!GEMINI_API_KEY) {
         setTimeout(() => {
-          setGeminiMessages(prev => [...prev, { from: "bot", text: "Add VITE_GEMINI_API_KEY to your .env to enable EVAT-AI.", time: timestamp() }]);
+          addReply({ text: "Add VITE_GEMINI_API_KEY to your .env to enable EVAT-AI." });
           setGeminiLoading(false);
         }, 400);
         return;
       }
-      const ctx = geminiMessages.map(m => ({ role: m.from === "user" ? "user" : "model", parts: [{ text: m.text }] }));
+      const ctx = earlier.filter(m => !m.retry && !m.retryValue).map(m => ({ role: m.from === "user" ? "user" : "model", parts: [{ text: m.text }] }));
       const res = await fetch(GEMINI_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -320,20 +834,116 @@ export default function Chatbot() {
           system_instruction: { parts: [{ text: "You are EVAT-AI, an EV assistant for the EVAT platform in Australia. Answer questions about electric vehicles, charging, range, costs, and sustainability. Keep answers concise and helpful." }] },
           contents: [...ctx, { role: "user", parts: [{ text: msg }] }]
         }),
+        signal: entry.controller.signal,
       });
+      if (!res.ok) {
+        addReply({ text: await describeHttpFailure(res, "EVAT-AI"), retry: msg });
+        return;
+      }
       const data = await res.json();
       const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I couldn't generate a response.";
-      setGeminiMessages(prev => [...prev, { from: "bot", text: reply, time: timestamp() }]);
-      setHistory(prev => [{ id: Date.now(), title: msg.slice(0, 40), tab: "ai", date: new Date().toISOString() }, ...prev.slice(0, 19)]);
-    } catch {
-      setGeminiMessages(prev => [...prev, { from: "bot", text: "Something went wrong. Please try again.", time: timestamp() }]);
-    } finally { setGeminiLoading(false); }
+      addReply({ text: reply });
+      if (isCurrent()) {
+        setHistory(prev => [{ id: Date.now(), title: msg.slice(0, 40), tab: "ai", date: new Date().toISOString() }, ...prev.slice(0, 19)]);
+      }
+    } catch (error) {
+      addReply({ text: cancelledMessage(error, entry) || describeRequestError(error, "EVAT-AI"), retry: msg });
+    } finally {
+      endRequest(geminiAbortRef, entry);
+      setGeminiLoading(false);
+    }
+  };
+
+  /**
+   * Resend the question behind a failed EVAT-AI reply. Only the latest reply offers
+   * this, so the new answer lands where the error was, straight after the question.
+   */
+  const handleGeminiRetry = async (index) => {
+    const failed = geminiMessages[index];
+    if (!failed || geminiLoading || valueLoading) return;
+    setGeminiMessages(prev => prev.filter((_, i) => i !== index));
+    if (failed.retryValue) {
+      await handleValueEstimate(failed.retryValue, true);
+      return;
+    }
+    // The question itself is already on screen just above the error.
+    const earlier = geminiMessages.slice(0, index);
+    const last = earlier[earlier.length - 1];
+    if (last?.from === "user" && last.text === failed.retry) earlier.pop();
+    await askGemini(failed.retry, earlier);
+  };
+
+  /**
+   * Record a thumbs up or down on a reply so the team can see which answers fall short.
+   * Clicking the same thumb again clears it. The choice shows straight away.
+   *
+   * Saves for one reply run one at a time: a change of mind made while a save is under
+   * way is sent once that save finishes, so the stored rating always ends on the
+   * user's latest choice. If a save fails, the thumbs go back to what the server holds.
+   */
+  const handleRate = (tab, index, value) => {
+    const isStation = tab === "station";
+    const messages = isStation ? rasaMessages : geminiMessages;
+    const setMessages = isStation ? setRasaMessages : setGeminiMessages;
+    const target = messages[index];
+    if (!target) return;
+
+    // EVAT-AI messages have no id of their own, so the first rating gives them one.
+    const messageId = String(target.id ?? `${Date.now()}-${index}`);
+    let sync = ratingSyncRef.current.get(messageId);
+    if (!sync) {
+      sync = { chosen: target.rating || null, saved: target.rating || null, saving: false };
+      ratingSyncRef.current.set(messageId, sync);
+    }
+    const chosen = sync.chosen === value ? null : value;
+    sync.chosen = chosen;
+
+    setMessages(prev => prev.map((m, i) => (
+      i === index ? { ...m, id: m.id ?? messageId, rating: chosen, ratingFailed: false } : m
+    )));
+    if (sync.saving) return; // the save under way sends this choice when it finishes
+
+    const question = messages.slice(0, index).reverse()
+      .find(m => (m.sender || m.from) === "user" && m.text)?.text || "";
+    const details = { messageId, tab, reply: target.text, question };
+    // Matched by id, since "+ New" or a retry may have moved the reply by the time a save ends.
+    const showSaved = (fields) => setMessages(prev => prev.map(m => (
+      String(m.id) === messageId ? { ...m, ...fields } : m
+    )));
+
+    const saveLatest = async () => {
+      sync.saving = true;
+      try {
+        if (!user?.token) throw new Error("Not signed in");
+        while (sync.chosen !== sync.saved) {
+          const rating = sync.chosen;
+          await rateChatbotReply({ ...details, rating }, user.token);
+          sync.saved = rating;
+        }
+      } catch (error) {
+        console.warn("Chatbot rating not saved:", error.message);
+        sync.chosen = sync.saved;
+        showSaved({ rating: sync.saved, ratingFailed: true });
+      } finally {
+        sync.saving = false;
+      }
+    };
+    saveLatest();
   };
 
   const renderRasaMessage = (msg) => {
     if (msg.type === "text") {
       return (
-        <Bubble key={msg.id} sender={msg.sender} time={msg.time}>
+        <Bubble
+          key={msg.id}
+          sender={msg.sender}
+          time={msg.time}
+          copyText={msg.text}
+          onRetry={msg.retry && msg.id === rasaMessages[rasaMessages.length - 1]?.id ? () => handleRasaRetry(msg) : undefined}
+          rating={msg.rating}
+          ratingFailed={msg.ratingFailed}
+          onRate={!msg.retry ? (value) => handleRate("station", rasaMessages.findIndex(m => m.id === msg.id), value) : undefined}
+        >
           <span style={{ whiteSpace: "pre-wrap" }}>{msg.text}</span>
         </Bubble>
       );
@@ -421,8 +1031,14 @@ export default function Chatbot() {
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
             <p style={{ color: "#999", fontSize: "10px", fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", margin: 0 }}>Recent Chats</p>
             <button onClick={() => {
+              // Invalidate replies still on their way first, or they would refill the new chat.
+              rasaGenerationRef.current += 1;
+              geminiGenerationRef.current += 1;
+              stopRasa(); stopGemini(); setShowValueForm(false);
               setStarted(false); setRasaMessages([]); setGeminiMessages([]);
-              localStorage.removeItem("evat_chat_session");
+              localStorage.removeItem(storageKey("session", owner));
+              localStorage.removeItem(rasaStoreKey);
+              localStorage.removeItem(geminiStoreKey);
               setHistory(prev => prev.map(h => ({ ...h, active: false })));
             }} style={{ background: "linear-gradient(135deg,#6366f1,#4f46e5)", color: "#fff", border: "none", borderRadius: "8px", padding: "5px 10px", fontSize: "11px", fontWeight: 600, cursor: "pointer" }}>+ New</button>
           </div>
@@ -455,9 +1071,34 @@ export default function Chatbot() {
             <button className={`tab-btn ${activeTab === "station" ? "active" : ""}`} onClick={() => setActiveTab("station")}>⚡ Station Assistant</button>
             <button className={`tab-btn ${activeTab === "ai" ? "active" : ""}`} onClick={() => setActiveTab("ai")}>✨ EVAT-AI</button>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-            <span style={{ width: 7, height: 7, borderRadius: "50%", backgroundColor: location ? "#10b981" : "#f87171", display: "inline-block" }} />
-            <span style={{ color: "#bbb", fontSize: "11px" }}>{location ? "GPS on" : "GPS off"}</span>
+          <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+            <button
+              type="button"
+              onClick={handleExportChat}
+              disabled={exportableMessages.length === 0}
+              aria-label="Download this conversation as a text file"
+              title={exportableMessages.length === 0 ? "Nothing to export yet" : "Download this conversation"}
+              style={{
+                display: "flex", alignItems: "center", gap: "5px",
+                background: "none",
+                border: "1px solid #e8e8f0",
+                borderRadius: "8px",
+                padding: "5px 10px",
+                fontSize: "11px",
+                fontWeight: 600,
+                color: exportableMessages.length === 0 ? "#ddd" : "#6366f1",
+                cursor: exportableMessages.length === 0 ? "not-allowed" : "pointer",
+              }}
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              Export
+            </button>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <span style={{ width: 7, height: 7, borderRadius: "50%", backgroundColor: location ? "#10b981" : "#f87171", display: "inline-block" }} />
+              <span style={{ color: "#bbb", fontSize: "11px" }}>{location ? "GPS on" : "GPS off"}</span>
+            </div>
           </div>
         </div>
 
@@ -481,6 +1122,18 @@ export default function Chatbot() {
                       style={{ background: "linear-gradient(135deg,#6366f1,#4f46e5)", color: "#fff", border: "none", borderRadius: "12px", padding: "13px 36px", fontWeight: 700, fontSize: "15px", cursor: "pointer", boxShadow: "0 6px 20px rgba(99,102,241,0.3)" }}>
                       Start Chat →
                     </button>
+                    <p style={{ color: "#bbb", fontSize: "12px", margin: "28px 0 12px 0" }}>or start with one of these</p>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", textAlign: "left" }}>
+                      {STATION_SUGGESTIONS.map(s => (
+                        <button key={s} type="button" onClick={() => handleRasaSuggestion(s)}
+                          style={{ background: "#fff", border: "1px solid #eee", borderRadius: "12px", padding: "14px 16px", cursor: "pointer", boxShadow: "0 2px 8px rgba(0,0,0,0.04)", transition: "all 0.2s", textAlign: "left", font: "inherit" }}
+                          onMouseEnter={e => { e.currentTarget.style.borderColor = "#6366f1"; e.currentTarget.style.boxShadow = "0 4px 16px rgba(99,102,241,0.1)"; }}
+                          onMouseLeave={e => { e.currentTarget.style.borderColor = "#eee"; e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.04)"; }}>
+                          <p style={{ color: "#555", fontSize: "13px", margin: "0 0 6px 0", lineHeight: "1.4" }}>{s}</p>
+                          <span style={{ color: "#6366f1", fontSize: "12px", fontWeight: 600 }}>Ask this →</span>
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
 
@@ -513,9 +1166,15 @@ export default function Chatbot() {
                     disabled={!started}
                     style={{ flex: 1, background: "none", border: "none", color: "#1a1a2e", fontSize: "14px", outline: "none", padding: "8px 0" }}
                   />
-                  <button className="send-btn" onClick={handleRasaSubmit} disabled={rasaLoading || !rasaInput.trim() || !started}
-                    style={{ background: rasaLoading || !rasaInput.trim() || !started ? "#ddd" : "linear-gradient(135deg,#6366f1,#4f46e5)", color: "#fff", border: "none", borderRadius: "10px", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center", cursor: rasaLoading || !rasaInput.trim() || !started ? "not-allowed" : "pointer", transition: "all 0.2s" }}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                  <button className="send-btn"
+                    onClick={rasaLoading ? stopRasa : handleRasaSubmit}
+                    disabled={rasaLoading ? false : (!rasaInput.trim() || !started)}
+                    aria-label={rasaLoading ? "Stop the current request" : "Send message"}
+                    title={rasaLoading ? "Stop" : "Send"}
+                    style={{ background: rasaLoading ? "#ef4444" : (!rasaInput.trim() || !started ? "#ddd" : "linear-gradient(135deg,#6366f1,#4f46e5)"), color: "#fff", border: "none", borderRadius: "10px", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center", cursor: rasaLoading ? "pointer" : (!rasaInput.trim() || !started ? "not-allowed" : "pointer"), transition: "all 0.2s" }}>
+                    {rasaLoading
+                      ? <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>
+                      : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>}
                   </button>
                 </div>
                 <p style={{ color: "#bbb", fontSize: "11px", textAlign: "center", marginTop: "6px" }}>Powered by Rasa · {location ? "GPS enabled" : "Enable GPS for nearby stations"}</p>
@@ -547,11 +1206,28 @@ export default function Chatbot() {
                         </div>
                       ))}
                     </div>
+                    <button type="button" onClick={() => setShowValueForm(true)}
+                      style={{ marginTop: "12px", width: "100%", background: "linear-gradient(135deg,#eef2ff,#ecfdf5)", border: "1px solid #e0e7ff", borderRadius: "12px", padding: "14px 16px", cursor: "pointer", textAlign: "left", font: "inherit", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <span>
+                        <span style={{ display: "block", color: "#1a1a2e", fontSize: "13px", fontWeight: 700 }}>Estimate my car&apos;s value</span>
+                        <span style={{ display: "block", color: "#888", fontSize: "12px", marginTop: "2px" }}>Uses EVAT&apos;s price prediction model</span>
+                      </span>
+                      <span style={{ color: "#6366f1", fontSize: "12px", fontWeight: 600 }}>Open →</span>
+                    </button>
                   </div>
                 )}
 
                 {geminiMessages.map((msg, i) => (
-                  <Bubble key={i} sender={msg.from} time={msg.time}>
+                  <Bubble
+                    key={i}
+                    sender={msg.from}
+                    time={msg.time}
+                    copyText={msg.text}
+                    onRetry={(msg.retry || msg.retryValue) && i === geminiMessages.length - 1 ? () => handleGeminiRetry(i) : undefined}
+                    rating={msg.rating}
+                    ratingFailed={msg.ratingFailed}
+                    onRate={!msg.retry && !msg.retryValue ? (value) => handleRate("ai", i, value) : undefined}
+                  >
                     {msg.from === "bot" ? (
                       <>
                         <p style={{ color: "#6366f1", fontSize: "10px", fontWeight: 700, letterSpacing: "1px", margin: "0 0 6px 0" }}>EVAT-AI</p>
@@ -580,6 +1256,21 @@ export default function Chatbot() {
                     <span style={{ color: "#92400e", fontSize: "12px" }}>⚠️ Add VITE_GEMINI_API_KEY to your .env to enable EVAT-AI</span>
                   </div>
                 )}
+                {showValueForm && (
+                  <VehicleValueForm
+                    busy={valueLoading}
+                    onSubmit={handleValueEstimate}
+                    onCancel={() => setShowValueForm(false)}
+                  />
+                )}
+                {!showValueForm && geminiMessages.length > 0 && (
+                  <div style={{ marginBottom: "8px" }}>
+                    <button type="button" onClick={() => setShowValueForm(true)}
+                      style={{ background: "#fff", border: "1px solid #e0e7ff", borderRadius: "999px", padding: "5px 12px", fontSize: "12px", fontWeight: 600, color: "#6366f1", cursor: "pointer" }}>
+                      Estimate a car&apos;s value
+                    </button>
+                  </div>
+                )}
                 <div className="input-bar">
                   <span style={{ color: "#bbb", marginRight: "8px" }}>✨</span>
                   <input type="text" value={geminiInput}
@@ -588,9 +1279,15 @@ export default function Chatbot() {
                     placeholder='Ask anything about EVs...'
                     style={{ flex: 1, background: "none", border: "none", color: "#1a1a2e", fontSize: "14px", outline: "none", padding: "8px 0" }}
                   />
-                  <button className="send-btn" onClick={() => handleGeminiSend()} disabled={geminiLoading || !geminiInput.trim()}
-                    style={{ background: geminiLoading || !geminiInput.trim() ? "#ddd" : "linear-gradient(135deg,#6366f1,#10b981)", color: "#fff", border: "none", borderRadius: "10px", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center", cursor: geminiLoading || !geminiInput.trim() ? "not-allowed" : "pointer", transition: "all 0.2s" }}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                  <button className="send-btn"
+                    onClick={geminiLoading ? stopGemini : () => handleGeminiSend()}
+                    disabled={geminiLoading ? false : !geminiInput.trim()}
+                    aria-label={geminiLoading ? "Stop the current request" : "Send message"}
+                    title={geminiLoading ? "Stop" : "Send"}
+                    style={{ background: geminiLoading ? "#ef4444" : (!geminiInput.trim() ? "#ddd" : "linear-gradient(135deg,#6366f1,#10b981)"), color: "#fff", border: "none", borderRadius: "10px", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center", cursor: geminiLoading ? "pointer" : (!geminiInput.trim() ? "not-allowed" : "pointer"), transition: "all 0.2s" }}>
+                    {geminiLoading
+                      ? <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>
+                      : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>}
                   </button>
                 </div>
                 <p style={{ color: "#bbb", fontSize: "11px", textAlign: "center", marginTop: "6px" }}>Powered by EVAT-AI · EV-focused assistant</p>
