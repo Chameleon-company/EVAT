@@ -167,6 +167,56 @@ async getCostComparison(
         }
     }
 }
+
+/**
+ * Calls the Python ML microservice to compute a composite Trip Confidence
+ * Score, synthesising weather-aware routing, demand forecasting, charger
+ * reliability, cost comparison, and environmental impact into one score.
+ *
+ * @param payload Trip details matching the Python service's TripConfidenceRequest shape
+ * @returns Composite confidence score, per-factor breakdown, and summary
+ */
+async getTripConfidence(payload: {
+    origin: string;
+    destination: string;
+    ac_on?: boolean;
+    destination_postcode: string;
+    trip_date: string;
+    distance_km: number;
+    electricity_price_per_kwh: number;
+    petrol_price_per_l: number;
+    ev_make?: string;
+    ev_model?: string;
+    ev_variant?: string;
+    ice_make?: string;
+    ice_model?: string;
+    ice_variant?: string;
+    charger_id?: string;
+    environmental_impact_input?: Record<string, unknown>;
+}): Promise<any> {
+    try {
+        const response = await fetch(`${PYTHON_API}/tripConfidence/predict`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+            const error = await response.json() as any;
+            throw new Error(error.detail || `ML service error: ${response.status}`);
+        }
+
+        return await response.json();
+
+    } catch (error: any) {
+        if (error instanceof Error) {
+            throw new Error("Error calling ML service: " + error.message);
+        } else {
+            throw new Error("Unknown error calling ML service");
+        }
+    }
+}
+
 async getCostCharts(
     distance_km: number,
     electricity_price_per_kwh: number,

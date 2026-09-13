@@ -60,8 +60,7 @@ __pycache__/
 # =========================
 # Specific App Directories
 # =========================
-**/auth
-# Google service-account key (README names it google-credentials.json)
+**/auth/
 google-credentials.json
 **/google-credentials.json
 

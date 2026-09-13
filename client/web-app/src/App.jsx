@@ -4,6 +4,7 @@ import Signin from "./pages/Signin";
 import Profile from './pages/Profile';
 import Map from './pages/Map';
 import Cost from "./pages/Cost";
+import TripConfidence from "./pages/TripConfidence";
 import Game from "./pages/Game";
 import Feedback from './pages/Feedback';
 import Favourite from './pages/Favourite';
@@ -42,6 +43,7 @@ function App() {
             <Route path="/feedback" element={<Feedback />} />
             <Route path="/favourites" element={<Favourite />} />
             <Route path="/cost" element={<Cost />} />
+            <Route path="/trip-confidence" element={<TripConfidence />} />
             <Route path="/game" element={<Game />} />
             <Route path="/support" element={<ContactSupport />} />
             <Route path="/apitester" element={<ApiTester />} />
