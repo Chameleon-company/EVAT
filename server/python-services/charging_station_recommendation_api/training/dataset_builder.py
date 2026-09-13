@@ -34,7 +34,9 @@ TRAINING_DIR = CURRENT_FILE.parent
 # parents[4] = EVAT
 
 PROJECT_ROOT = CURRENT_FILE.parents[4]
-ENV_PATH = PROJECT_ROOT / ".env"
+ROOT_ENV_PATH = PROJECT_ROOT / ".env"
+NODE_API_ENV_PATH = PROJECT_ROOT / "server" / "node-api" / ".env"
+ENV_PATH = ROOT_ENV_PATH if ROOT_ENV_PATH.exists() else NODE_API_ENV_PATH
 
 OUTPUT_PATH = TRAINING_DIR / "training_dataset.csv"
 

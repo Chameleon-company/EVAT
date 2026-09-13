@@ -13,6 +13,7 @@
     "dev:client": "npm run dev --workspace=client",
     "dev:server": "npm run server --workspace=server",
     "python:sync": "uv sync --locked --project \"server/python-services\"",
+    "train:charging-recommendation-model": "cd \"server/python-services\" && uv run --locked python charging_station_recommendation_api/training/retrain_preference_model.py",
     "dev:python": "cd \"server/python-services\" && uv run --locked python -m uvicorn main:app --host 127.0.0.1 --port 5000 --reload",
     "build:client": "npm run build --workspace=client",
     "build:server": "npm run build --workspace=server",
