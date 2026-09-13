@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { MapPin, Store, ExternalLink } from "lucide-react";
 import { UserContext } from "../context/user";
 import {
@@ -18,20 +18,23 @@ const CATEGORY_EMOJI = {
   shopping: "🛍️",
 };
 
+/** Eagerly allow photos for the first N cards; the rest wait until scrolled into view. */
+const EAGER_PHOTO_COUNT = 3;
+
 function formatDistance(place) {
   if (place.distanceMeters == null) return "Nearby";
   if (place.distanceMeters < 1000) return `${place.distanceMeters} m`;
   return `${(place.distanceMeters / 1000).toFixed(1)} km`;
 }
 
-function PlacePhoto({ place, token }) {
+function PlacePhoto({ place, token, enabled }) {
   const [src, setSrc] = useState(null);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
-    if (!place.photoName) {
+    if (!enabled || !place.photoName) {
       setSrc(null);
-      setFailed(true);
+      setFailed(!place.photoName);
       return undefined;
     }
 
@@ -61,7 +64,7 @@ function PlacePhoto({ place, token }) {
       abortController.abort();
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [place.photoName, token]);
+  }, [place.photoName, token, enabled]);
 
   if (!src || failed) {
     return (
@@ -79,6 +82,81 @@ function PlacePhoto({ place, token }) {
       loading="lazy"
       onError={() => setFailed(true)}
     />
+  );
+}
+
+function PlaceCard({ place, token, eager }) {
+  const cardRef = useRef(null);
+  const [visible, setVisible] = useState(Boolean(eager));
+
+  useEffect(() => {
+    if (eager || visible) return undefined;
+    const node = cardRef.current;
+    if (!node || typeof IntersectionObserver === "undefined") {
+      setVisible(true);
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setVisible(true);
+          observer.disconnect();
+        }
+      },
+      {
+        root: null,
+        // Start loading a little before the card enters the viewport.
+        rootMargin: "120px 0px",
+        threshold: 0.01,
+      }
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [eager, visible]);
+
+  return (
+    <div ref={cardRef} className="promo-card">
+      <PlacePhoto place={place} token={token} enabled={visible} />
+      <div className="promo-card-header">
+        <span className="promo-emoji">
+          {CATEGORY_EMOJI[place.category] || "📍"}
+        </span>
+        <div className="promo-card-copy">
+          <div className="promo-business">{place.typeLabel}</div>
+          <div className="promo-title">{place.name}</div>
+        </div>
+        {place.rating != null && (
+          <span className="promo-discount">{place.rating.toFixed(1)} ★</span>
+        )}
+      </div>
+
+      {place.address && (
+        <p className="text-small promo-description">{place.address}</p>
+      )}
+
+      <div className="promo-meta">
+        <span className="text-tiny promo-distance">
+          <MapPin size={12} />
+          {formatDistance(place)}
+          {place.walkingMinutes ? ` · ${place.walkingMinutes} min walk` : ""}
+          {place.isOpen === true ? " · Open" : ""}
+          {place.isOpen === false ? " · Closed" : ""}
+        </span>
+        {place.directionsUrl && (
+          <a
+            className="promo-code-btn"
+            href={place.directionsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <ExternalLink size={12} />
+            Directions
+          </a>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -182,47 +260,13 @@ export default function NearbyPlaces({ station }) {
           )}
 
           {!loading &&
-            places.map((place) => (
-              <div key={place.id} className="promo-card">
-                <PlacePhoto place={place} token={token} />
-                <div className="promo-card-header">
-                  <span className="promo-emoji">
-                    {CATEGORY_EMOJI[place.category] || "📍"}
-                  </span>
-                  <div className="promo-card-copy">
-                    <div className="promo-business">{place.typeLabel}</div>
-                    <div className="promo-title">{place.name}</div>
-                  </div>
-                  {place.rating != null && (
-                    <span className="promo-discount">{place.rating.toFixed(1)} ★</span>
-                  )}
-                </div>
-
-                {place.address && (
-                  <p className="text-small promo-description">{place.address}</p>
-                )}
-
-                <div className="promo-meta">
-                  <span className="text-tiny promo-distance">
-                    <MapPin size={12} />
-                    {formatDistance(place)}
-                    {place.walkingMinutes ? ` · ${place.walkingMinutes} min walk` : ""}
-                    {place.isOpen === true ? " · Open" : ""}
-                    {place.isOpen === false ? " · Closed" : ""}
-                  </span>
-                  {place.directionsUrl && (
-                    <a
-                      className="promo-code-btn"
-                      href={place.directionsUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <ExternalLink size={12} />
-                      Directions
-                    </a>
-                  )}
-                </div>
-              </div>
+            places.map((place, index) => (
+              <PlaceCard
+                key={place.id}
+                place={place}
+                token={token}
+                eager={index < EAGER_PHOTO_COUNT}
+              />
             ))}
         </>
       )}

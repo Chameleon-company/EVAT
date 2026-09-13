@@ -38,6 +38,29 @@ describe("nearby-place-service", () => {
       expect(result).toEqual(places);
     });
 
+    test("Case: Serves a cached response for the same location and category", async () => {
+      const places = [{ id: "1", name: "Local Cafe", distanceMeters: 120 }];
+      (GoogleNearbyPlacesService.findNearbyPlaces as any).mockResolvedValue(places);
+
+      const first = await service.getNearbyPlaces(-37.8136, 144.9631, 1, "food");
+      const second = await service.getNearbyPlaces(-37.8136, 144.9631, 1, "food");
+
+      expect(first).toEqual(places);
+      expect(second).toEqual(places);
+      expect(GoogleNearbyPlacesService.findNearbyPlaces).toHaveBeenCalledTimes(1);
+    });
+
+    test("Case: Does not reuse cache across different categories", async () => {
+      (GoogleNearbyPlacesService.findNearbyPlaces as any)
+        .mockResolvedValueOnce([{ id: "food" }])
+        .mockResolvedValueOnce([{ id: "shop" }]);
+
+      await service.getNearbyPlaces(-37.8136, 144.9631, 1, "food");
+      await service.getNearbyPlaces(-37.8136, 144.9631, 1, "shopping");
+
+      expect(GoogleNearbyPlacesService.findNearbyPlaces).toHaveBeenCalledTimes(2);
+    });
+
     test("Case: Rejects invalid coordinates", async () => {
       await expect(service.getNearbyPlaces(200, 144.96)).rejects.toThrow(
         "latitude must be between -90 and 90"
@@ -59,6 +82,22 @@ describe("nearby-place-service", () => {
 
       expect(ChargingStationRepository.findById).toHaveBeenCalledWith("station123");
       expect(result).toHaveLength(1);
+    });
+
+    test("Case: Caches by station id so reopen skips Google and DB", async () => {
+      (ChargingStationRepository.findById as any).mockResolvedValue({
+        latitude: -37.8136,
+        longitude: 144.9631,
+      });
+      (GoogleNearbyPlacesService.findNearbyPlaces as any).mockResolvedValue([
+        { id: "mall", name: "Melbourne Central" },
+      ]);
+
+      await service.getNearbyForStation("station123", 1, "shopping");
+      await service.getNearbyForStation("station123", 1, "shopping");
+
+      expect(ChargingStationRepository.findById).toHaveBeenCalledTimes(1);
+      expect(GoogleNearbyPlacesService.findNearbyPlaces).toHaveBeenCalledTimes(1);
     });
 
     test("Case: Throws when the station does not exist", async () => {
@@ -103,6 +142,22 @@ describe("nearby-place-service", () => {
       });
       expect(result.contentType).toBe("image/jpeg");
       expect(Buffer.isBuffer(result.bytes)).toBe(true);
+    });
+
+    test("Case: Serves a cached photo without calling Google again", async () => {
+      (GoogleNearbyPlacesService.getPhotoUri as any).mockResolvedValue(
+        "https://lh3.googleusercontent.com/photo"
+      );
+      (axios.get as any).mockResolvedValue({
+        data: Buffer.from("img"),
+        headers: { "content-type": "image/jpeg" },
+      });
+
+      await service.getPhoto("places/ChIJ123/photos/abc");
+      await service.getPhoto("places/ChIJ123/photos/abc");
+
+      expect(GoogleNearbyPlacesService.getPhotoUri).toHaveBeenCalledTimes(1);
+      expect(axios.get).toHaveBeenCalledTimes(1);
     });
   });
 });
