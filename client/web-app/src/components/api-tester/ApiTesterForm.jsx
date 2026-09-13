@@ -48,17 +48,17 @@ const ApiTesterForm = ({
   };
 
   return (
-    <div className="w-full rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div className="w-full rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-emerald-900/50 dark:bg-[#050806] dark:shadow-[0_15px_40px_rgba(0,0,0,0.35)]">
 
       {/* =========================================================
           HEADER
       ========================================================= */}
       <div className="mb-6">
-        <h2 className="text-xl font-bold tracking-tight text-slate-900">
+        <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
           API Tester
         </h2>
 
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
           Send requests to the EVAT API and inspect the response.
         </p>
       </div>
@@ -70,14 +70,14 @@ const ApiTesterForm = ({
       <div className="mb-5">
         <label
           htmlFor="api-method"
-          className="mb-2 block text-sm font-semibold text-slate-800"
+          className="mb-2 block text-sm font-semibold text-slate-800 dark:text-slate-200"
         >
           Method
         </label>
 
         <select
           id="api-method"
-          className="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2.5 text-sm font-semibold text-slate-800 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100"
+          className="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2.5 text-sm font-semibold text-slate-800 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100 dark:border-emerald-900/60 dark:bg-black dark:text-white dark:focus:border-emerald-500 dark:focus:bg-[#08100c] dark:focus:ring-emerald-500/20"
           value={method}
           onChange={(e) => setMethod(e.target.value)}
         >
@@ -95,14 +95,14 @@ const ApiTesterForm = ({
       <div className="mb-5">
         <label
           htmlFor="api-endpoint"
-          className="mb-2 block text-sm font-semibold text-slate-800"
+          className="mb-2 block text-sm font-semibold text-slate-800 dark:text-slate-200"
         >
           Endpoint
         </label>
 
         <input
           id="api-endpoint"
-          className="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100"
+          className="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100 dark:border-emerald-900/60 dark:bg-black dark:text-white dark:placeholder:text-slate-600 dark:focus:border-emerald-500 dark:focus:bg-[#08100c] dark:focus:ring-emerald-500/20"
           type="text"
           value={endpoint}
           onChange={(e) => setEndpoint(e.target.value)}
@@ -120,18 +120,18 @@ const ApiTesterForm = ({
           <KeyRound
             size={17}
             strokeWidth={1.8}
-            className="text-emerald-600"
+            className="text-emerald-600 dark:text-emerald-400"
           />
 
           <label
             htmlFor="api-token"
-            className="text-sm font-semibold text-slate-800"
+            className="text-sm font-semibold text-slate-800 dark:text-slate-200"
           >
             Authorization Bearer Token
           </label>
         </div>
 
-        <p className="mb-3 text-xs text-slate-500">
+        <p className="mb-3 text-xs text-slate-500 dark:text-slate-400">
           Required for protected routes.
         </p>
 
@@ -140,7 +140,7 @@ const ApiTesterForm = ({
         <div className="relative">
           <input
             id="api-token"
-            className="w-full rounded-lg border border-slate-300 bg-slate-50 py-2.5 pl-3 pr-11 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100"
+            className="w-full rounded-lg border border-slate-300 bg-slate-50 py-2.5 pl-3 pr-11 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100 dark:border-emerald-900/60 dark:bg-black dark:text-white dark:placeholder:text-slate-600 dark:focus:border-emerald-500 dark:focus:bg-[#08100c] dark:focus:ring-emerald-500/20"
             type={showToken ? 'text' : 'password'}
             value={token}
             onChange={(e) => setToken(e.target.value)}
@@ -154,7 +154,7 @@ const ApiTesterForm = ({
             onClick={() => setShowToken(!showToken)}
             aria-label={showToken ? 'Hide token' : 'Show token'}
             title={showToken ? 'Hide token' : 'Show token'}
-            className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-200 hover:text-slate-800"
+            className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-200 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-emerald-950/50 dark:hover:text-emerald-400"
           >
             {showToken ? (
               <EyeOff size={18} strokeWidth={1.8} />
@@ -171,7 +171,7 @@ const ApiTesterForm = ({
           <button
             type="button"
             onClick={() => setShowToken(!showToken)}
-            className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50"
+            className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 dark:border-emerald-900/60 dark:bg-black dark:text-slate-300 dark:hover:border-emerald-700 dark:hover:bg-emerald-950/40 dark:hover:text-emerald-400"
           >
             {showToken ? 'Hide Token' : 'Show Token'}
           </button>
@@ -179,7 +179,7 @@ const ApiTesterForm = ({
           <button
             type="button"
             onClick={autoFillToken}
-            className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-200"
+            className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-200 dark:bg-emerald-600 dark:hover:bg-emerald-500 dark:focus:ring-emerald-500/30"
           >
             Auto-Fill Token
           </button>
@@ -197,20 +197,20 @@ const ApiTesterForm = ({
 
           <label
             htmlFor="api-body"
-            className="mb-2 block text-sm font-semibold text-slate-800"
+            className="mb-2 block text-sm font-semibold text-slate-800 dark:text-slate-200"
           >
             JSON Body
           </label>
 
           <textarea
             id="api-body"
-            className="min-h-40 w-full resize-y rounded-lg border border-slate-300 bg-slate-50 px-3 py-2.5 font-mono text-sm text-slate-800 outline-none transition placeholder:font-sans placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100"
+            className="min-h-40 w-full resize-y rounded-lg border border-slate-300 bg-slate-50 px-3 py-2.5 font-mono text-sm text-slate-800 outline-none transition placeholder:font-sans placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100 dark:border-emerald-900/60 dark:bg-black dark:text-white dark:placeholder:text-slate-600 dark:focus:border-emerald-500 dark:focus:bg-[#08100c] dark:focus:ring-emerald-500/20"
             value={body}
             onChange={(e) => setBody(e.target.value)}
             placeholder="Enter JSON body or click a Quick Endpoint"
           />
 
-          <p className="mt-1.5 text-xs text-slate-400">
+          <p className="mt-1.5 text-xs text-slate-400 dark:text-slate-500">
             Enter a valid JSON object for this request.
           </p>
 
@@ -225,7 +225,7 @@ const ApiTesterForm = ({
         type="button"
         onClick={onSend}
         disabled={loading}
-        className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-200 disabled:cursor-not-allowed disabled:opacity-60"
+        className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-200 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-emerald-600 dark:hover:bg-emerald-500 dark:focus:ring-emerald-500/30"
       >
         {loading ? (
           <>

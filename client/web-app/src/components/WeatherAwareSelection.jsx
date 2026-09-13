@@ -19,7 +19,6 @@ export default function WeatherAwareSelection({
 
   const [googleLoaded, setGoogleLoaded] = useState(false);
 
-  // Load Google Maps + Places script
   useEffect(() => {
     const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
@@ -59,7 +58,6 @@ export default function WeatherAwareSelection({
     document.body.appendChild(script);
   }, []);
 
-  // Attach Google Places autocomplete
   useEffect(() => {
     if (!googleLoaded) return;
 
@@ -99,7 +97,6 @@ export default function WeatherAwareSelection({
     });
   }, [googleLoaded]);
 
-  // Sync map selections with input fields
   useEffect(() => {
     if (originInputRef.current && originLocation?.address) {
       originInputRef.current.value = originLocation.address;
@@ -140,16 +137,15 @@ export default function WeatherAwareSelection({
     <div
       className={`absolute left-4 top-4 z-[1000] w-[360px] max-w-[calc(100%-2rem)] rounded-2xl border p-5 shadow-xl backdrop-blur-sm ${
         isDark
-          ? "border-slate-700 bg-slate-900/95 text-white"
+          ? "border-emerald-900/60 bg-[#030504]/95 text-white shadow-emerald-950/30"
           : "border-slate-200 bg-white/95 text-slate-900"
       }`}
     >
-      {/* Header */}
       <div className="mb-5">
         <div className="mb-2 flex items-center gap-2">
-          <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+          <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 dark:bg-emerald-400" />
 
-          <span className="text-xs font-bold uppercase tracking-wider text-emerald-600">
+          <span className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
             Route Planning
           </span>
         </div>
@@ -172,7 +168,6 @@ export default function WeatherAwareSelection({
         </p>
       </div>
 
-      {/* Origin */}
       <div className="mb-4">
         <label
           htmlFor="weather-origin"
@@ -191,19 +186,18 @@ export default function WeatherAwareSelection({
           onFocus={() => setActiveField("origin")}
           className={`w-full rounded-xl border px-3 py-3 text-sm font-semibold outline-none transition ${
             isDark
-              ? "border-slate-600 bg-slate-800 text-white placeholder:text-slate-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+              ? "border-emerald-900/60 bg-[#08100c] text-white placeholder:text-slate-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
               : "border-slate-300 bg-white text-slate-800 placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
           }`}
         />
 
         {activeField === "origin" && !originLocation?.address && (
-          <div className="mt-2 rounded-lg bg-emerald-50 px-3 py-2 text-center text-xs font-semibold text-emerald-700">
+          <div className="mt-2 rounded-lg bg-emerald-50 px-3 py-2 text-center text-xs font-semibold text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400">
             Type an origin or click the map to fill origin
           </div>
         )}
       </div>
 
-      {/* Destination */}
       <div className="mb-4">
         <label
           htmlFor="weather-destination"
@@ -222,24 +216,23 @@ export default function WeatherAwareSelection({
           onFocus={() => setActiveField("destination")}
           className={`w-full rounded-xl border px-3 py-3 text-sm font-semibold outline-none transition ${
             isDark
-              ? "border-slate-600 bg-slate-800 text-white placeholder:text-slate-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+              ? "border-emerald-900/60 bg-[#08100c] text-white placeholder:text-slate-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
               : "border-slate-300 bg-white text-slate-800 placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
           }`}
         />
 
         {activeField === "destination" &&
           !destinationLocation?.address && (
-            <div className="mt-2 rounded-lg bg-emerald-50 px-3 py-2 text-center text-xs font-semibold text-emerald-700">
+            <div className="mt-2 rounded-lg bg-emerald-50 px-3 py-2 text-center text-xs font-semibold text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400">
               Type a destination or click the map to fill destination
             </div>
           )}
       </div>
 
-      {/* Air Conditioning Toggle */}
       <div
         className={`mb-4 flex items-center justify-between rounded-xl border p-3 ${
           isDark
-            ? "border-slate-700 bg-slate-800"
+            ? "border-emerald-900/60 bg-[#08100c]"
             : "border-slate-200 bg-slate-50"
         }`}
       >
@@ -269,32 +262,34 @@ export default function WeatherAwareSelection({
             className="peer sr-only"
           />
 
-          <div className="h-6 w-11 rounded-full bg-slate-300 transition peer-checked:bg-emerald-600 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-emerald-500/30" />
+          <div className="h-6 w-11 rounded-full bg-slate-300 transition peer-checked:bg-emerald-600 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-emerald-500/30 dark:bg-slate-700" />
 
           <div className="absolute left-1 top-1 h-4 w-4 rounded-full bg-white shadow-sm transition-transform peer-checked:translate-x-5" />
         </label>
       </div>
 
-      <div className="mb-4 text-right text-xs font-semibold text-slate-500">
+      <div
+        className={`mb-4 text-right text-xs font-semibold ${
+          isDark ? "text-slate-400" : "text-slate-500"
+        }`}
+      >
         AC:{" "}
-        <span className={acOn ? "text-emerald-600" : "text-slate-400"}>
+        <span className={acOn ? "text-emerald-600 dark:text-emerald-400" : "text-slate-400"}>
           {acOn ? "On" : "Off"}
         </span>
       </div>
 
-      {/* Error */}
       {weatherError && (
-        <div className="mb-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2.5 text-sm font-semibold text-red-700">
+        <div className="mb-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2.5 text-sm font-semibold text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-400">
           {weatherError}
         </div>
       )}
 
-      {/* Calculate */}
       <button
         type="button"
         onClick={onClick}
         disabled={weatherLoading}
-        className="w-full rounded-xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+        className="w-full rounded-xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:bg-emerald-500 dark:text-black dark:hover:bg-emerald-400 dark:focus:ring-offset-[#030504] disabled:cursor-not-allowed disabled:opacity-60"
       >
         {weatherLoading ? (
           <span className="flex items-center justify-center gap-2">
@@ -306,13 +301,12 @@ export default function WeatherAwareSelection({
         )}
       </button>
 
-      {/* Reset */}
       <button
         type="button"
         onClick={handleLocalReset}
         className={`mt-2 w-full rounded-xl border px-4 py-2.5 text-sm font-bold transition ${
           isDark
-            ? "border-slate-600 bg-slate-800 text-slate-200 hover:bg-slate-700"
+            ? "border-emerald-900/60 bg-[#08100c] text-slate-200 hover:border-emerald-700 hover:bg-emerald-950/40"
             : "border-slate-300 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-800"
         }`}
       >

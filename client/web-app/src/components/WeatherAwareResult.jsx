@@ -44,18 +44,17 @@ const WeatherAwareResult = ({ result }) => {
 
   return (
     <>
-      {/* Route Result Card */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md sm:p-5">
-        {/* Header */}
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md dark:border-emerald-900/60 dark:bg-[#050806] dark:shadow-emerald-950/20 sm:p-5">
         <div className="mb-4 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-sm" />
-            <span className="text-xs font-bold tracking-wide text-emerald-700 sm:text-sm">
+            <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-sm dark:bg-emerald-400" />
+
+            <span className="text-xs font-bold tracking-wide text-emerald-700 dark:text-emerald-400 sm:text-sm">
               ROUTE CALCULATED
             </span>
           </div>
 
-          <span className="rounded-lg bg-emerald-50 px-2.5 py-1.5 text-xs font-bold text-emerald-700">
+          <span className="rounded-lg bg-emerald-50 px-2.5 py-1.5 text-xs font-bold text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400">
             {result.charging_required
               ? `${chargingStops.length} charging stop${
                   chargingStops.length !== 1 ? "s" : ""
@@ -64,7 +63,6 @@ const WeatherAwareResult = ({ result }) => {
           </span>
         </div>
 
-        {/* Summary Grid */}
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           <SummaryItem
             icon="〽️"
@@ -103,28 +101,25 @@ const WeatherAwareResult = ({ result }) => {
           />
         </div>
 
-        {/* Details Button */}
         <button
           type="button"
           onClick={() => setShowDetails(true)}
-          className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+          className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:bg-emerald-500 dark:text-black dark:hover:bg-emerald-400 dark:focus:ring-offset-[#050806]"
         >
           See Full Detail
           <span className="text-lg leading-none">→</span>
         </button>
       </div>
 
-      {/* Details Modal */}
       {showDetails && (
         <div
-          className="fixed inset-0 z-[5000] flex items-center justify-center bg-slate-900/70 p-4 backdrop-blur-sm sm:p-6"
+          className="fixed inset-0 z-[5000] flex items-center justify-center bg-slate-900/70 p-4 backdrop-blur-sm dark:bg-black/80 sm:p-6"
           onClick={() => setShowDetails(false)}
         >
           <div
-            className="max-h-[90vh] w-full max-w-5xl overflow-y-auto rounded-2xl bg-slate-50 shadow-2xl"
+            className="max-h-[90vh] w-full max-w-5xl overflow-y-auto rounded-2xl bg-slate-50 shadow-2xl dark:border dark:border-emerald-900/60 dark:bg-[#030504]"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Modal Header */}
             <div className="relative bg-gradient-to-br from-emerald-600 to-emerald-500 px-5 py-6 text-white sm:px-8 sm:py-7">
               <button
                 type="button"
@@ -144,12 +139,13 @@ const WeatherAwareResult = ({ result }) => {
                 {result.destination_resolved || "Destination"}
               </h2>
 
-              {/* Quick Stats */}
               <div className="mt-5 flex flex-wrap gap-3 text-sm font-semibold sm:gap-5">
                 <span>〽️ {formatNumber(result.distance_km)} km</span>
+
                 <span>
                   🕒 {formatDuration(result.duration_in_traffic_min)}
                 </span>
+
                 <span>
                   🔌{" "}
                   {result.charging_required
@@ -158,20 +154,19 @@ const WeatherAwareResult = ({ result }) => {
                       }`
                     : "No stop"}
                 </span>
+
                 <span>
                   ⚡ {formatNumber(result.energy_with_ac_kwh, 2)} kWh
                 </span>
               </div>
             </div>
 
-            {/* Modal Body */}
             <div className="p-5 sm:p-8">
               <div className="grid gap-8 lg:grid-cols-2">
-                {/* Energy Breakdown */}
                 <div>
                   <SectionTitle title="Energy Breakdown" />
 
-                  <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                  <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-emerald-900/60 dark:bg-[#050806]">
                     <DetailRow
                       label="Base consumption"
                       value={`${formatNumber(
@@ -201,8 +196,9 @@ const WeatherAwareResult = ({ result }) => {
                       )}%`}
                     />
 
-                    <div className="mt-3 flex items-center justify-between rounded-xl bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800">
+                    <div className="mt-3 flex items-center justify-between rounded-xl bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300">
                       <span>Total energy</span>
+
                       <strong>
                         {formatNumber(result.energy_with_ac_kwh, 2)} kWh
                       </strong>
@@ -210,7 +206,6 @@ const WeatherAwareResult = ({ result }) => {
                   </div>
                 </div>
 
-                {/* Weather & Charging */}
                 <div>
                   <SectionTitle title="Weather Conditions" />
 
@@ -246,21 +241,21 @@ const WeatherAwareResult = ({ result }) => {
                   <SectionTitle title="Charging Stop" />
 
                   {result.charging_required && chargingStops.length > 0 ? (
-                    <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-5 text-emerald-900">
+                    <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-5 text-emerald-900 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-200">
                       <strong className="text-base">
                         {chargingStops[0].name}
                       </strong>
 
-                      <p className="mt-1 text-sm text-emerald-800">
+                      <p className="mt-1 text-sm text-emerald-800 dark:text-emerald-300">
                         {chargingStops[0].address}
                       </p>
 
                       <div className="mt-3 flex flex-wrap gap-2">
-                        <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-emerald-700">
+                        <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-emerald-700 dark:bg-[#08100c] dark:text-emerald-300">
                           ⭐ {chargingStops[0].rating || "N/A"}
                         </span>
 
-                        <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-emerald-700">
+                        <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-emerald-700 dark:bg-[#08100c] dark:text-emerald-300">
                           {chargingStops[0].open_now
                             ? "Open now"
                             : "Status N/A"}
@@ -268,14 +263,13 @@ const WeatherAwareResult = ({ result }) => {
                       </div>
                     </div>
                   ) : (
-                    <div className="rounded-2xl bg-emerald-50 p-5 text-sm font-semibold text-emerald-700">
+                    <div className="rounded-2xl bg-emerald-50 p-5 text-sm font-semibold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
                       No charging stop is required for this route.
                     </div>
                   )}
                 </div>
               </div>
 
-              {/* Route Steps */}
               {steps.length > 0 && (
                 <div className="mt-8">
                   <SectionTitle title="Route Instructions" />
@@ -284,18 +278,19 @@ const WeatherAwareResult = ({ result }) => {
                     {steps.map((step, index) => (
                       <div
                         key={index}
-                        className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+                        className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-emerald-900/60 dark:bg-[#050806]"
                       >
                         <div className="flex gap-3">
-                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-700">
+                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400">
                             {index + 1}
                           </span>
 
-                          <p className="text-sm leading-6 text-slate-600">
+                          <p className="text-sm leading-6 text-slate-600 dark:text-slate-300">
                             {cleanInstruction(
                               typeof step === "string"
                                 ? step
-                                : step.instruction || step.html_instructions
+                                : step.instruction ||
+                                  step.html_instructions
                             )}
                           </p>
                         </div>
@@ -314,14 +309,14 @@ const WeatherAwareResult = ({ result }) => {
 
 const SummaryItem = ({ icon, label, value }) => {
   return (
-    <div className="min-h-[82px] rounded-xl border border-slate-200 bg-slate-50 p-3 transition hover:border-emerald-200 hover:bg-emerald-50/40">
+    <div className="min-h-[82px] rounded-xl border border-slate-200 bg-slate-50 p-3 transition hover:border-emerald-200 hover:bg-emerald-50/40 dark:border-emerald-900/60 dark:bg-[#08100c] dark:hover:border-emerald-700 dark:hover:bg-emerald-950/30">
       <div className="mb-1.5 text-sm">{icon}</div>
 
-      <p className="text-xs font-semibold text-slate-500">
+      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
         {label}
       </p>
 
-      <p className="mt-1 text-base font-bold capitalize text-slate-800">
+      <p className="mt-1 text-base font-bold capitalize text-slate-800 dark:text-slate-200">
         {value}
       </p>
     </div>
@@ -330,7 +325,7 @@ const SummaryItem = ({ icon, label, value }) => {
 
 const SectionTitle = ({ title }) => {
   return (
-    <h3 className="mb-3 text-sm font-extrabold uppercase tracking-wider text-slate-500">
+    <h3 className="mb-3 text-sm font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">
       {title}
     </h3>
   );
@@ -338,23 +333,26 @@ const SectionTitle = ({ title }) => {
 
 const DetailRow = ({ label, value }) => {
   return (
-    <div className="flex items-center justify-between gap-4 border-b border-slate-100 py-3 text-sm last:border-0">
-      <span className="text-slate-500">{label}</span>
-      <strong className="text-right text-slate-800">{value}</strong>
+    <div className="flex items-center justify-between gap-4 border-b border-slate-100 py-3 text-sm last:border-0 dark:border-emerald-950/60">
+      <span className="text-slate-500 dark:text-slate-400">{label}</span>
+
+      <strong className="text-right text-slate-800 dark:text-slate-200">
+        {value}
+      </strong>
     </div>
   );
 };
 
 const MiniDetailCard = ({ icon, label, value }) => {
   return (
-    <div className="min-h-[90px] rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-emerald-200">
+    <div className="min-h-[90px] rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-emerald-200 dark:border-emerald-900/60 dark:bg-[#050806] dark:hover:border-emerald-700">
       <div className="mb-2 text-sm">{icon}</div>
 
-      <p className="text-xs font-semibold text-slate-500">
+      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
         {label}
       </p>
 
-      <p className="mt-1 text-base font-bold text-slate-800">
+      <p className="mt-1 text-base font-bold text-slate-800 dark:text-slate-200">
         {value}
       </p>
     </div>

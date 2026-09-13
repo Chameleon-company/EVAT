@@ -123,6 +123,9 @@ const Card = ({ children, className = "" }) => (
     className={`rounded-2xl border border-slate-200 bg-white p-5 shadow-sm
       transition-all duration-300
       hover:-translate-y-1 hover:border-emerald-200 hover:shadow-lg
+      dark:border-emerald-900/50 dark:bg-[#050806]
+      dark:shadow-[0_15px_40px_rgba(0,0,0,0.35)]
+      dark:hover:border-emerald-700/70
       ${className}`}
   >
     {children}
@@ -130,7 +133,7 @@ const Card = ({ children, className = "" }) => (
 );
 
 const Bar = ({ value, color = "#10b981" }) => (
-  <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-100">
+  <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-900">
     <div
       className="h-full rounded-full transition-all duration-700"
       style={{
@@ -449,26 +452,30 @@ export default function DemandForecasting() {
     : [-25.2744, 133.7751];
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
+    <div className="min-h-screen bg-slate-50 text-slate-900 transition-colors duration-300 dark:bg-black dark:text-white">
       <NavBar />
 
-      <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+      <main className="relative mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+
+        <div className="pointer-events-none absolute left-1/2 top-0 -z-10 h-[500px] w-[700px] -translate-x-1/2 rounded-full bg-emerald-100/30 blur-3xl dark:bg-emerald-950/20" />
 
         {/* Header */}
         <header className="mb-8">
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5">
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 dark:border-emerald-900/60 dark:bg-emerald-950/40">
             <PulseDot />
-            <span className="text-[11px] font-bold tracking-widest text-emerald-600">
+            <span className="text-[11px] font-bold tracking-widest text-emerald-600 dark:text-emerald-400">
               LIVE FORECAST
             </span>
           </div>
 
           <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
             EV Charging Demand{" "}
-            <span className="text-emerald-600">Forecast</span>
+            <span className="text-emerald-600 dark:text-emerald-400">
+              Forecast
+            </span>
           </h1>
 
-          <p className="mt-2 text-sm text-slate-500">
+          <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
             Predict daily EV charging demand · Up to 3 postcodes · Live
             weather data
           </p>
@@ -503,12 +510,21 @@ export default function DemandForecasting() {
                   }}
                   className="
                     w-full rounded-xl border border-slate-200
-                    bg-slate-50 px-4 py-3 text-sm
+                    bg-slate-50 px-4 py-3 text-sm text-slate-900
                     outline-none transition-all
+                    placeholder:text-slate-400
                     hover:border-emerald-300
                     focus:border-emerald-500
                     focus:bg-white
                     focus:ring-4 focus:ring-emerald-100
+                    dark:border-emerald-900/60
+                    dark:bg-black
+                    dark:text-white
+                    dark:placeholder:text-slate-600
+                    dark:hover:border-emerald-700
+                    dark:focus:border-emerald-500
+                    dark:focus:bg-[#020403]
+                    dark:focus:ring-emerald-950/60
                   "
                 />
               </label>
@@ -516,7 +532,7 @@ export default function DemandForecasting() {
           </div>
 
           {/* Days */}
-          <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-5">
+          <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-5 dark:border-emerald-950/60">
             {DAYS.map((value) => (
               <button
                 key={value}
@@ -525,7 +541,7 @@ export default function DemandForecasting() {
                 className={`rounded-full border px-4 py-1.5 text-xs font-semibold transition-all ${
                   days === value
                     ? "border-emerald-600 bg-emerald-600 text-white shadow-md"
-                    : "border-slate-200 bg-slate-50 text-slate-500 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-600"
+                    : "border-slate-200 bg-slate-50 text-slate-500 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-600 dark:border-emerald-900/60 dark:bg-black dark:text-slate-400 dark:hover:border-emerald-700 dark:hover:bg-emerald-950/40 dark:hover:text-emerald-400"
                 }`}
               >
                 {value} days
@@ -541,7 +557,7 @@ export default function DemandForecasting() {
               className="ml-2 min-w-[180px] flex-1 accent-emerald-600"
             />
 
-            <strong className="text-sm text-emerald-600">
+            <strong className="text-sm text-emerald-600 dark:text-emerald-400">
               {days}d
             </strong>
           </div>
@@ -571,7 +587,7 @@ export default function DemandForecasting() {
 
         {/* Error */}
         {error && (
-          <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
+          <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600 dark:border-red-500/30 dark:bg-red-950/30 dark:text-red-400">
             {error}
           </div>
         )}
@@ -687,6 +703,7 @@ export default function DemandForecasting() {
                         <p className="text-xs text-slate-400">
                           Total forecast
                         </p>
+
                         <b
                           className="text-2xl"
                           style={{ color: COLORS[index] }}
@@ -699,6 +716,7 @@ export default function DemandForecasting() {
                         <p className="text-xs text-slate-400">
                           Daily average
                         </p>
+
                         <b className="text-2xl text-blue-500">
                           {stat.avg.toFixed(1)} kWh
                         </b>
@@ -708,12 +726,12 @@ export default function DemandForecasting() {
                 </div>
 
                 {stat.anomalies?.length > 0 && (
-                  <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs">
+                  <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs dark:border-amber-500/30 dark:bg-amber-950/30">
                     <b className="text-amber-600">
                       ⚠ Anomalies detected ·{" "}
                     </b>
 
-                    <span className="text-slate-500">
+                    <span className="text-slate-500 dark:text-slate-400">
                       {stat.anomalies
                         .map(
                           (item) =>
@@ -739,7 +757,7 @@ export default function DemandForecasting() {
                   Demand map
                 </p>
 
-                <div className="h-[280px] overflow-hidden rounded-xl">
+                <div className="h-[280px] overflow-hidden rounded-xl ring-1 ring-slate-200 dark:ring-emerald-900/50">
                   <MapContainer
                     center={mapCenter}
                     zoom={markers.length === 1 ? 10 : 5}
@@ -836,6 +854,7 @@ export default function DemandForecasting() {
 
               <div className="flex gap-3 text-[11px] text-slate-400">
                 🟡 Weekend · 🟣 Holiday
+
                 {activePostcodes.map((postcode, index) => (
                   <span
                     key={postcode}
@@ -907,19 +926,19 @@ export default function DemandForecasting() {
             </p>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="rounded-xl bg-slate-50 p-4">
+              <div className="rounded-xl bg-slate-50 p-4 dark:bg-black/60 dark:ring-1 dark:ring-emerald-950/60">
                 <p className="text-xs font-semibold text-slate-400">
                   This Week
                 </p>
 
-                <b className="mt-2 block text-xl text-emerald-600">
+                <b className="mt-2 block text-xl text-emerald-600 dark:text-emerald-400">
                   {weekComparison.thisTotal.toFixed(1)} kWh
                 </b>
 
                 <Bar value={65} color="#10b981" />
               </div>
 
-              <div className="rounded-xl bg-slate-50 p-4">
+              <div className="rounded-xl bg-slate-50 p-4 dark:bg-black/60 dark:ring-1 dark:ring-emerald-950/60">
                 <p className="text-xs font-semibold text-slate-400">
                   Next Week
                 </p>
@@ -937,11 +956,11 @@ export default function DemandForecasting() {
         {/* Empty state */}
         {!searched && !loading && !error && (
           <div className="py-20 text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-50 text-3xl">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-50 text-3xl dark:bg-emerald-950/50">
               📈
             </div>
 
-            <p className="font-semibold text-slate-600">
+            <p className="font-semibold text-slate-600 dark:text-slate-300">
               Enter a postcode to get started
             </p>
 
@@ -953,7 +972,7 @@ export default function DemandForecasting() {
 
         {/* Footer */}
         {searched && !loading && (
-          <footer className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-4">
+          <footer className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-4 dark:border-emerald-950/60">
             <span className="flex items-center gap-2 text-[11px] text-slate-400">
               <PulseDot />
               Powered by Open-Meteo · LightGBM
@@ -969,6 +988,12 @@ export default function DemandForecasting() {
                 hover:border-emerald-300
                 hover:bg-emerald-50
                 hover:text-emerald-600
+                dark:border-emerald-900/60
+                dark:bg-[#050806]
+                dark:text-slate-400
+                dark:hover:border-emerald-700
+                dark:hover:bg-emerald-950/40
+                dark:hover:text-emerald-400
               "
             >
               ↓ Export CSV

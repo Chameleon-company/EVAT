@@ -4,7 +4,12 @@ import { MapContainer, TileLayer, useMapEvents, Marker } from 'react-leaflet';
 import L from 'leaflet';
 import { UserContext } from '../context/user';
 import { FavouritesContext } from '../context/FavouritesContext';
-import { getChargers, getConnectorTypes, getOperatorTypes } from '../services/chargerService';
+import { useTheme } from '../context/ThemeContext';
+import {
+  getChargers,
+  getConnectorTypes,
+  getOperatorTypes,
+} from '../services/chargerService';
 import NavBar from '../components/NavBar';
 import LocateUser from '../components/LocateUser';
 import ClusterMarkers from '../components/ClusterMarkers';
@@ -13,91 +18,84 @@ import ChatBubble from "../components/ChatBubble";
 import ChargerSideBar from '../components/ChargerSideBar';
 import FloatingVoiceAssistant from '../components/FloatingVoiceAssistant';
 import ChargingRecommendations from '../components/ChargingRecommendations';
-// styles
+
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
-// import '../styles/Root.css';
-// import '../styles/SmartFilter.css';
-// import '../styles/Buttons.css';
-// import '../styles/Elements.css';
-// import '../styles/Fonts.css';
-// import '../styles/Forms.css';
-// import '../styles/Sidebar.css';
-// import '../styles/Tables.css';
-// import '../styles/Validation.css';
 
-// Configure default Leaflet marker icons
 delete L.Icon.Default.prototype._getIconUrl;
+
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png'
+  iconRetinaUrl:
+    'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  iconUrl:
+    'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  shadowUrl:
+    'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
-// Utility function to parse cost
+const mapThemeStyles = `
+  .evat-dark-map-tiles {
+    filter: invert(1) hue-rotate(180deg) brightness(0.78) contrast(1.08) saturate(0.75);
+  }
+`;
+
 function parseCost(costStr) {
   if (!costStr || typeof costStr !== "string") {
-    return null; // return null if not parsable
+    return null;
   }
 
   const lower = costStr.toLowerCase().trim();
 
-  // Handle free
   if (lower.includes("free")) return 0;
 
-  // Handle cents (e.g., 55c)
-  const centsMatch = lower.match(/([\d.]+)\s*(c|cent|cents)\b/);
-  if (centsMatch) return parseInt(centsMatch[1], 10);
+  const centsMatch = lower.match(/([\d.]+)\\s*(c|cent|cents)\\b/);
 
-  // Handle $ amounts with optional per-unit info (e.g., $0.2/kwh, $0.60 per kwh)
-  const dollarMatch = lower.match(/\$([\d.]+)/);
-  if (dollarMatch) {
-    const dollars = parseFloat(dollarMatch[1]);
-    return Math.round(dollars * 100); // always return integer cents
+  if (centsMatch) {
+    return parseInt(centsMatch[1], 10);
   }
 
-  // Fallback: parse any number in string
-  const numMatch = lower.match(/([\d.]+)/);
-  if (numMatch) return parseInt(numMatch[1], 10);
+  const dollarMatch = lower.match(/\\$([\\d.]+)/);
 
-  // If nothing matches, return null
+  if (dollarMatch) {
+    const dollars = parseFloat(dollarMatch[1]);
+    return Math.round(dollars * 100);
+  }
+
+  const numMatch = lower.match(/([\\d.]+)/);
+
+  if (numMatch) {
+    return parseInt(numMatch[1], 10);
+  }
+
   return null;
 }
 
-
-//Define the same normalisation logic you used when fetching operator types in charger service
 function normaliseOperatorName(name) {
   if (!name) return "Unknown";
 
   const lower = name.toLowerCase().trim();
 
-  // Tesla group
   if (lower.includes("tesla")) {
     return "Tesla";
   }
 
-  // Evie group
   if (lower.includes("evie")) {
     return "Evie";
   }
 
-  // Pulse group
   if (lower.includes("pulse")) {
     return "BP Pulse";
   }
 
-  // Ampcharge group
   if (lower.includes("ampcharge")) {
     return "Ampol Ampcharge";
   }
 
-  // NRMA group
   if (lower.includes("nrma")) {
     return "NRMA";
   }
 
-  // Unknown group
   if (lower.includes("unknown")) {
     return "Unknown";
   }
@@ -105,18 +103,28 @@ function normaliseOperatorName(name) {
   return name;
 }
 
-// Watches map bounds (bbox) and reports them upward
 function BoundsWatcher({ onChange }) {
   const map = useMapEvents({
     moveend() {
       const b = map.getBounds();
-      onChange([b.getWest(), b.getSouth(), b.getEast(), b.getNorth()]);
-    }
+      onChange([
+        b.getWest(),
+        b.getSouth(),
+        b.getEast(),
+        b.getNorth(),
+      ]);
+    },
   });
 
   useEffect(() => {
     const b = map.getBounds();
-    onChange([b.getWest(), b.getSouth(), b.getEast(), b.getNorth()]);
+
+    onChange([
+      b.getWest(),
+      b.getSouth(),
+      b.getEast(),
+      b.getNorth(),
+    ]);
   }, [map, onChange]);
 
   return null;
@@ -124,9 +132,11 @@ function BoundsWatcher({ onChange }) {
 
 export default function Map() {
   const { user } = useContext(UserContext);
+  const { theme } = useTheme();
   const location = useLocation();
 
-  // define the minimum price of a charger and maximum here
+  const isDark = theme === 'dark';
+
   const priceMin = 0;
   const priceMax = 100;
 
@@ -136,7 +146,7 @@ export default function Map() {
     priceRange: [priceMin, priceMax],
     operatorType: [],
     showOnlyAvailable: false,
-    showCongestion: true
+    showCongestion: true,
   });
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -146,14 +156,17 @@ export default function Map() {
   const [err, setErr] = useState('');
   const [selectedStation, setSelectedStation] = useState(null);
   const mapRef = useRef(null);
-  // Handle result from voice assistant
+
   const handleVoiceResult = (data) => {
     if (!stations.length) return;
 
     const intent = data?.intent;
 
-    const getLat = (st) => Number(st.latitude ?? st.location?.coordinates?.[1]);
-    const getLng = (st) => Number(st.longitude ?? st.location?.coordinates?.[0]);
+    const getLat = (st) =>
+      Number(st.latitude ?? st.location?.coordinates?.[1]);
+
+    const getLng = (st) =>
+      Number(st.longitude ?? st.location?.coordinates?.[0]);
 
     const availableStations = stations.filter(
       (st) => st.is_operational === 'true'
@@ -163,14 +176,19 @@ export default function Map() {
       const userLat = data?.user_location?.lat;
       const userLng = data?.user_location?.lng;
 
-      const centerLat = userLat ?? (bbox ? (bbox[1] + bbox[3]) / 2 : -37.8136);
-      const centerLng = userLng ?? (bbox ? (bbox[0] + bbox[2]) / 2 : 144.9631);
+      const centerLat =
+        userLat ?? (bbox ? (bbox[1] + bbox[3]) / 2 : -37.8136);
+
+      const centerLng =
+        userLng ?? (bbox ? (bbox[0] + bbox[2]) / 2 : 144.9631);
 
       const getDistanceKm = (st) => {
         const lat = getLat(st);
         const lng = getLng(st);
 
-        if (Number.isNaN(lat) || Number.isNaN(lng)) return Infinity;
+        if (Number.isNaN(lat) || Number.isNaN(lng)) {
+          return Infinity;
+        }
 
         const R = 6371;
         const dLat = ((lat - centerLat) * Math.PI) / 180;
@@ -179,16 +197,22 @@ export default function Map() {
         const a =
           Math.sin(dLat / 2) ** 2 +
           Math.cos((centerLat * Math.PI) / 180) *
-          Math.cos((lat * Math.PI) / 180) *
-          Math.sin(dLng / 2) ** 2;
+            Math.cos((lat * Math.PI) / 180) *
+            Math.sin(dLng / 2) ** 2;
 
-        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return (
+          R *
+          2 *
+          Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+        );
       };
 
       const cheapest = stations
         .filter((st) => parseCost(st.cost) !== null)
         .filter((st) => getDistanceKm(st) <= 20)
-        .sort((a, b) => parseCost(a.cost) - parseCost(b.cost))[0];
+        .sort(
+          (a, b) => parseCost(a.cost) - parseCost(b.cost)
+        )[0];
 
       if (cheapest) {
         setSelectedStation(cheapest);
@@ -201,20 +225,29 @@ export default function Map() {
       const userLat = data?.user_location?.lat;
       const userLng = data?.user_location?.lng;
 
-      // fallback if BE don't return user_location
-      const centerLat = userLat ?? (bbox ? (bbox[1] + bbox[3]) / 2 : -37.8136);
-      const centerLng = userLng ?? (bbox ? (bbox[0] + bbox[2]) / 2 : 144.9631);
+      const centerLat =
+        userLat ?? (bbox ? (bbox[1] + bbox[3]) / 2 : -37.8136);
+
+      const centerLng =
+        userLng ?? (bbox ? (bbox[0] + bbox[2]) / 2 : 144.9631);
 
       let nearest = null;
       let minDist = Infinity;
 
       stations.forEach((st) => {
-        const lat = Number(st.latitude ?? st.location?.coordinates?.[1]);
-        const lng = Number(st.longitude ?? st.location?.coordinates?.[0]);
+        const lat = Number(
+          st.latitude ?? st.location?.coordinates?.[1]
+        );
+
+        const lng = Number(
+          st.longitude ?? st.location?.coordinates?.[0]
+        );
 
         if (Number.isNaN(lat) || Number.isNaN(lng)) return;
 
-        const dist = (lat - centerLat) ** 2 + (lng - centerLng) ** 2;
+        const dist =
+          (lat - centerLat) ** 2 +
+          (lng - centerLng) ** 2;
 
         if (dist < minDist) {
           minDist = dist;
@@ -224,7 +257,11 @@ export default function Map() {
 
       if (nearest) {
         setSelectedStation(nearest);
-        mapRef.current?.flyTo([nearest.latitude, nearest.longitude], 16);
+
+        mapRef.current?.flyTo(
+          [nearest.latitude, nearest.longitude],
+          16
+        );
       }
 
       return;
@@ -253,7 +290,9 @@ export default function Map() {
         const lat = getLat(st);
         const lng = getLng(st);
 
-        if (Number.isNaN(lat) || Number.isNaN(lng)) return Infinity;
+        if (Number.isNaN(lat) || Number.isNaN(lng)) {
+          return Infinity;
+        }
 
         const R = 6371;
         const dLat = ((lat - centerLat) * Math.PI) / 180;
@@ -262,10 +301,14 @@ export default function Map() {
         const a =
           Math.sin(dLat / 2) ** 2 +
           Math.cos((centerLat * Math.PI) / 180) *
-          Math.cos((lat * Math.PI) / 180) *
-          Math.sin(dLng / 2) ** 2;
+            Math.cos((lat * Math.PI) / 180) *
+            Math.sin(dLng / 2) ** 2;
 
-        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return (
+          R *
+          2 *
+          Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+        );
       };
 
       const nearbyStations = stations
@@ -279,16 +322,21 @@ export default function Map() {
       const lowCongestionStation =
         nearbyStations.find(
           (st) =>
-            String(st.congestion_level || st.congestion || '')
+            String(
+              st.congestion_level || st.congestion || ''
+            )
               .toLowerCase()
               .includes('low')
-        ) ||
-        nearbyStations[0];
+        ) || nearbyStations[0];
 
       if (lowCongestionStation) {
         setSelectedStation(lowCongestionStation);
+
         mapRef.current?.flyTo(
-          [Number(lowCongestionStation.latitude), Number(lowCongestionStation.longitude)],
+          [
+            Number(lowCongestionStation.latitude),
+            Number(lowCongestionStation.longitude),
+          ],
           16
         );
       }
@@ -296,35 +344,26 @@ export default function Map() {
       return;
     }
 
-    setSelectedStation(availableStations[0] || stations[0]);
+    setSelectedStation(
+      availableStations[0] || stations[0]
+    );
   };
-  const { favourites, toggleFavourite } = useContext(FavouritesContext);
+
+  const { favourites, toggleFavourite } =
+    useContext(FavouritesContext);
+
   const [connectorTypes, setConnectorTypes] = useState([]);
   const [operatorTypes, setOperatorTypes] = useState([]);
 
-  // local UI state for the floating dark-mode button icon
-  // const [isDark, setIsDark] = useState(false);
-
-  // toggle dark mode only when inside the Map page
-  // useEffect(() => {
-  //   if (isDark) {
-  //     document.body.classList.add("dark-mode");
-  //   } else {
-  //     document.body.classList.remove("dark-mode");
-  //   }
-  //   return () => {
-  //     document.body.classList.remove("dark-mode");
-  //   };
-  // }, [isDark]);
-
-  // Fetch chargers only when token available and bbox changes
   useEffect(() => {
     let mounted = true;
     let id;
 
     if (!user?.token) {
       setLoading(false);
-      setErr('Please log in to search for charging stations');
+      setErr(
+        'Please log in to search for charging stations'
+      );
       return;
     }
 
@@ -332,7 +371,6 @@ export default function Map() {
       try {
         setErr('');
 
-        // need bbox to fetch chargers
         if (!bbox) {
           if (mounted) {
             setLoading(false);
@@ -342,7 +380,9 @@ export default function Map() {
         }
 
         setLoading(true);
+
         const data = await getChargers(user, { bbox });
+
         if (mounted) {
           setStations(Array.isArray(data) ? data : []);
           console.log("Stations:", data);
@@ -358,46 +398,48 @@ export default function Map() {
 
     load();
     id = setInterval(load, 15000);
+
     return () => {
       mounted = false;
       clearInterval(id);
     };
   }, [bbox, user?.token]);
 
-  // Automatically select a station for Congestion Prediction
-useEffect(() => {
+  useEffect(() => {
     if (
-        location.pathname === '/congestion-prediction' &&
-        stations.length > 0 &&
-        !selectedStation
+      location.pathname === '/congestion-prediction' &&
+      stations.length > 0 &&
+      !selectedStation
     ) {
-        const station =
-            stations.find((st) => st.is_operational === 'true') ||
-            stations[0];
+      const station =
+        stations.find(
+          (st) => st.is_operational === 'true'
+        ) || stations[0];
 
-        setSelectedStation(station);
+      setSelectedStation(station);
 
-        const lat = Number(
-            station.latitude ?? station.location?.coordinates?.[1]
-        );
+      const lat = Number(
+        station.latitude ??
+          station.location?.coordinates?.[1]
+      );
 
-        const lng = Number(
-            station.longitude ?? station.location?.coordinates?.[0]
-        );
+      const lng = Number(
+        station.longitude ??
+          station.location?.coordinates?.[0]
+      );
 
-        if (!Number.isNaN(lat) && !Number.isNaN(lng)) {
-            mapRef.current?.flyTo([lat, lng], 16);
-        }
+      if (!Number.isNaN(lat) && !Number.isNaN(lng)) {
+        mapRef.current?.flyTo([lat, lng], 16);
+      }
     }
-}, [location.pathname, stations]);
+  }, [location.pathname, stations]);
 
-useEffect(() => {
+  useEffect(() => {
     if (location.pathname !== '/congestion-prediction') {
-        setSelectedStation(null);
+      setSelectedStation(null);
     }
-}, [location.pathname]);
+  }, [location.pathname]);
 
-  // fetching connector and operator types
   useEffect(() => {
     if (!user) return;
 
@@ -406,7 +448,10 @@ useEffect(() => {
         const types = await getConnectorTypes(user);
         setConnectorTypes(types);
       } catch (err) {
-        console.error("Failed to load connector types", err);
+        console.error(
+          "Failed to load connector types",
+          err
+        );
       }
     }
 
@@ -415,67 +460,98 @@ useEffect(() => {
         const types = await getOperatorTypes(user);
         setOperatorTypes(types);
       } catch (err) {
-        console.error("Failed to load operator types", err);
+        console.error(
+          "Failed to load operator types",
+          err
+        );
       }
     }
 
     fetchConnectorTypes();
     fetchOperatorTypes();
   }, [user]);
-  //Type 2 tethered connector doesnt work because each station has a trailing space in the connector_types that we have filtered out in chargerservice.js
 
-  // Apply filters on stations
   const filteredStations = useMemo(() => {
-    return stations.filter(station => {
-      const { connection_type, power_output, cost, operator } = station;
-      // Charger type filter
-      if (filters.chargerType.length > 0 && !filters.chargerType.includes(connection_type)) {
+    return stations.filter((station) => {
+      const {
+        connection_type,
+        power_output,
+        cost,
+        operator,
+      } = station;
+
+      if (
+        filters.chargerType.length > 0 &&
+        !filters.chargerType.includes(connection_type)
+      ) {
         return false;
       }
 
-      //Speed filter
       if (filters.chargingSpeed.length > 0) {
-        const speed = Number(power_output); // parse as number
-        const ok = filters.chargingSpeed.some(range => {
+        const speed = Number(power_output);
+
+        const ok = filters.chargingSpeed.some((range) => {
           switch (range) {
             case '<7kW':
               return speed < 7;
+
             case '7-22kW':
               return speed >= 7 && speed <= 22;
+
             case '22-50kW':
               return speed > 22 && speed <= 50;
+
             case '50-150kW':
               return speed > 50 && speed <= 150;
+
             case '150kW-250kW':
               return speed > 150 && speed <= 250;
+
             case '250kW+':
               return speed > 250;
+
             default:
               return false;
           }
         });
+
         if (!ok) return false;
       }
 
-      // Price filter      
       const price = parseCost(cost);
-      // if (price === null) return false; // this will remove all 'unknown' costs
-      if (price < filters.priceRange[0] || price > filters.priceRange[1]) return false;
 
-      // Operator filter
+      if (
+        price < filters.priceRange[0] ||
+        price > filters.priceRange[1]
+      ) {
+        return false;
+      }
+
       if (filters.operatorType.length > 0) {
-        const normalisedOperator = normaliseOperatorName(operator);
-        // Determine if operator is considered "Other"
-        const bigGroups = operatorTypes.filter(op => op !== "Other");
-        const opForFilter = bigGroups.includes(normalisedOperator) ? normalisedOperator : "Other";
+        const normalisedOperator =
+          normaliseOperatorName(operator);
 
-        if (!filters.operatorType.includes(opForFilter)) {
+        const bigGroups = operatorTypes.filter(
+          (op) => op !== "Other"
+        );
+
+        const opForFilter = bigGroups.includes(
+          normalisedOperator
+        )
+          ? normalisedOperator
+          : "Other";
+
+        if (
+          !filters.operatorType.includes(opForFilter)
+        ) {
           return false;
         }
       }
 
-      // Available filter
-      if (filters.showOnlyAvailable && station.is_operational !== 'true') {
+      if (
+        filters.showOnlyAvailable &&
+        station.is_operational !== 'true'
+      ) {
         return false;
       }
 
@@ -485,156 +561,123 @@ useEffect(() => {
 
   return (
     <>
+      <style>{mapThemeStyles}</style>
+
       <NavBar />
-      <div className="relative h-(--content-height) overflow-auto">
+
+      <div className="relative isolate h-(--content-height) w-full overflow-hidden bg-slate-100 dark:bg-black">
+        <div className="absolute inset-0 z-0 bg-slate-100 dark:bg-black">
+          <MapContainer
+            className="relative z-0 h-full w-full"
+            center={[-37.8136, 144.9631]}
+            zoom={13}
+            whenCreated={(mapInstance) => {
+              mapRef.current = mapInstance;
+            }}
+          >
+            <TileLayer
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution="&copy; OpenStreetMap contributors"
+              className={
+                isDark ? "evat-dark-map-tiles" : ""
+              }
+            />
+
+            <BoundsWatcher onChange={setBbox} />
+
+            <ClusterMarkers
+              showCongestion={filters.showCongestion}
+              stations={filteredStations}
+              selectedStation={selectedStation}
+              onSelectStation={(st) =>
+                setSelectedStation(st)
+              }
+            />
+
+            <LocateUser />
+          </MapContainer>
+        </div>
+
         <button
-          className="btn btn-primary btn-filter btn-small"
+          className="absolute right-4 top-4 z-[1100] rounded-xl border border-emerald-300 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-lg transition-all hover:bg-emerald-50 dark:border-emerald-700/60 dark:bg-[#050806] dark:text-white dark:hover:bg-emerald-950/50"
           onClick={() => setIsFilterOpen(true)}
         >
           🔍 Smart Filters
         </button>
 
         {loading && bbox && (
-          <div className="map-status-message map-loading" style={{
-            position: 'absolute',
-            top: 12,
-            left: 12,
-            zIndex: 1000,
-            background: '#fff',
-            padding: '8px 12px',
-            borderRadius: 6,
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-            fontSize: '14px',
-            fontWeight: 500
-          }}>
+          <div className="absolute left-4 top-4 z-[1200] rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-lg dark:border-emerald-900/60 dark:bg-[#050806] dark:text-slate-200">
             Loading charging stations…
           </div>
         )}
+
         {err && (
-          <div className="map-status-message map-error" style={{
-            position: 'absolute',
-            top: 12,
-            left: 12,
-            zIndex: 1000,
-            background: '#ffebee',
-            color: '#c62828',
-            padding: '8px 12px',
-            borderRadius: 6,
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-            fontSize: '14px',
-            fontWeight: 500,
-            borderLeft: '4px solid #f44336',
-            maxWidth: '300px'
-          }}>
+          <div className="absolute left-4 top-4 z-[1200] max-w-[300px] rounded-xl border-l-4 border-red-500 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 shadow-lg dark:border-red-500 dark:bg-red-950/80 dark:text-red-300">
             {err}
           </div>
         )}
+
         {!bbox && !loading && user?.token && (
-          <div className="map-status-message map-info" style={{
-            position: 'absolute',
-            top: 12,
-            left: 12,
-            zIndex: 1000,
-            background: '#e3f2fd',
-            color: '#1565c0',
-            padding: '12px 16px',
-            borderRadius: 8,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-            fontSize: '14px',
-            fontWeight: 500,
-            borderLeft: '4px solid #2196f3',
-            maxWidth: '320px',
-            lineHeight: '1.5'
-          }}>
-            <div style={{ fontWeight: 600, marginBottom: '4px' }}>
+          <div className="absolute left-4 top-4 z-[1200] max-w-[320px] rounded-xl border-l-4 border-blue-500 bg-blue-50 px-4 py-3 text-sm font-medium text-blue-700 shadow-lg dark:border-blue-500 dark:bg-blue-950/80 dark:text-blue-300">
+            <div className="mb-1 font-semibold">
               📍 Map Loading
             </div>
-            <div style={{ fontSize: '13px', opacity: 0.9 }}>
-              Wait for map to load or move/zoom to search for chargers
+
+            <div className="text-[13px] opacity-90">
+              Wait for map to load or move/zoom to search
+              for chargers
             </div>
           </div>
         )}
+
         {!user?.token && (
-          <div className="map-status-message map-warning" style={{
-            position: 'absolute',
-            top: 12,
-            left: 12,
-            zIndex: 1000,
-            background: '#fff3cd',
-            color: '#856404',
-            padding: '12px 16px',
-            borderRadius: 8,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-            fontSize: '14px',
-            fontWeight: 500,
-            borderLeft: '4px solid #ffc107',
-            maxWidth: '300px'
-          }}>
-            <div style={{ fontWeight: 600, marginBottom: '4px' }}>
+          <div className="absolute left-4 top-4 z-[1200] max-w-[300px] rounded-xl border-l-4 border-amber-500 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800 shadow-lg dark:border-amber-500 dark:bg-amber-950/80 dark:text-amber-300">
+            <div className="mb-1 font-semibold">
               ⚠️ Login Required
             </div>
-            <div style={{ fontSize: '13px', opacity: 0.9 }}>
+
+            <div className="text-[13px] opacity-90">
               Please log in to search for charging stations
             </div>
           </div>
         )}
 
-        <MapContainer
-          className="h-full"
-          center={[-37.8136, 144.9631]}
-          zoom={13}
-          whenCreated={(mapInstance) => {
-            mapRef.current = mapInstance;
-          }}
-        >
-          <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution="&copy; OpenStreetMap contributors"
+        <div className="relative z-[1000]">
+          <SmartFilter
+            isOpen={isFilterOpen}
+            onClose={() => setIsFilterOpen(false)}
+            filters={filters}
+            setFilters={setFilters}
+            filteredCount={filteredStations.length}
+            priceMin={priceMin}
+            priceMax={priceMax}
+            connectorTypes={connectorTypes}
+            operatorTypes={operatorTypes}
           />
-          <BoundsWatcher onChange={setBbox} />
-          <ClusterMarkers
-            showCongestion={filters.showCongestion}
-            stations={filteredStations}
-            selectedStation={selectedStation}
-            onSelectStation={(st) => setSelectedStation(st)}
+        </div>
+
+        <div className="relative z-[1050]">
+          <ChargerSideBar
+            station={selectedStation}
+            onClose={() => setSelectedStation(null)}
+            favourites={favourites}
+            toggleFavourite={toggleFavourite}
           />
-          <LocateUser />
-        </MapContainer>
+        </div>
 
-        {/* <button
-          className="btn btn-primary btn-dark-mode"
-          aria-label="Toggle dark mode"
-          onClick={() => setIsDark(prev => !prev)}
-          title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-        >
-          {isDark ? '🌙' : '☀️'}
-        </button> */}
+        <div className="relative z-[1000]">
+          <ChargingRecommendations />
+        </div>
 
-        <SmartFilter
-          isOpen={isFilterOpen}
-          onClose={() => setIsFilterOpen(false)}
-          filters={filters}
-          setFilters={setFilters}
-          filteredCount={filteredStations.length}
-          priceMin={priceMin}
-          priceMax={priceMax}
-          connectorTypes={connectorTypes}
-          operatorTypes={operatorTypes}
-        />
-        <ChargerSideBar
-          station={selectedStation}
-          onClose={() => setSelectedStation(null)}
-          favourites={favourites}
-          toggleFavourite={toggleFavourite}
-        />
+        <div className="relative z-[1100]">
+          <FloatingVoiceAssistant
+            onQueryResult={handleVoiceResult}
+          />
+        </div>
 
-        <ChargingRecommendations />
-        
-        {/* Voice Assistant floating button - opens popup with VoiceQuery */}
-        <FloatingVoiceAssistant onQueryResult={handleVoiceResult} />
-
-        {/* Existing chat bubble (kept as is) */}
-        <ChatBubble />
+        <div className="relative z-[1100]">
+          <ChatBubble />
+        </div>
       </div>
     </>
   );
