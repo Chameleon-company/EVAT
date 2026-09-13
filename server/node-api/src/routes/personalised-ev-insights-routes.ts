@@ -63,6 +63,29 @@ const personalisedEVInsightsController = new PersonalisedEVInsightsController(
  *          type: number
  *        savingsMessage:
  *          type: string
+ *        evReadinessScore:
+ *          type: number
+ *          minimum: 0
+ *          maximum: 100
+ *        recommendationCategory:
+ *          type: string
+ *          enum: [Full EV Recommended, Hybrid Recommended, EV Optional]
+ *        annualKm:
+ *          type: number
+ *        estimatedAnnualFuelCost:
+ *          type: number
+ *        estimatedAnnualEvChargingCost:
+ *          type: number
+ *        estimatedAnnualSavings:
+ *          type: number
+ *        estimatedAnnualCo2ReductionKg:
+ *          type: number
+ *        personalisedPredictionInsight:
+ *          type: string
+ *        scoreComponents:
+ *          type: object
+ *        assumptions:
+ *          type: object
  *        similarDriverAverages:
  *          type: object
  *          properties:
@@ -285,6 +308,29 @@ router.post("/", authGuard(["user", "admin"]), (req, res) =>
  *                      type: number
  *                    savingsMessage:
  *                      type: string
+ *                    evReadinessScore:
+ *                      type: number
+ *                      minimum: 0
+ *                      maximum: 100
+ *                    recommendationCategory:
+ *                      type: string
+ *                      enum: [Full EV Recommended, Hybrid Recommended, EV Optional]
+ *                    annualKm:
+ *                      type: number
+ *                    estimatedAnnualFuelCost:
+ *                      type: number
+ *                    estimatedAnnualEvChargingCost:
+ *                      type: number
+ *                    estimatedAnnualSavings:
+ *                      type: number
+ *                    estimatedAnnualCo2ReductionKg:
+ *                      type: number
+ *                    personalisedPredictionInsight:
+ *                      type: string
+ *                    scoreComponents:
+ *                      type: object
+ *                    assumptions:
+ *                      type: object
  *                    similarDriverAverages:
  *                      type: object
  *                      properties:

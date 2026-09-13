@@ -77,7 +77,7 @@ jobs:
         run: |
           python -m pytest \
             charging_station_recommendation_api/tests \
+            personalisedEVInsights/tests \
             environmental_impact_analysis/tests \
             pricePrediction/tests \
             -v
-            

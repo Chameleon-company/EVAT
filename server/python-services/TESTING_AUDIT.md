@@ -107,6 +107,7 @@ Key findings:
 - Existing Charging Station Recommendation API tests were tied to the older standalone service structure and were updated for isolated monorepo-compatible testing.
 - Environmental Impact Analysis now includes model loading, prediction, schema and invalid-input tests.
 - Price Prediction now includes helper, service-state, single prediction, batch prediction and extra-feature validation tests.
+- Personalised EV Insights now includes EV readiness scoring, recommendation-category, non-applicable switching, and invalid-input tests.
 - Dependency and compatibility warnings were identified for Starlette/httpx, NumPy/joblib, scikit-learn, XGBoost and datetime usage.
 
 ## Current Testing State
@@ -118,7 +119,7 @@ Key findings:
 | Price Prediction | 11 | Passing |
 | Demand Forecasting | 0 | Future work |
 | Cost Comparison | 0 | Future work |
-| Personalised EV Insights | 0 | Future work |
+| Personalised EV Insights | 4 | Passing |
 | Reliability Scoring | 0 | Future work |
 | Weather-Aware Routing | 0 | Future work |
 
@@ -126,6 +127,7 @@ Key findings:
 
 python -m pytest \
   charging_station_recommendation_api/tests \
+  personalisedEVInsights/tests \
   environmental_impact_analysis/tests \
   pricePrediction/tests
 
