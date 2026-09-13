@@ -1,6 +1,6 @@
 import unittest
 
-from .dataset_builder import (
+from charging_station_recommendation_api.training.dataset_builder import (
     is_session_snapshot_invalid,
     clean_text,
     clean_pay_at_location,

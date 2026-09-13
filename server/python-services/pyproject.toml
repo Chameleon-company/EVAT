@@ -12,6 +12,7 @@ dependencies = [
     "lightgbm>=4.5,<5",
     "numpy>=1.26,<3",
     "pandas>=2.2,<4",
+    "pymongo>=4.6,<5",
     "pydantic>=2.9,<3",
     "pymongo>=4.9,<5",
     "python-dotenv>=1,<2",

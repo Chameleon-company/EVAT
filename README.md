@@ -166,6 +166,106 @@ The API publishes on **8080** by default. Override any host port from the
 root `.env` with `WEB_HOST_PORT`, `API_HOST_PORT` or `PY_HOST_PORT` if it
 clashes with something else on your machine.
 
+### Pulling Docker images and building the frontend locally
+
+This project can also be started by pulling the prebuilt Docker images from Docker Hub, then building the frontend image locally because Vite requires build-time environment variables. This is the flow currently used for the EVAT deployment workflow.
+
+Log in to Docker Hub:
+
+```bash
+docker login -u evat26
+```
+
+This authenticates the local Docker client with the Docker Hub account used for the EVAT images.
+
+Pull the published images:
+
+```bash
+docker pull evat26/monorepo:web-latest
+docker pull evat26/monorepo:api-latest
+docker pull evat26/monorepo:python-latest
+```
+
+These commands download the latest available images for:
+- `web-latest` → frontend React app
+- `api-latest` → Node.js backend API
+- `python-latest` → Python ML / FastAPI service
+
+Create the shared Docker network so the API and Python service can communicate:
+
+```bash
+docker network create evat 2>/dev/null || true
+```
+
+`evat` is a shared bridge network used so services can resolve each other by container name instead of localhost.
+
+Start the API container:
+
+```bash
+docker run -d \
+  --name evat-api \
+  -p 8080:8080 \
+  --env-file ./server/node-api/.env \
+  evat26/monorepo:api-latest
+```
+
+- `-d` runs the container in detached mode
+- `--name evat-api` gives the container a fixed name
+- `-p 8080:8080` maps the API container port to the host port
+- `--env-file ./server/node-api/.env` loads backend variables such as `MONGODB_URI`, `JWT_SECRET`, and Google credentials
+
+Start the Python service container:
+
+```bash
+docker run -d \
+  --name evat-pythonsvc \
+  --network evat \
+  -p 5000:5000 \
+  --env-file ./server/node-api/.env \
+  evat26/monorepo:python-latest
+```
+
+This connects the Python service to the same Docker network as the API so backend services can communicate internally over the Docker network, while keeping the public port exposed on host `5000`.
+
+Load frontend environment variables for the Vite build:
+
+```bash
+set -a
+. ./client/web-app/.env
+set +a
+```
+
+This exports the variables from `client/web-app/.env` into the current shell so they can be passed to the Docker build command as build arguments.
+
+Convert all `VITE_*` variables into Docker build args:
+
+```bash
+BUILD_ARGS=()
+for key in $(env | cut -d= -f1 | grep '^VITE_'); do
+  BUILD_ARGS+=("--build-arg" "$key=${!key}")
+done
+```
+
+This ensures values such as `VITE_API_URL` and `VITE_GOOGLE_MAPS_API_KEY` are passed to the Docker build. These values must be injected during build time because Vite compiles them into the final frontend bundle.
+
+Build the frontend image locally:
+
+```bash
+docker build "${BUILD_ARGS[@]}" -t evat26/monorepo:web-latest ./client/web-app
+```
+
+This builds the React app into a static production bundle and packages it into an Nginx-based image. The frontend is built locally because the web app depends on Vite env vars being embedded during compilation.
+
+Run the web app container:
+
+```bash
+docker run -d --name evat-web -p 3000:80 evat26/monorepo:web-latest
+```
+
+This starts the frontend on host port `3000` and serves the compiled static site via Nginx.
+
+This flow is useful when you want to pull the backend and Python services from a shared registry while keeping the frontend build local so that the correct Vite configuration is baked into the final web image.
+
 ---
 
 ## 🔑 Authentication & API Setup
