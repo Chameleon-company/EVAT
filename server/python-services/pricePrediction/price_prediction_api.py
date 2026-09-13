@@ -11,9 +11,10 @@ import logging
 import joblib
 import numpy as np
 import pandas as pd
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
+from common.errors import ModelUnavailableError
 
 from pricePrediction.price_app_config import (
     PRICE_ALT_DATA_PATH,
@@ -530,7 +531,7 @@ async def health() -> HealthResponse:
 
 async def schema() -> SchemaResponse:
     if not FEATURE_COLUMNS:
-        raise HTTPException(status_code=503, detail="Schema not loaded yet.")
+        raise ModelUnavailableError("Price prediction schema is currently unavailable.")
     return SchemaResponse(
         feature_columns=FEATURE_COLUMNS,
         numeric_columns=NUMERIC_COLUMNS,
@@ -542,7 +543,7 @@ async def schema() -> SchemaResponse:
 
 async def model_info() -> ModelInfoResponse:
     if MODEL is None:
-        raise HTTPException(status_code=503, detail="Model not loaded.")
+        raise ModelUnavailableError("Price prediction model is currently unavailable.")
     steps = list(getattr(MODEL, "named_steps", {}).keys())
     n_features_in = getattr(MODEL, "n_features_in_", None)
     return ModelInfoResponse(
@@ -555,9 +556,9 @@ async def model_info() -> ModelInfoResponse:
 
 def _predict(records: List[PredictionRecord]) -> List[PredictionResponse]:
     if MODEL is None:
-        raise HTTPException(status_code=503, detail="Model not loaded.")
+        raise ModelUnavailableError("Price prediction model is currently unavailable.")
     if not FEATURE_COLUMNS:
-        raise HTTPException(status_code=503, detail="Schema not loaded yet.")
+        raise ModelUnavailableError("Price prediction schema is currently unavailable.")
 
     normalized_rows: List[Dict[str, Any]] = []
     missing_list: List[List[str]] = []

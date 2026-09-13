@@ -1,4 +1,9 @@
-from fastapi import FastAPI, HTTPException
+import logging
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+from common.errors import EVATServiceError
+from common.error_handlers import register_error_handlers
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, field_validator, Field
 from typing import Union, List, Optional, Dict, Any
@@ -17,6 +22,7 @@ from charging_station_recommendation_api.models.request import RankChargingStati
 from charging_station_recommendation_api.models.response import RankChargingStationsResponse
 from environmental_impact_analysis.predict import predict_savings
 
+logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("[startup] Training model...")
@@ -33,6 +39,61 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+register_error_handlers(app)
+
+@app.exception_handler(EVATServiceError)
+async def evat_service_error_handler(
+    request: Request,
+    exc: EVATServiceError,
+):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "error": {
+                "code": exc.code,
+                "message": exc.message,
+            }
+        },
+    )
+
+
+@app.exception_handler(RequestValidationError)
+async def request_validation_error_handler(
+    request: Request,
+    exc: RequestValidationError,
+):
+    return JSONResponse(
+        status_code=422,
+        content={
+            "error": {
+                "code": "VALIDATION_ERROR",
+                "message": "The request contains invalid or missing fields.",
+            }
+        },
+    )
+
+
+@app.exception_handler(Exception)
+async def unexpected_error_handler(
+    request: Request,
+    exc: Exception,
+):
+    logger.exception(
+        "Unhandled error while processing %s %s",
+        request.method,
+        request.url.path,
+        exc_info=exc,
+    )
+
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": {
+                "code": "INTERNAL_ERROR",
+                "message": "An unexpected error occurred.",
+            }
+        },
+    )
 
 app.add_middleware(
     CORSMiddleware,

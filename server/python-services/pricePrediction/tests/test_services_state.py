@@ -1,8 +1,7 @@
 import asyncio
 
 import pytest
-from fastapi import HTTPException
-
+from common.errors import ModelUnavailableError
 from pricePrediction import price_prediction_api as api
 
 
@@ -20,11 +19,15 @@ def test_model_info_returns_503_when_model_not_loaded():
     try:
         api.MODEL = None
 
-        with pytest.raises(HTTPException) as exc_info:
+        with pytest.raises(ModelUnavailableError) as exc_info:
             asyncio.run(api.model_info())
 
         assert exc_info.value.status_code == 503
-        assert exc_info.value.detail == "Model not loaded."
+        assert exc_info.value.code == "MODEL_UNAVAILABLE"
+        assert exc_info.value.message == (
+            "Price prediction model is currently unavailable."
+        )
+
     finally:
         api.MODEL = original_model
 
@@ -35,10 +38,14 @@ def test_schema_returns_503_when_schema_not_loaded():
     try:
         api.FEATURE_COLUMNS = []
 
-        with pytest.raises(HTTPException) as exc_info:
+        with pytest.raises(ModelUnavailableError) as exc_info:
             asyncio.run(api.schema())
 
         assert exc_info.value.status_code == 503
-        assert exc_info.value.detail == "Schema not loaded yet."
+        assert exc_info.value.code == "MODEL_UNAVAILABLE"
+        assert exc_info.value.message == (
+            "Price prediction schema is currently unavailable."
+        )
+
     finally:
         api.FEATURE_COLUMNS = original_columns

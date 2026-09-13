@@ -14,7 +14,13 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
 import pandas as pd
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Query
+
+from common.errors import (
+    InvalidInputError,
+    ResourceNotFoundError,
+    ServiceUnavailableError,
+)
 from pydantic import BaseModel, Field
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
@@ -630,7 +636,9 @@ def suburbs() -> dict:
     try:
         return {"suburbs": get_suburbs()}
     except FileNotFoundError as exc:
-        raise HTTPException(status_code=503, detail=str(exc)) from exc
+        raise ServiceUnavailableError(
+            "Reliability station data is currently unavailable."
+        ) from exc
 
 
 @router.get("/summary", response_model=SummaryResponse)
@@ -640,7 +648,9 @@ def summary(
     try:
         return SummaryResponse(**summary_data(suburb=suburb))
     except FileNotFoundError as exc:
-        raise HTTPException(status_code=503, detail=str(exc)) from exc
+        raise ServiceUnavailableError(
+            "Reliability summary data is currently unavailable."
+        ) from exc
 
 
 @router.get("/stations", response_model=StationListResponse)
@@ -670,7 +680,9 @@ def list_stations(
             sentiment=sentiment,
         )
     except FileNotFoundError as exc:
-        raise HTTPException(status_code=503, detail=str(exc)) from exc
+        raise ServiceUnavailableError(
+            "Reliability station data is currently unavailable."
+        ) from exc
 
 
 @router.get("/stations/{charger_id}", response_model=StationRecord)
@@ -678,10 +690,15 @@ def get_station(charger_id: str) -> StationRecord:
     try:
         station = get_station_data(charger_id)
     except FileNotFoundError as exc:
-        raise HTTPException(status_code=503, detail=str(exc)) from exc
+        raise ServiceUnavailableError(
+            "Reliability station data is currently unavailable."
+        ) from exc
 
     if station is None:
-        raise HTTPException(status_code=404, detail=f"Station not found: {charger_id}")
+        raise ResourceNotFoundError(
+            f"Station not found: {charger_id}"
+        )
+
     return StationRecord(**station)
 
 
@@ -694,19 +711,34 @@ def top_stations(
     suburb: Optional[str] = Query(default=None),
     limit: int = Query(default=5, ge=1, le=50),
 ) -> StationListResponse:
-    allowed = {"positive", "negative", "neutral", "reliability"}
+    allowed = {
+        "positive",
+        "negative",
+        "neutral",
+        "reliability",
+    }
+
     if kind.lower() not in allowed:
-        raise HTTPException(
-            status_code=400,
-            detail=f"kind must be one of {sorted(allowed)}",
+        raise InvalidInputError(
+            f"kind must be one of {sorted(allowed)}"
         )
+
     try:
-        stations = top_stations_data(kind=kind, suburb=suburb, limit=limit)
+        stations = top_stations_data(
+            kind=kind,
+            suburb=suburb,
+            limit=limit,
+        )
     except FileNotFoundError as exc:
-        raise HTTPException(status_code=503, detail=str(exc)) from exc
+        raise ServiceUnavailableError(
+            "Reliability station data is currently unavailable."
+        ) from exc
 
     return StationListResponse(
-        stations=[StationRecord(**s) for s in stations],
+        stations=[
+            StationRecord(**s)
+            for s in stations
+        ],
         count=len(stations),
         total=len(stations),
         suburb=suburb,
@@ -739,7 +771,7 @@ def score_station(body: StationScoreRequest) -> StationScoreResponse:
 @router.post("/score/batch", response_model=BatchStationScoreResponse)
 def score_stations_batch(body: BatchStationScoreRequest) -> BatchStationScoreResponse:
     if not body.records:
-        raise HTTPException(status_code=400, detail="records must be a non-empty array")
+        raise InvalidInputError("records must be a non-empty array")
 
     raw = [r.model_dump() for r in body.records]
     scored = score_batch(raw, max_power_kw=body.max_power_kw)

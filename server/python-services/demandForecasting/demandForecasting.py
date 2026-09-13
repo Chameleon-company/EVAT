@@ -5,6 +5,8 @@
 # ------------------------------------------------------------------------------
 # SECTION 1: IMPORTS
 # ------------------------------------------------------------------------------
+from unittest import result
+
 import pandas as pd
 import joblib
 import requests
@@ -12,7 +14,10 @@ from datetime import datetime, date
 from pathlib import Path
 import holidays
 
-from fastapi import HTTPException
+from common.errors import (
+    InvalidInputError,
+    ResourceNotFoundError,
+)
 from pydantic import BaseModel, field_validator
 
 # ------------------------------------------------------------------------------
@@ -170,18 +175,11 @@ def predict_demand(postcode: str, target_date: date) -> dict:
             "status": "success"
         }
 
-    except ValueError as e:
+    except ValueError as exc:
         return {
             "postcode": postcode,
             "date": target_date.isoformat(),
-            "error": str(e),
-            "status": "error"
-        }
-    except Exception as e:
-        return {
-            "postcode": postcode,
-            "date": target_date.isoformat(),
-            "error": f"Unexpected error: {str(e)}",
+            "error": str(exc),
             "status": "error"
         }
 
@@ -219,25 +217,52 @@ class ErrorResponse(BaseModel):
 
 def get_postcode_coords(postcode: str):
     """Returns lat/lon coordinates for a given postcode."""
+
     postcode = str(postcode).strip()
+
     if postcode not in postcode_coords:
-        raise HTTPException(status_code=404, detail=f"Postcode '{postcode}' not found.")
+        raise ResourceNotFoundError(
+            f"Postcode '{postcode}' not found."
+        )
+
     lat, lon = postcode_coords[postcode]
-    return {"postcode": postcode, "lat": lat, "lon": lon}
+
+    return {
+        "postcode": postcode,
+        "lat": lat,
+        "lon": lon,
+    }
 
 
 def handle_prediction(request: PredictionRequest):
     """
     Predict EV charging demand for a given postcode and date.
-    
-    - **postcode**: Australian postcode (e.g., "2000" for Sydney)
-    - **date**: Target date in YYYY-MM-DD format (must be within next 16 days)
+
+    - postcode: Australian postcode
+    - date: Target date in YYYY-MM-DD format
+      and must be within the next 16 days
     """
-    result = predict_demand(request.postcode, request.date)
 
-    if result['status'] == 'error':
-        raise HTTPException(status_code=400, detail=result['error'])
+    result = predict_demand(
+        request.postcode,
+        request.date,
+    )
 
+    if result["status"] == "error":
+        error_message = result["error"]
+
+        if (
+            "not found in baseline data" in error_message
+            or "Coordinates for postcode" in error_message
+        ):
+
+            raise ResourceNotFoundError(
+                error_message
+            )
+
+        raise InvalidInputError(
+            error_message
+        )
     return result
 
 

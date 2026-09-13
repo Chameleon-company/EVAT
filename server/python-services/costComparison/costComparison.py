@@ -1,4 +1,4 @@
-from fastapi import HTTPException
+from common.errors import PredictionError
 from pydantic import BaseModel
 from typing import Optional
 import costComparison.model_runner
@@ -38,8 +38,10 @@ def predict(req: PredictRequest):
             ev_kwh_per_km=ev_eff,
         )
         return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as exc:
+        raise PredictionError(
+            "Cost comparison prediction could not be generated."
+        ) from exc
 
 
 def charts(req: PredictRequest):
@@ -63,22 +65,28 @@ def charts(req: PredictRequest):
             petrol_price_per_l=req.petrol_price_per_l,
         )
         return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as exc:
+        raise PredictionError(
+            "Cost comparison prediction could not be generated."
+        ) from exc
 
     
 def ev_vehicles():
     try:
         return costComparison.model_runner.get_ev_vehicles()
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as exc:
+        raise PredictionError(
+            "EV vehicle data could not be retrieved."
+        ) from exc
 
 
 def ice_vehicles():
     try:
         return costComparison.model_runner.get_ice_vehicles()
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as exc:
+        raise PredictionError(
+            "ICE vehicle data could not be retrieved."
+        ) from exc
 
 
 class VehicleEfficiencyRequest(BaseModel):
@@ -91,13 +99,17 @@ def ev_efficiency(req: VehicleEfficiencyRequest):
     try:
         eff = costComparison.model_runner.get_ev_efficiency(req.make, req.model, req.variant)
         return {"efficiency_kwh_per_km": eff}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as exc:
+        raise PredictionError(
+            "EV efficiency data could not be retrieved."
+        ) from exc
 
 
 def ice_efficiency(req: VehicleEfficiencyRequest):
     try:
         eff = costComparison.model_runner.get_ice_efficiency(req.make, req.model, req.variant)
         return {"l_per_100km": eff}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as exc:
+        raise PredictionError(
+            "ICE efficiency data could not be retrieved."
+        ) from exc
