@@ -94,23 +94,37 @@ export default function Dashboard() {
     <>
       <NavBar />
 
-      <main className="min-h-screen bg-[#fafafa] text-slate-900 transition-colors dark:bg-transparent dark:text-white">
-        <div className="pointer-events-none absolute left-1/2 top-0 -z-0 h-[420px] w-[700px] -translate-x-1/2 rounded-full bg-emerald-100/40 blur-3xl dark:bg-emerald-950/20" />
+      <main className="min-h-screen transition-colors dark:bg-transparent">
+
+        <div className="pointer-events-none fixed inset-0 overflow-hidden">
+          <div className="absolute left-1/2 top-0 h-96 w-160 -translate-x-1/2 rounded-full bg-emerald-100/40 blur-3xl" />
+          <div className="absolute bottom-0 left-0 h-72 w-72 rounded-full bg-emerald-50/50 blur-3xl" />
+        </div>
 
         <div className="relative z-10 mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8 lg:py-16">
           <section className="mx-auto mb-12 max-w-3xl text-center sm:mb-14">
-            <span className="mb-5 inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-400">
+            <span
+              className="
+                mb-4 inline-flex items-center rounded-full
+                border border-emerald-200 bg-emerald-50
+                px-3.5 py-1.5 text-xs font-semibold uppercase
+                text-emerald-700
+                dark:border-emerald-900/70
+                dark:bg-emerald-950/50
+                dark:text-emerald-400
+              "
+            >
               EVAT Platform
             </span>
 
-            <h1 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl dark:text-white">
+            <h1 className="text-4xl font-bold tracking-tight text-surface-900 sm:text-5xl lg:text-6xl">
               Electric Vehicle
               <span className="block text-emerald-600 dark:text-emerald-400">
                 Adoption Tool
               </span>
             </h1>
 
-            <p className="mx-auto mt-5 max-w-2xl text-sm leading-6 text-slate-500 sm:text-base sm:leading-7 dark:text-gray-400">
+            <p className="mx-auto mt-5 max-w-2xl text-sm leading-6 text-surface-500 sm:text-base sm:leading-7 dark:text-surface-700/75">
               Explore insights, predictions and analysis to better understand
               electric vehicle adoption, charging and mobility.
             </p>
@@ -118,16 +132,16 @@ export default function Dashboard() {
 
           <div className="mb-5 flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
+              <h2 className="text-lg font-semibold text-surface-900">
                 Explore use cases
               </h2>
 
-              <p className="mt-1 text-sm text-slate-500 dark:text-gray-400">
+              <p className="mt-1 text-sm text-surface-500">
                 Choose an area to get started.
               </p>
             </div>
 
-            <div className="hidden text-xs font-medium text-slate-400 dark:text-gray-500 sm:block">
+            <div className="hidden text-xs font-medium text-surface-400 sm:block">
               {useCases.length} available
             </div>
           </div>
@@ -145,16 +159,16 @@ export default function Dashboard() {
                   onMouseEnter={() => setHoveredId(uc.id)}
                   onMouseLeave={() => setHoveredId(null)}
                   onClick={() => !isComingSoon && navigate(uc.route)}
-                  className={`group relative flex min-h-[230px] flex-col rounded-2xl border bg-white p-6 text-left transition-all duration-300 dark:bg-gray-950 ${
+                  className={`group relative flex min-h-60 flex-col rounded-2xl border bg-background/75 p-6 text-left transition-all duration-300 ${
                     isComingSoon
-                      ? "cursor-not-allowed border-slate-200 opacity-50 dark:border-gray-800"
+                      ? "cursor-not-allowed border-surface-200 opacity-50 dark:border-gray-800"
                       : isHovered
                         ? "border-emerald-200 shadow-[0_16px_40px_rgba(15,23,42,0.08)] dark:border-emerald-800 dark:shadow-[0_16px_40px_rgba(0,0,0,0.4)]"
-                        : "border-slate-200 shadow-sm hover:border-emerald-200 hover:shadow-md dark:border-gray-800 dark:hover:border-emerald-800 dark:hover:shadow-lg"
+                        : "border-surface-200 shadow-sm hover:border-emerald-200 hover:shadow-md dark:hover:border-emerald-800 dark:hover:shadow-lg"
                   }`}
                 >
                   <div
-                    className={`absolute left-6 right-6 top-0 h-[2px] rounded-full bg-emerald-500 transition-opacity duration-300 ${
+                    className={`absolute left-6 right-6 top-0 h-0.5 rounded-full bg-emerald-500 transition-opacity duration-300 ${
                       isHovered && !isComingSoon
                         ? "opacity-100"
                         : "opacity-0"
@@ -165,18 +179,18 @@ export default function Dashboard() {
                     className={`flex h-11 w-11 items-center justify-center rounded-xl border text-xl transition-all duration-300 ${
                       isHovered
                         ? "border-emerald-200 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950/50"
-                        : "border-slate-100 bg-slate-50 dark:border-gray-800 dark:bg-gray-900"
+                        : "border-surface-100 bg-surface-50"
                     }`}
                   >
                     {uc.icon}
                   </div>
 
                   <div className="mt-5 flex-1">
-                    <h3 className="text-base font-semibold text-slate-900 sm:text-lg dark:text-white">
+                    <h3 className="text-base font-semibold text-surface-900 sm:text-lg">
                       {uc.title}
                     </h3>
 
-                    <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-gray-400">
+                    <p className="mt-2 text-sm leading-6 text-surface-500">
                       {uc.description}
                     </p>
                   </div>
@@ -186,7 +200,7 @@ export default function Dashboard() {
                       className={`mt-5 flex items-center text-sm font-semibold text-emerald-600 transition-all duration-300 dark:text-emerald-400 ${
                         isHovered
                           ? "translate-x-0 opacity-100"
-                          : "translate-x-[-6px] opacity-0"
+                          : "-translate-x-1.5 opacity-0"
                       }`}
                     >
                       Explore
@@ -197,7 +211,7 @@ export default function Dashboard() {
                   )}
 
                   {isComingSoon && (
-                    <span className="mt-5 w-fit rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:bg-gray-900 dark:text-gray-500">
+                    <span className="mt-5 w-fit rounded-full bg-surface-100 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-surface-400">
                       Coming Soon
                     </span>
                   )}
@@ -206,12 +220,12 @@ export default function Dashboard() {
             })}
           </section>
 
-          <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-slate-200 pt-6 text-center sm:flex-row sm:text-left dark:border-gray-800">
-            <p className="text-xs text-slate-400 dark:text-gray-500">
+          <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-surface-200 pt-6 text-center sm:flex-row sm:text-left">
+            <p className="text-xs text-surface-400">
               More use cases will be added as the project progresses.
             </p>
 
-            <div className="flex items-center gap-2 text-xs text-slate-400 dark:text-gray-500">
+            <div className="flex items-center gap-2 text-xs text-surface-400">
               <span className="h-2 w-2 rounded-full bg-emerald-500" />
               EVAT Platform
             </div>

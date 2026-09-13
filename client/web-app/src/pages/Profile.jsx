@@ -32,8 +32,8 @@ const RECENT_SUCCESS_MESSAGE_LINGER = 5000;
 const inputClass = `
   w-full max-w-[220px] rounded-lg border px-3 py-2
   text-sm outline-none transition
-  border-slate-300 bg-white text-slate-900
-  placeholder:text-slate-400
+  border-surface-300 bg-white text-surface-900
+  placeholder:text-surface-400
   focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20
   dark:border-gray-700 dark:bg-gray-950
   dark:text-white dark:placeholder:text-gray-600
@@ -41,13 +41,13 @@ const inputClass = `
 
 const sectionClass = `
   rounded-2xl border p-5 sm:p-6
-  border-slate-200 bg-white
+  border-surface-200 bg-white
   shadow-sm
   dark:border-gray-800 dark:bg-[#050806]
   dark:shadow-[0_8px_30px_rgba(0,0,0,0.4)]
 `;
 
-const secondaryTextClass = "text-sm text-slate-500 dark:text-gray-400";
+const secondaryTextClass = "text-sm text-surface-500 dark:text-gray-400";
 
 function Profile() {
   const navigate = useNavigate();
@@ -728,20 +728,20 @@ function Profile() {
 
   if (!localUser) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50 text-slate-600 dark:bg-black dark:text-gray-400">
+      <div className="flex min-h-screen items-center justify-center bg-surface-50 text-surface-600 dark:bg-black dark:text-gray-400">
         Loading profile...
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-slate-50 text-slate-900 transition-colors dark:bg-transparent dark:text-white">
+    <div className="min-h-screen overflow-x-hidden bg-surface-50 text-surface-900 transition-colors dark:bg-transparent dark:text-white">
       <NavBar />
 
       <div
         className="
           pointer-events-none fixed inset-0 -z-0
-          bg-gradient-to-br from-slate-50 via-white to-emerald-50/60
+          bg-gradient-to-br from-surface-50 via-white to-emerald-50/60
           dark:bg-none
         "
       />
@@ -759,7 +759,7 @@ function Profile() {
                   alt="User Avatar"
                   className="
                     h-28 w-28 rounded-full object-cover
-                    border-4 border-white bg-slate-100
+                    border-4 border-white bg-surface-100
                     shadow-lg
                     dark:border-gray-900 dark:bg-gray-800
                   "
@@ -798,7 +798,7 @@ function Profile() {
                     <div className="relative mx-auto max-w-[220px]">
                       <User
                         size={17}
-                        className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500"
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-surface-400 dark:text-gray-500"
                       />
 
                       <input
@@ -827,7 +827,7 @@ function Profile() {
                     <div className="relative mx-auto max-w-[220px]">
                       <User
                         size={17}
-                        className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500"
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-surface-400 dark:text-gray-500"
                       />
 
                       <input
@@ -854,7 +854,7 @@ function Profile() {
                     )}
                   </div>
                 ) : (
-                  <h1 className="text-xl font-bold capitalize text-slate-900 dark:text-white">
+                  <h1 className="text-xl font-bold capitalize text-surface-900 dark:text-white">
                     {localUser.firstName === "true"
                       ? ""
                       : localUser.firstName}{" "}
@@ -882,7 +882,7 @@ function Profile() {
                         <div className="relative">
                           <Phone
                             size={17}
-                            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500"
+                            className="absolute left-3 top-1/2 -translate-y-1/2 text-surface-400 dark:text-gray-500"
                           />
 
                           <input
@@ -964,16 +964,16 @@ function Profile() {
               </div>
             </div>
 
-            <div className="my-6 h-px bg-slate-200 dark:bg-gray-800" />
+            <div className="my-6 h-px bg-surface-200 dark:bg-gray-800" />
 
             <div>
-              <h2 className="mb-4 text-base font-semibold text-slate-900 dark:text-white">
+              <h2 className="mb-4 text-base font-semibold text-surface-900 dark:text-white">
                 My Vehicle
               </h2>
 
               <div className="space-y-3">
                 <div>
-                  <p className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-gray-500">
+                  <p className="mb-1 text-xs font-medium uppercase tracking-wide text-surface-400 dark:text-gray-500">
                     Make
                   </p>
 
@@ -1000,7 +1000,7 @@ function Profile() {
                       ))}
                     </select>
                   ) : (
-                    <p className="text-sm font-medium text-slate-700 dark:text-gray-200">
+                    <p className="text-sm font-medium text-surface-700 dark:text-gray-200">
                       {localUser.car?.make === "true"
                         ? "N/A"
                         : localUser.car?.make || "N/A"}
@@ -1013,7 +1013,7 @@ function Profile() {
                 </div>
 
                 <div>
-                  <p className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-gray-500">
+                  <p className="mb-1 text-xs font-medium uppercase tracking-wide text-surface-400 dark:text-gray-500">
                     Model
                   </p>
 
@@ -1044,7 +1044,7 @@ function Profile() {
                       ))}
                     </select>
                   ) : (
-                    <p className="text-sm font-medium text-slate-700 dark:text-gray-200">
+                    <p className="text-sm font-medium text-surface-700 dark:text-gray-200">
                       {localUser.car?.model === "true"
                         ? "N/A"
                         : localUser.car?.model || "N/A"}
@@ -1057,7 +1057,7 @@ function Profile() {
                 </div>
 
                 <div>
-                  <p className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-gray-500">
+                  <p className="mb-1 text-xs font-medium uppercase tracking-wide text-surface-400 dark:text-gray-500">
                     Year
                   </p>
 
@@ -1087,7 +1087,7 @@ function Profile() {
                       ))}
                     </select>
                   ) : (
-                    <p className="text-sm font-medium text-slate-700 dark:text-gray-200">
+                    <p className="text-sm font-medium text-surface-700 dark:text-gray-200">
                       {localUser.car?.year === "true"
                         ? "N/A"
                         : localUser.car?.year || "N/A"}
@@ -1141,7 +1141,7 @@ function Profile() {
               </div>
             </div>
 
-            <div className="my-6 h-px bg-slate-200 dark:bg-gray-800" />
+            <div className="my-6 h-px bg-surface-200 dark:bg-gray-800" />
 
             <div className="flex flex-col gap-2">
               <Button
@@ -1174,9 +1174,9 @@ function Profile() {
               </Button>
             </div>
 
-            <div className="my-6 h-px bg-slate-200 dark:bg-gray-800" />
+            <div className="my-6 h-px bg-surface-200 dark:bg-gray-800" />
 
-            <p className="text-center text-xs text-slate-400 dark:text-gray-500">
+            <p className="text-center text-xs text-surface-400 dark:text-gray-500">
               Joined: {formatDate(localUser.createdAt)}
             </p>
 
@@ -1201,7 +1201,7 @@ function Profile() {
                         Achievements
                       </p>
 
-                      <h2 className="mt-1 text-xl font-bold text-slate-900 dark:text-white">
+                      <h2 className="mt-1 text-xl font-bold text-surface-900 dark:text-white">
                         Recent Unlocked Achievements
                       </h2>
                     </div>
@@ -1217,7 +1217,7 @@ function Profile() {
                   </div>
 
                   {achievementsLoading ? (
-                    <div className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500 dark:border-gray-800 dark:text-gray-400">
+                    <div className="rounded-xl border border-dashed border-surface-200 p-6 text-center text-sm text-surface-500 dark:border-gray-800 dark:text-gray-400">
                       Loading achievements...
                     </div>
                   ) : recentAchievements.length > 0 ? (
@@ -1227,7 +1227,7 @@ function Profile() {
                           key={ach._id}
                           className="
                             flex gap-4 rounded-xl border p-4
-                            border-slate-200 bg-slate-50
+                            border-surface-200 bg-surface-50
                             transition-all duration-200
                             hover:-translate-y-0.5
                             hover:border-emerald-200
@@ -1258,23 +1258,23 @@ function Profile() {
                           </div>
 
                           <div className="min-w-0 flex-1">
-                            <h3 className="font-semibold text-slate-900 dark:text-white">
+                            <h3 className="font-semibold text-surface-900 dark:text-white">
                               {ach.name}
                             </h3>
 
-                            <p className="mt-1 text-sm leading-5 text-slate-500 dark:text-gray-400">
+                            <p className="mt-1 text-sm leading-5 text-surface-500 dark:text-gray-400">
                               {ach.description}
                             </p>
 
                             <div className="mt-4">
-                              <div className="h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-gray-800">
+                              <div className="h-2 overflow-hidden rounded-full bg-surface-200 dark:bg-gray-800">
                                 <div
                                   className="h-full w-full rounded-full bg-emerald-500"
                                   style={{ width: "100%" }}
                                 />
                               </div>
 
-                              <span className="mt-2 block text-xs text-slate-400 dark:text-gray-500">
+                              <span className="mt-2 block text-xs text-surface-400 dark:text-gray-500">
                                 Completed:{" "}
                                 {new Date(
                                   ach.unlockedAt
@@ -1286,7 +1286,7 @@ function Profile() {
                       ))}
                     </div>
                   ) : (
-                    <div className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500 dark:border-gray-800 dark:text-gray-400">
+                    <div className="rounded-xl border border-dashed border-surface-200 p-6 text-center text-sm text-surface-500 dark:border-gray-800 dark:text-gray-400">
                       You haven't unlocked any achievements yet. Start
                       charging or updating your profile!
                     </div>
@@ -1299,29 +1299,29 @@ function Profile() {
                       Your EVAT Activity
                     </p>
 
-                    <h2 className="mt-1 text-xl font-bold text-slate-900 dark:text-white">
+                    <h2 className="mt-1 text-xl font-bold text-surface-900 dark:text-white">
                       Your Impact
                     </h2>
                   </div>
 
                   {statsLoading ? (
-                    <div className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500 dark:border-gray-800 dark:text-gray-400">
+                    <div className="rounded-xl border border-dashed border-surface-200 p-6 text-center text-sm text-surface-500 dark:border-gray-800 dark:text-gray-400">
                       Loading your stats...
                     </div>
                   ) : userStats ? (
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                      <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-gray-800 dark:bg-[#020403]">
-                        <p className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-gray-500">
+                      <div className="rounded-xl border border-surface-200 bg-surface-50 p-4 dark:border-gray-800 dark:bg-[#020403]">
+                        <p className="text-xs font-medium uppercase tracking-wide text-surface-400 dark:text-gray-500">
                           Charging Sessions
                         </p>
 
-                        <p className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">
+                        <p className="mt-2 text-2xl font-bold text-surface-900 dark:text-white">
                           {userStats.counters.totalChargingSessions}
                         </p>
                       </div>
 
-                      <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-gray-800 dark:bg-[#020403]">
-                        <p className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-gray-500">
+                      <div className="rounded-xl border border-surface-200 bg-surface-50 p-4 dark:border-gray-800 dark:bg-[#020403]">
+                        <p className="text-xs font-medium uppercase tracking-wide text-surface-400 dark:text-gray-500">
                           kWh Charged
                         </p>
 
@@ -1332,37 +1332,37 @@ function Profile() {
                         </p>
                       </div>
 
-                      <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-gray-800 dark:bg-[#020403]">
-                        <p className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-gray-500">
+                      <div className="rounded-xl border border-surface-200 bg-surface-50 p-4 dark:border-gray-800 dark:bg-[#020403]">
+                        <p className="text-xs font-medium uppercase tracking-wide text-surface-400 dark:text-gray-500">
                           Distance Travelled
                         </p>
 
-                        <p className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">
+                        <p className="mt-2 text-2xl font-bold text-surface-900 dark:text-white">
                           {(
                             userStats.counters.totalMetresTravelled /
                             1000
                           ).toFixed(1)}{" "}
-                          <span className="text-sm font-medium text-slate-500 dark:text-gray-400">
+                          <span className="text-sm font-medium text-surface-500 dark:text-gray-400">
                             km
                           </span>
                         </p>
                       </div>
 
-                      <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-gray-800 dark:bg-[#020403]">
-                        <p className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-gray-500">
+                      <div className="rounded-xl border border-surface-200 bg-surface-50 p-4 dark:border-gray-800 dark:bg-[#020403]">
+                        <p className="text-xs font-medium uppercase tracking-wide text-surface-400 dark:text-gray-500">
                           CO₂ Avoided
                         </p>
 
                         <p className="mt-2 text-2xl font-bold text-emerald-600 dark:text-emerald-400">
                           {userStats.counters.totalCO2KgAvoided}{" "}
-                          <span className="text-sm font-medium text-slate-500 dark:text-gray-400">
+                          <span className="text-sm font-medium text-surface-500 dark:text-gray-400">
                             kg
                           </span>
                         </p>
                       </div>
 
-                      <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-gray-800 dark:bg-[#020403]">
-                        <p className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-gray-500">
+                      <div className="rounded-xl border border-surface-200 bg-surface-50 p-4 dark:border-gray-800 dark:bg-[#020403]">
+                        <p className="text-xs font-medium uppercase tracking-wide text-surface-400 dark:text-gray-500">
                           Petrol Savings
                         </p>
 
@@ -1375,24 +1375,24 @@ function Profile() {
                         </p>
                       </div>
 
-                      <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-gray-800 dark:bg-[#020403]">
-                        <p className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-gray-500">
+                      <div className="rounded-xl border border-surface-200 bg-surface-50 p-4 dark:border-gray-800 dark:bg-[#020403]">
+                        <p className="text-xs font-medium uppercase tracking-wide text-surface-400 dark:text-gray-500">
                           Login Streak
                         </p>
 
-                        <p className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">
+                        <p className="mt-2 text-2xl font-bold text-surface-900 dark:text-white">
                           {
                             userStats.counters
                               .consecutiveLoginDays
                           }{" "}
-                          <span className="text-sm font-medium text-slate-500 dark:text-gray-400">
+                          <span className="text-sm font-medium text-surface-500 dark:text-gray-400">
                             days
                           </span>
                         </p>
                       </div>
                     </div>
                   ) : (
-                    <div className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500 dark:border-gray-800 dark:text-gray-400">
+                    <div className="rounded-xl border border-dashed border-surface-200 p-6 text-center text-sm text-surface-500 dark:border-gray-800 dark:text-gray-400">
                       Unable to load stats.
                     </div>
                   )}
@@ -1407,11 +1407,11 @@ function Profile() {
                     Account
                   </p>
 
-                  <h2 className="mt-1 text-xl font-bold text-slate-900 dark:text-white">
+                  <h2 className="mt-1 text-xl font-bold text-surface-900 dark:text-white">
                     Payment Information
                   </h2>
 
-                  <p className="mt-2 text-sm text-slate-500 dark:text-gray-400">
+                  <p className="mt-2 text-sm text-surface-500 dark:text-gray-400">
                     Your payment details are stored locally in your
                     browser.
                   </p>
@@ -1419,14 +1419,14 @@ function Profile() {
 
                 <div className="space-y-5">
                   <div>
-                    <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-gray-300">
+                    <label className="mb-2 block text-sm font-medium text-surface-700 dark:text-gray-300">
                       Card
                     </label>
 
                     {editingPayment ? (
                       <div className="relative w-full max-w-[260px]">
                         <CreditCard
-                          className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500"
+                          className="absolute left-3 top-1/2 -translate-y-1/2 text-surface-400 dark:text-gray-500"
                           size={17}
                         />
 
@@ -1458,7 +1458,7 @@ function Profile() {
                         />
                       </div>
                     ) : (
-                      <p className="text-sm font-medium text-slate-700 dark:text-gray-200">
+                      <p className="text-sm font-medium text-surface-700 dark:text-gray-200">
                         {localUser.cardNumber
                           ? "**** **** **** " +
                             localUser.cardNumber
@@ -1477,14 +1477,14 @@ function Profile() {
                   </div>
 
                   <div>
-                    <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-gray-300">
+                    <label className="mb-2 block text-sm font-medium text-surface-700 dark:text-gray-300">
                       Expiry Date
                     </label>
 
                     {editingPayment ? (
                       <div className="relative w-full max-w-[220px]">
                         <CalendarDays
-                          className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500"
+                          className="absolute left-3 top-1/2 -translate-y-1/2 text-surface-400 dark:text-gray-500"
                           size={17}
                         />
 
@@ -1518,7 +1518,7 @@ function Profile() {
                         />
                       </div>
                     ) : (
-                      <p className="text-sm font-medium text-slate-700 dark:text-gray-200">
+                      <p className="text-sm font-medium text-surface-700 dark:text-gray-200">
                         {localUser.expiryDate || "MM/YY"}
                       </p>
                     )}
@@ -1532,14 +1532,14 @@ function Profile() {
                   </div>
 
                   <div>
-                    <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-gray-300">
+                    <label className="mb-2 block text-sm font-medium text-surface-700 dark:text-gray-300">
                       CVV
                     </label>
 
                     {editingPayment ? (
                       <div className="relative w-full max-w-[180px]">
                         <KeyRound
-                          className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500"
+                          className="absolute left-3 top-1/2 -translate-y-1/2 text-surface-400 dark:text-gray-500"
                           size={17}
                         />
 
@@ -1566,7 +1566,7 @@ function Profile() {
                         />
                       </div>
                     ) : (
-                      <p className="text-sm font-medium text-slate-700 dark:text-gray-200">
+                      <p className="text-sm font-medium text-surface-700 dark:text-gray-200">
                         ***
                       </p>
                     )}
@@ -1577,14 +1577,14 @@ function Profile() {
                   </div>
 
                   <div>
-                    <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-gray-300">
+                    <label className="mb-2 block text-sm font-medium text-surface-700 dark:text-gray-300">
                       Billing Address
                     </label>
 
                     {editingPayment ? (
                       <div className="relative w-full max-w-[320px]">
                         <House
-                          className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500"
+                          className="absolute left-3 top-1/2 -translate-y-1/2 text-surface-400 dark:text-gray-500"
                           size={17}
                         />
 
@@ -1607,7 +1607,7 @@ function Profile() {
                         />
                       </div>
                     ) : (
-                      <p className="text-sm font-medium text-slate-700 dark:text-gray-200">
+                      <p className="text-sm font-medium text-surface-700 dark:text-gray-200">
                         {localUser.billingAddress || "N/A"}
                       </p>
                     )}
@@ -1665,7 +1665,7 @@ function Profile() {
                     Activity
                   </p>
 
-                  <h2 className="mt-1 text-xl font-bold text-slate-900 dark:text-white">
+                  <h2 className="mt-1 text-xl font-bold text-surface-900 dark:text-white">
                     Booking History
                   </h2>
                 </div>
@@ -1683,7 +1683,7 @@ function Profile() {
                     Sustainability
                   </p>
 
-                  <h2 className="mt-1 text-xl font-bold text-slate-900 dark:text-white">
+                  <h2 className="mt-1 text-xl font-bold text-surface-900 dark:text-white">
                     Environmental Impact
                   </h2>
                 </div>
@@ -1722,7 +1722,7 @@ function Profile() {
         onAvatarChange={handleAvatarChange}
       />
 
-      <ChatBubble />
+      {/* <ChatBubble /> */}
     </div>
   );
 }

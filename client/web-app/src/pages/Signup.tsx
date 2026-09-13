@@ -2,6 +2,7 @@ import { useState, type ChangeEvent, type SubmitEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Eye, EyeOff, KeyRound, User, Phone } from 'lucide-react';
 import { Banner } from '../components/Banner';
+import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -185,16 +186,18 @@ function Signup() {
 
       <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-120">
         { typeof errorMessage === 'string' && errorMessage.trim().length > 0 && 
-          <Banner
-            className="sm:w-full sm:max-w-120"
-            type="error"  
-            onDismiss={() => setErrorMessage(null)}
-          >
-            { errorMessage.includes('@') && errorMessage.includes('already exist')
-              ? 'An account with that email already exists.'
-              : 'An internal server error occured, please try again later.'
-            }
-          </Banner>
+          <div className="pointer-events-none sm:flex sm:justify-center sm:px-6 sm:pb-5 lg:px-8">
+            <Banner
+              className="sm:w-full sm:max-w-120"
+              type="error"  
+              onDismiss={() => setErrorMessage(null)}
+            >
+              { errorMessage.includes('@') && errorMessage.includes('already exist')
+                ? 'An account with that email already exists.'
+                : 'An internal server error occured, please try again later.'
+              }
+            </Banner>
+          </div>
         }
         <div className="bg-white px-6 py-12 border border-surface-200 sm:rounded-lg sm:px-12">
           <form action="javascript:;" className="space-y-6" onSubmit={handleSubmit}>
@@ -370,25 +373,14 @@ function Signup() {
             </div>
 
             <div>
-              <button 
+              <Button
                 type="submit"
-                className="
-                  flex w-full justify-center
-                  rounded-md
-                  bg-indigo-600
-                  px-3 py-1.5
-                  text-sm/6 font-semibold text-white
-                  shadow-xs
-                  hover:bg-indigo-500
-                  focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600
-                  disabled:opacity-50
-                  disabled:hover:bg-indigo-600
-                  disabled:cursor-not-allowed!
-                "
-                disabled={submitting}
+                className="w-full"
+                loading={submitting}
+                loadingLabel='Please wait...'
               >
-                {submitting ? 'Please wait...' : 'Sign up'}
-              </button>
+                Sign up
+              </Button>
             </div>
           </form>
         </div>

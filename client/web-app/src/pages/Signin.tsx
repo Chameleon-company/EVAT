@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Mail, Eye, EyeOff, KeyRound } from 'lucide-react';
 import { UserContext } from '../context/user';
 import { Banner } from '../components/Banner';
+import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 
 type UserData = {
@@ -168,7 +169,6 @@ function Signin() {
     <div
       className="
         flex min-h-full flex-col justify-center
-        bg-gray-50
         px-2 py-12 sm:px-6 lg:px-8
       "
     >
@@ -178,30 +178,32 @@ function Signin() {
           src="../src/assets/logo.png"
           className="mx-auto h-16 w-auto md:h-24"
         />
-        <h2 className="mt-8 text-center text-2xl/9 font-bold tracking-tight text-gray-900">
+        <h2 className="mt-8 text-center text-2xl/9 font-bold tracking-tight text-surface-900">
           Sign in to your account
         </h2>
       </div>
 
       <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-120">
         { typeof error === 'string' && error.trim().length > 0 && 
-          <Banner
-            className="sm:w-full sm:max-w-120"
-            type="error"
-            onDismiss={() => setError(null)}
-          >
-            { error === 'credentials' && 'Invalid email address or password.' }
-            { error === 'internal' && 'An internal server error occured, please try again later.' }
-          </Banner>
+          <div className="pointer-events-none sm:flex sm:justify-center sm:px-6 sm:pb-5 lg:px-8">
+            <Banner
+              className="sm:w-full sm:max-w-120"
+              type="error"
+              onDismiss={() => setError(null)}
+            >
+              { error === 'credentials' && 'Invalid email address or password.' }
+              { error === 'internal' && 'An internal server error occured, please try again later.' }
+            </Banner>
+          </div>
         }
-        <div className="bg-white px-6 py-12 border border-surface-200 sm:rounded-lg sm:px-12">
+        <div className="bg-background px-6 py-12 border border-surface-200 sm:rounded-lg sm:px-12">
           <form action="javascript:;" className="space-y-6" onSubmit={handleSubmit}>
             <div>
-              <label htmlFor="email" className="block text-sm/6 font-medium text-gray-900">
+              <label htmlFor="email" className="block text-sm/6 font-medium text-surface-900">
                 Email address
               </label>
               <div className="relative mt-2">
-                <Mail className="absolute left-2 top-1/2 size-5 -mt-2.5 text-gray-300" />
+                <Mail className="absolute left-2 top-1/2 size-5 -mt-2.5 text-surface-300" />
 
                 <Input
                   id="email"
@@ -217,11 +219,11 @@ function Signin() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm/6 font-medium text-gray-900">
+              <label htmlFor="password" className="block text-sm/6 font-medium text-surface-900">
                 Password
               </label>
               <div className="relative mt-2">
-                <KeyRound className="absolute left-2 top-1/2 size-5 -mt-2.5 text-gray-300" />
+                <KeyRound className="absolute left-2 top-1/2 size-5 -mt-2.5 text-surface-300" />
 
                 <Input
                   id="password"
@@ -235,7 +237,7 @@ function Signin() {
                 />
                 
                 <span
-                  className="absolute right-2 top-1/2 size-5 -mt-2.5 text-gray-700 transition-colors hover:text-gray-900"
+                  className="absolute right-2 top-1/2 size-5 -mt-2.5 text-surface-700 transition-colors hover:text-surface-900"
                   onClick={() => setShowPassword(!showPassword)}
                   role="button"
                 >
@@ -245,30 +247,19 @@ function Signin() {
             </div>
 
             <div>
-              <button 
+              <Button
                 type="submit"
-                className="
-                  flex w-full justify-center
-                  rounded-md
-                  bg-indigo-600
-                  px-3 py-1.5
-                  text-sm/6 font-semibold text-white
-                  shadow-xs
-                  hover:bg-indigo-500
-                  focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600
-                  disabled:opacity-50
-                  disabled:hover:bg-indigo-600
-                  disabled:cursor-not-allowed!
-                "
-                disabled={submitting}
+                className="w-full"
+                loading={submitting}
+                loadingLabel='Please wait...'
               >
-                {submitting ? 'Please wait...' : 'Sign in'}
-              </button>
+                Sign in
+              </Button>
             </div>
           </form>
         </div>
 
-        <div className="flex justify-center w-full mt-8 gap-x-1.5 text-sm/6 text-gray-600">
+        <div className="flex justify-center w-full mt-8 gap-x-1.5 text-sm/6 text-surface-600">
           Not a member?
           <button
             type="button"

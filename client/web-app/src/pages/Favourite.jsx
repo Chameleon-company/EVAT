@@ -15,25 +15,13 @@ function Favourite() {
     useContext(FavouritesContext);
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#fafafa] text-slate-900 transition-colors dark:bg-transparent dark:text-white">
+    <div className="min-h-screen overflow-x-hidden transition-colors">
       <NavBar />
 
-      <div
-        className="
-          pointer-events-none fixed inset-0 -z-0
-          bg-gradient-to-br from-slate-50 via-white to-emerald-50/60
-          dark:bg-none
-        "
-      />
-
-      <div
-        className="
-          pointer-events-none fixed left-1/2 top-0 -z-0
-          h-[420px] w-[700px] -translate-x-1/2 rounded-full
-          bg-emerald-100/40 blur-3xl
-          dark:bg-emerald-950/20
-        "
-      />
+      <div className="pointer-events-none fixed inset-0 overflow-hidden">
+        <div className="absolute left-1/2 top-0 h-96 w-160 -translate-x-1/2 rounded-full bg-emerald-100/40 blur-3xl" />
+        <div className="absolute bottom-0 left-0 h-72 w-72 rounded-full bg-emerald-50/50 blur-3xl" />
+      </div>
 
       <main className="relative z-10 mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8 lg:py-16">
         <section className="mx-auto mb-10 max-w-3xl text-center sm:mb-12">
@@ -41,8 +29,8 @@ function Favourite() {
             className="
               mb-4 inline-flex items-center rounded-full
               border border-emerald-200 bg-emerald-50
-              px-3.5 py-1.5 text-[11px] font-semibold uppercase
-              tracking-[0.18em] text-emerald-700
+              px-3.5 py-1.5 text-xs font-semibold uppercase
+              text-emerald-700
               dark:border-emerald-900/70
               dark:bg-emerald-950/50
               dark:text-emerald-400
@@ -53,9 +41,8 @@ function Favourite() {
 
           <h1
             className="
-              text-4xl font-bold tracking-tight text-slate-900
-              sm:text-5xl
-              dark:text-white
+              mt-4 text-3xl font-bold tracking-tight
+              text-surface-900 sm:text-4xl
             "
           >
             My Favourite{" "}
@@ -66,9 +53,9 @@ function Favourite() {
 
           <p
             className="
-              mx-auto mt-4 max-w-2xl text-sm leading-6 text-slate-500
+              mx-auto mt-4 max-w-2xl text-sm leading-6 text-surface-500
               sm:text-base
-              dark:text-gray-400
+              dark:text-surface-700/75
             "
           >
             Quickly access and manage the charging stations you have saved.

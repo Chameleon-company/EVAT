@@ -31,8 +31,7 @@ export default function ContactSupport() {
           <h1
             className="
               mt-4 text-3xl font-bold tracking-tight
-              text-slate-900 sm:text-4xl
-              dark:text-white
+              text-surface-900 sm:text-4xl
             "
           >
             How can we help?
@@ -178,7 +177,7 @@ export default function ContactSupport() {
         </div>
       </main>
 
-      <ChatBubble />
+      {/* <ChatBubble /> */}
     </div>
   );
 }

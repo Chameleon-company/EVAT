@@ -1,6 +1,8 @@
 import { useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import { Button } from './Button';
+import { twMerge } from "tailwind-merge";
+import clsx from "clsx";
 
 /**
  * SmartFilter Component
@@ -174,15 +176,16 @@ const SmartFilter = ({
         aria-checked={checked}
         aria-label={label}
         onClick={onChange}
-        className={`relative h-7 w-12 shrink-0 rounded-full border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:ring-offset-1 ${
+        className={twMerge(clsx(
+          'relative h-7 w-12 shrink-0 rounded-full border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:ring-offset-1',
           checked
             ? "border-emerald-500 bg-emerald-500"
-            : "border-slate-300 bg-slate-300"
-        }`}
+            : "border-surface-300 bg-surface-300"
+        ))}
       >
         {/* Toggle knob */}
         <span
-          className={`absolute left-1 top-1 h-5 w-5 rounded-full bg-white shadow-md transition-transform duration-200 ${
+          className={`absolute left-1 top-1 h-5 w-5 rounded-full bg-background shadow-md transition-transform duration-200 ${
             checked ? "translate-x-5" : "translate-x-0"
           }`}
         />
@@ -191,34 +194,40 @@ const SmartFilter = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-100 flex items-center justify-center bg-foreground/5 p-4 backdrop-blur-xs">
       <div
         ref={modalRef}
-        className="relative flex max-h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl"
+        className="relative flex max-h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-foreground/25 bg-background shadow-2xl"
       >
         {/* =========================
             HEADER
         ========================== */}
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-5 py-4">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-foreground/20 bg-background px-5 py-4">
           <div>
-            <h4 className="text-lg font-bold text-slate-900">
+            <h4 className="text-lg font-bold text-foreground">
               Filters
             </h4>
 
-            <p className="mt-0.5 text-xs text-slate-500">
+            <p className="mt-0.5 text-xs text-surface-500">
               Refine charging stations
             </p>
           </div>
 
-          <Button
-            type="button"
+
+          <button
+            className="
+              flex items-center justify-center size-6
+              rounded-md
+              cursor-pointer
+              outline-1 outline-primary/25
+              hover:bg-primary/25
+            "
             variant="unstyled"
             onClick={onClose}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-all duration-200 hover:border-red-200 hover:bg-red-50 hover:text-red-600"
             aria-label="Close filters"
           >
-            <X size={19} />
-          </Button>
+            <X className="size-4" />
+          </button>
         </div>
 
         {/* =========================
@@ -229,7 +238,7 @@ const SmartFilter = ({
               CHARGER TYPE
           ========================== */}
           <section className="py-2">
-            <h5 className="mb-3 text-center text-sm font-semibold text-slate-800">
+            <h5 className="mb-3 text-center text-sm font-semibold text-surface-800">
               Charger Type
             </h5>
 
@@ -251,13 +260,13 @@ const SmartFilter = ({
             </div>
           </section>
 
-          <div className="my-4 border-t border-slate-200" />
+          <div className="my-4 border-t border-foreground/20" />
 
           {/* =========================
               CHARGING SPEED
           ========================== */}
           <section className="py-2">
-            <h5 className="mb-3 text-center text-sm font-semibold text-slate-800">
+            <h5 className="mb-3 text-center text-sm font-semibold text-surface-800">
               Charging Speed
             </h5>
 
@@ -279,20 +288,20 @@ const SmartFilter = ({
             </div>
           </section>
 
-          <div className="my-4 border-t border-slate-200" />
+          <div className="my-4 border-t border-foreground/20" />
 
           {/* =========================
               PRICE RANGE
           ========================== */}
           <section className="py-2">
-            <h5 className="mb-4 text-center text-sm font-semibold text-slate-800">
+            <h5 className="mb-4 text-center text-sm font-semibold text-surface-800">
               Price Range (¢ per kWh)
             </h5>
 
             <div className="px-2">
               <div className="relative">
                 <input
-                  className="h-1.5 w-full cursor-pointer appearance-none rounded-lg bg-slate-200 accent-emerald-500"
+                  className="h-1.5 w-full cursor-pointer appearance-none rounded-lg bg-surface-200 accent-emerald-500"
                   type="range"
                   min={priceMin}
                   max={priceMax}
@@ -310,7 +319,7 @@ const SmartFilter = ({
                 />
               </div>
 
-              <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
+              <div className="mt-3 flex items-center justify-between text-xs text-surface-500">
                 <span>{priceMin}</span>
 
                 <span className="rounded-full bg-emerald-50 px-3 py-1 font-semibold text-emerald-700">
@@ -322,13 +331,13 @@ const SmartFilter = ({
             </div>
           </section>
 
-          <div className="my-4 border-t border-slate-200" />
+          <div className="my-4 border-t border-foreground/20" />
 
           {/* =========================
               CHARGER OPERATOR
           ========================== */}
           <section className="py-2">
-            <h5 className="mb-3 text-center text-sm font-semibold text-slate-800">
+            <h5 className="mb-3 text-center text-sm font-semibold text-surface-800">
               Charger Operator
             </h5>
 
@@ -350,18 +359,18 @@ const SmartFilter = ({
             </div>
           </section>
 
-          <div className="my-4 border-t border-slate-200" />
+          <div className="my-4 border-t border-foreground/20" />
 
           {/* =========================
               AVAILABILITY
           ========================== */}
           <section className="py-2">
-            <h5 className="mb-3 text-center text-sm font-semibold text-slate-800">
+            <h5 className="mb-3 text-center text-sm font-semibold text-surface-800">
               Availability
             </h5>
 
-            <div className="flex items-center justify-between gap-4 rounded-xl bg-slate-50 px-4 py-3">
-              <span className="text-sm leading-5 text-slate-600">
+            <div className="flex items-center justify-between gap-4 rounded-xl bg-surface-50 px-4 py-3">
+              <span className="text-sm leading-5 text-surface-600">
                 Show only available stations?
               </span>
 
@@ -373,18 +382,18 @@ const SmartFilter = ({
             </div>
           </section>
 
-          <div className="my-4 border-t border-slate-200" />
+          <div className="my-4 border-t border-foreground/20" />
 
           {/* =========================
               CONGESTION
           ========================== */}
           <section className="py-2">
-            <h5 className="mb-3 text-center text-sm font-semibold text-slate-800">
+            <h5 className="mb-3 text-center text-sm font-semibold text-surface-800">
               Congestion Icons
             </h5>
 
-            <div className="flex items-center justify-between gap-4 rounded-xl bg-slate-50 px-4 py-3">
-              <span className="text-sm leading-5 text-slate-600">
+            <div className="flex items-center justify-between gap-4 rounded-xl bg-surface-50 px-4 py-3">
+              <span className="text-sm leading-5 text-surface-600">
                 Show predicted congestion icons?
               </span>
 
@@ -400,8 +409,8 @@ const SmartFilter = ({
         {/* =========================
             FOOTER
         ========================== */}
-        <div className="sticky bottom-0 border-t border-slate-200 bg-white px-5 py-4">
-          <h5 className="mb-4 text-center text-sm font-semibold text-slate-700">
+        <div className="sticky bottom-0 border-t border-foreground/20 bg-background px-5 py-4">
+          <h5 className="mb-4 text-center text-sm font-semibold text-surface-700">
             {filteredCount} Station
             {filteredCount !== 1 ? "s" : ""} found
           </h5>
@@ -412,7 +421,7 @@ const SmartFilter = ({
               type="button"
               variant="transparent"
               onClick={handleReset}
-              className="flex-1 text-slate-600 hover:translate-y-0 hover:shadow-none"
+              className="flex-1 hover:translate-y-0 hover:shadow-none"
             >
               Reset
             </Button>

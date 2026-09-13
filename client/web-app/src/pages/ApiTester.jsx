@@ -7,7 +7,6 @@ import ApiTesterSidebar from "../components/api-tester/ApiTesterSidebar";
 import ApiTesterResponse from "../components/api-tester/ApiTesterResponse";
 import ApiTesterForm from "../components/api-tester/ApiTesterForm";
 
-import '../styles/Root.css';
 import '../styles/API.css';
 import '../styles/Buttons.css';
 import '../styles/Elements.css';

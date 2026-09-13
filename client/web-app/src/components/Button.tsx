@@ -27,10 +27,13 @@ type ButtonProps = ComponentPropsWithoutRef<'button'> & {
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary: [
-    'border-transparent bg-emerald-600 text-white',
+    'border-transparent bg-primary text-white',
     'hover:enabled:bg-emerald-700',
     'focus-visible:ring-emerald-500',
     'active:enabled:bg-emerald-800',
+    'dark:hover:enabled:bg-emerald-600',
+    'dark:focus-visible:ring-emerald-400',
+    'dark:active:enabled:bg-emerald-700',
   ].join(' '),
   secondary: [
     'border-transparent bg-slate-600 text-white',
@@ -51,10 +54,10 @@ const variantClasses: Record<ButtonVariant, string> = {
     'active:enabled:bg-red-800',
   ].join(' '),
   transparent: [
-    'border-slate-300 bg-white text-slate-700',
-    'hover:enabled:border-slate-400 hover:enabled:bg-slate-50',
-    'focus-visible:ring-slate-400',
-    'active:enabled:bg-slate-100',
+    'border-surface-400 bg-surface-100 text-foreground',
+    'hover:enabled:border-surface-400 hover:enabled:bg-surface-200',
+    'focus-visible:ring-surface-400',
+    'active:enabled:bg-surface-100',
   ].join(' '),
   options: [
     'border-slate-200 bg-white text-slate-600 shadow-none',
