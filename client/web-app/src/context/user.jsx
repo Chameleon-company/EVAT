@@ -25,7 +25,8 @@ export const UserProvider = ({ children }) => {
   // Save user to localStorage whenever it changes
   useEffect(() => {
     if (user) {
-      localStorage.setItem('currentUser', JSON.stringify(user));
+      const { token, ...safeUser } = user;
+      localStorage.setItem('currentUser', JSON.stringify(safeUser));
     } else {
       localStorage.removeItem('currentUser');
     }

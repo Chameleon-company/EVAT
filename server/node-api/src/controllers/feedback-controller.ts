@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import he from "he";
 import FeedbackService from "../services/feedback-service";
 import { FeedbackResponse } from "../dtos/feedback-response";
 
@@ -16,7 +17,11 @@ export default class FeedbackController {
     const { name, email, suggestion } = req.body;
 
     try {
-      const feedback = await this.feedbackService.createFeedback(name, email, suggestion);
+      const safeName = name ? he.encode(String(name)) : "";
+      const safeEmail = email ? he.encode(String(email)) : "";
+      const safeSuggestion = suggestion ? he.encode(String(suggestion)) : "";
+
+      const feedback = await this.feedbackService.createFeedback(safeName, safeEmail, safeSuggestion);
       return res
         .status(201)
         .json({ 
