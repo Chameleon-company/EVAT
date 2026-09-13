@@ -1,10 +1,11 @@
-import os
 import pickle
 from pathlib import Path
 import numpy as np
 import pandas as pd
 from typing import Union, List
 from common.errors import InvalidInputError
+
+from personalisedEVInsights.scoring import calculate_suitability
 
 # Load the bundle (model + metadata)
 SERVICE_DIR = Path(__file__).resolve().parent
@@ -45,7 +46,7 @@ def predict(payload: Union[dict, List[dict]]):
     """
     Expect JSON body containing at least the fields in FEATURE_COLS.
     Extra fields are ignored.
-    Returns: {"cluster": <int>}
+    Returns the existing driver cluster plus the 013S1 suitability result.
     """
 
     # Accept single object or list of objects; standardise to list
@@ -72,12 +73,19 @@ def predict(payload: Union[dict, List[dict]]):
         categorical=CAT_COLS,
     )
 
+    try:
+        suitability_results = [calculate_suitability(record) for record in records]
+    except ValueError as error:
+        raise InvalidInputError(str(error)) from error
+
     # Return single prediction if input was a single object
     if single:
         return {
-            "cluster": int(clusters[0])
+            "cluster": int(clusters[0]),
+            "suitability": suitability_results[0],
         }
 
     return {
-        "clusters": [int(c) for c in clusters]
+        "clusters": [int(c) for c in clusters],
+        "suitability": suitability_results,
     }

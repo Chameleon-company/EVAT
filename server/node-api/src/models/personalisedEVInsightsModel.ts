@@ -45,6 +45,30 @@ export interface IPersonalisedEVInsights extends Document {
     all_monthly_fuel_spend_difference: number;
   };
 
+  evReadinessScore?: number;
+  recommendationCategory?: string;
+  annualKm?: number;
+  estimatedAnnualFuelCost?: number;
+  estimatedAnnualEvChargingCost?: number;
+  estimatedAnnualSavings?: number;
+  estimatedAnnualCo2ReductionKg?: number;
+  personalisedPredictionInsight?: string;
+  scoreComponents?: {
+    drivingDemand: number;
+    financialBenefit: number;
+    chargingPracticality: number;
+    solarAccess: number;
+    environmentalPriority: number;
+    budgetReadiness: number;
+    roadTripPenalty: number;
+  };
+  assumptions?: {
+    chargingProfile: string;
+    evEnergyKwhPerKm: number;
+    evCostPerKm: number;
+    electricityCo2KgPerKwh: number;
+  };
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -175,6 +199,39 @@ const PersonalisedEVInsightsSchema: Schema = new Schema<IPersonalisedEVInsights>
       all_fuel_efficiency_difference: { type: Number, default: 0 },
       all_monthly_fuel_spend_difference: { type: Number, default: 0 },
     },
+    evReadinessScore: {
+      type: Number,
+      min: [0, "EV readiness score cannot be negative"],
+      max: [100, "EV readiness score cannot exceed 100"],
+    },
+    recommendationCategory: {
+      type: String,
+      enum: ["Full EV Recommended", "Hybrid Recommended", "EV Optional"],
+    },
+    annualKm: { type: Number, min: 0 },
+    estimatedAnnualFuelCost: { type: Number, min: 0 },
+    estimatedAnnualEvChargingCost: { type: Number, min: 0 },
+    estimatedAnnualSavings: { type: Number, min: 0 },
+    estimatedAnnualCo2ReductionKg: { type: Number, min: 0 },
+    personalisedPredictionInsight: {
+      type: String,
+      trim: true,
+    },
+    scoreComponents: {
+      drivingDemand: { type: Number },
+      financialBenefit: { type: Number },
+      chargingPracticality: { type: Number },
+      solarAccess: { type: Number },
+      environmentalPriority: { type: Number },
+      budgetReadiness: { type: Number },
+      roadTripPenalty: { type: Number },
+    },
+    assumptions: {
+      chargingProfile: { type: String },
+      evEnergyKwhPerKm: { type: Number },
+      evCostPerKm: { type: Number },
+      electricityCo2KgPerKwh: { type: Number },
+    },
   },
   {
     timestamps: true,
@@ -190,4 +247,3 @@ const PersonalisedEVInsights = mongoose.model<IPersonalisedEVInsights>(
 );
 
 export default PersonalisedEVInsights;
-

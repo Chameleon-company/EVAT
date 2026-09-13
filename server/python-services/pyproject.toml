@@ -29,7 +29,17 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
-testpaths = ["charging_station_recommendation_api/tests", "tests"]
+testpaths = [
+    "charging_station_recommendation_api/tests",
+    "personalisedEVInsights/tests",
+    "environmental_impact_analysis/tests",
+    "pricePrediction/tests",
+    "costComparison/tests",
+    "demandForecasting/tests",
+    "reliability_scoring_api/tests",
+    "weatherAwareRouting/tests",
+    "tests",
+]
 
 [tool.uv]
 package = false

@@ -67,23 +67,22 @@ export default function PersonalisedInsightsFormComponent() {
     if (inputs.charging_convenience) {priorities.push("Charging convenience")}
     if (inputs.tech_features) {priorities.push("Tech features")}
     if (inputs.brand_design) {priorities.push("Brand/ design")}
-    formData.priorities = priorities.join(", ")
-    console.log(formData.priorities);
+    const selectedPriorities = priorities.join(", ");
 
     const payload = {
-      weekly_km: formData.weekly_km,
+      weekly_km: Number(formData.weekly_km),
       trip_length: formData.trip_length,
       driving_frequency: formData.driving_frequency,
       driving_type: formData.driving_type,
       road_trips: formData.road_trips,
       car_ownership: formData.car_ownership,
-      fuel_efficiency: formData.fuel_efficiency,
-      monthly_fuel_spend: formData.monthly_fuel_spend,
+      fuel_efficiency: Number(formData.fuel_efficiency),
+      monthly_fuel_spend: Number(formData.monthly_fuel_spend),
       home_charging: formData.home_charging,
       solar_panels: formData.solar_panels,
       charging_preference: formData.charging_preference,
       budget: formData.budget,
-      priorities: formData.priorities,
+      priorities: selectedPriorities,
       postcode: formData.postcode,
     }
 
@@ -91,9 +90,7 @@ export default function PersonalisedInsightsFormComponent() {
       setLoading(true);
       setMessage("");
 
-      const response = await submitInsights(payload, token);
-      console.log(response);
-
+      await submitInsights(payload, token);
       setMessage("Form submitted successfully.");
 
       setFormData({
@@ -111,6 +108,14 @@ export default function PersonalisedInsightsFormComponent() {
         budget: "",
         priorities: "",
         postcode: ""
+      });
+      setInputs({
+        affordability: false,
+        driving_range: false,
+        environmental_impact: false,
+        charging_convenience: false,
+        tech_features: false,
+        brand_design: false,
       });
       setSubmitted(true);
     } catch (error) {
@@ -143,6 +148,8 @@ export default function PersonalisedInsightsFormComponent() {
                   placeholder="e.g. 250"
                   value={formData.weekly_km}
                   onChange={handleChange}
+                  min="0"
+                  required
                 />
               </div>
 
@@ -231,6 +238,9 @@ export default function PersonalisedInsightsFormComponent() {
                   placeholder="e.g. 7.5"
                   value={formData.fuel_efficiency}
                   onChange={handleChange}
+                  min="0"
+                  step="0.1"
+                  required
                 />
               </div>
 
@@ -242,6 +252,9 @@ export default function PersonalisedInsightsFormComponent() {
                   placeholder="e.g. 300"
                   value={formData.monthly_fuel_spend}
                   onChange={handleChange}
+                  min="0"
+                  step="0.01"
+                  required
                 />
               </div>
 
