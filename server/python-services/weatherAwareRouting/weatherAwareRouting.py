@@ -1,4 +1,4 @@
-from fastapi import HTTPException
+from common.errors import ResourceNotFoundError
 from pydantic import BaseModel
 from weatherAwareRouting.services import get_route, get_weather, get_charging_stations
 from weatherAwareRouting.model import predict_trip, needs_charging, traffic_energy_factor, traffic_condition_label
@@ -14,7 +14,9 @@ class TripRequest(BaseModel):
 def predict(req: TripRequest):
     route = get_route(req.origin, req.destination)
     if not route:
-        raise HTTPException(status_code=404, detail="No route found. Check both addresses.")
+        raise ResourceNotFoundError(
+            "No route found. Check both addresses."
+        )
 
     leg, elevations, polyline = route
     start = (leg["start_location"]["lat"], leg["start_location"]["lng"])
