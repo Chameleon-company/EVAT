@@ -108,41 +108,34 @@ function Signin() {
     }
   };
 
-  useEffect(() => { // useEffect should run on page load
+  useEffect(() => {
     console.log("JWT auto-login effect running");
 
-    const userData = localStorage.getItem("currentUser");
-    if (!userData) return; // if no user, do nothing (stay on login page)
-
-    let parsedUser;
-    try {
-        parsedUser = JSON.parse(userData);
-    } catch (e) {
-        console.error("Invalid user JSON", e);
-        return;
-    }
-
-    const token = parsedUser.token; // access the token of user JSON
-    if (!token) return; // if no token, do nothing
-
+    // Fire the request blindly, the browser will automatically attach the HttpOnly cookie
     fetch(jwtUrl, {
         method: "POST",
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
+        credentials: 'include', 
+        headers: { 'Content-Type': 'application/json' },
     })
-        .then(res => res.json())
+        .then(res => {
+            if (!res.ok) throw new Error("Session expired or invalid");
+            return res.json();
+        })
         .then(data => {
             console.log("JWT login response:", data);
-            if (data.data?.accessToken) {
-                parsedUser.token = data.data.accessToken;
-                // update accessToken if it had to be updated
-                localStorage.setItem("currentUser", JSON.stringify(parsedUser));
-                // redirect to map
+            if (data.data?.user) {
+                // Read safe user data from local storage to keep names/avatars
+                const storedUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
+                
+                // Navigate to map without needing to manually save a token string
                 navigate("/map");
             }
         })
-        .catch(err => console.error("JWT login error:", err));
+        .catch(err => {
+            console.error("JWT login error:", err);
+            // clear safe user data if the cookie is expired
+            localStorage.removeItem("currentUser"); 
+        });
   }, []);
   
   //UI Rendering

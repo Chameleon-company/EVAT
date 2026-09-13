@@ -45,16 +45,15 @@ export default class UserController {
     async jwtLogin(req: Request, res: Response): Promise<Response> {
 
         try {
-            const authHeader = req.headers.authorization;
-            if (!authHeader || !authHeader.startsWith("Bearer ")) {
-                return res.status(401).json({ message: "No token provided" });
-            }
-
             if (!process.env.JWT_SECRET) {
                 throw new Error("JWT_SECRET is not set in environment variables");
             }
 
-            const token = authHeader.split(" ")[1];
+            const token = req.cookies?.token || req.headers.authorization?.split(" ")[1];
+            
+            if (!token) {
+                return res.status(401).json({ message: "No token provided" });
+            }
 
             try {
                 const decoded = jwt.verify(token, process.env.JWT_SECRET) as JwtPayload;
@@ -103,7 +102,7 @@ export default class UserController {
                     res.cookie('token', newAccessToken, {
                       httpOnly: true,
                       secure: process.env.NODE_ENV === 'production',
-                      sameSite: 'strict'
+                      sameSite: 'lax' // adjust to strict in deployment (localhost only work with lax)
                     });
 
                     // OK status with data and a new AccessToken
@@ -155,7 +154,7 @@ export default class UserController {
       res.cookie('token', data.accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict'
+        sameSite: 'lax' // adjust to strict in deployment (localhost only work with lax)
       });
 
       return res.status(200).json({
@@ -175,7 +174,7 @@ export default class UserController {
     res.clearCookie('token', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict'
+      sameSite: 'lax' // adjust to strict in deployment (localhost only work with lax)
     });
 
     return res.status(200).json({ message: "Logged out successfully" });
