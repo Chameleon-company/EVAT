@@ -103,7 +103,7 @@ export default class UserController {
                     res.cookie('token', newAccessToken, {
                       httpOnly: true,
                       secure: process.env.NODE_ENV === 'production',
-                      sameSite: 'lax'
+                      sameSite: 'strict'
                     });
 
                     // OK status with data and a new AccessToken
@@ -155,7 +155,7 @@ export default class UserController {
       res.cookie('token', data.accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax'
+        sameSite: 'strict'
       });
 
       return res.status(200).json({
@@ -168,6 +168,17 @@ export default class UserController {
     } catch (error: any) {
       return res.status(401).json({ message: error.message });
     }
+  }
+
+  async logout(req: Request, res: Response): Promise<Response> {
+    // Clear the secure cookie by matching the exact creation flags
+    res.clearCookie('token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict'
+    });
+
+    return res.status(200).json({ message: "Logged out successfully" });
   }
 
   /**

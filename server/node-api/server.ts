@@ -8,6 +8,7 @@ import path from "path";
 import { env } from "./src/config/env";
 import connectDB from "./src/config/database-config";
 import { notFound, errorHandler } from "./src/middlewares/error-middleware";
+import cookieParser from "cookie-parser";
 
 // Routes
 import chargerRoutes from './src/routes/charger';
@@ -60,6 +61,7 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json());
+app.use(cookieParser());
 
 // Swagger definition
 const options = {

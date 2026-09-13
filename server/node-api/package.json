@@ -14,6 +14,7 @@
   "devDependencies": {
     "@types/bcrypt": "^5.0.0",
     "@types/bcryptjs": "^2.4.6",
+    "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.13",
     "@types/he": "^1.2.3",
@@ -39,6 +40,7 @@
     "@mapbox/polyline": "^1.2.1",
     "axios": "^1.14.0",
     "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^14.3.2",
     "express": "^4.21.2",
