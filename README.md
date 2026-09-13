@@ -326,6 +326,8 @@ npm run test:python
 
 For local Python setup, model training support, service deployment, Docker usage, verification, and troubleshooting, see the [Machine Learning Deployment Guide](docs/MACHINE_LEARNING_DEPLOYMENT_GUIDE.md).
 
+For new-student onboarding, repository and dataset orientation, model and endpoint ownership, testing, release procedures, and future priorities, see the [Machine Learning Handover Guide](docs/MACHINE_LEARNING_HANDOVER.md).
+
 For the end-to-end data, training, evaluation, artifact, and prediction architecture, see the [Machine Learning Pipeline Architecture](docs/MACHINE_LEARNING_PIPELINE_ARCHITECTURE.md).
 
 ---

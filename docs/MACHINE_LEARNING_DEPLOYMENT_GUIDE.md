@@ -21,16 +21,16 @@ Do not assume that every committed `.pkl` or `.joblib` file can be recreated fro
 
 The main Python entry point is `server/python-services/main.py`. It exposes most ML features through one FastAPI process.
 
-| Capability                      | Implementation                         | Runtime type                                              |                  Default port | Training source in this repository |
-| ------------------------------- | -------------------------------------- | --------------------------------------------------------- | ----------------------------: | ---------------------------------- |
-| Weather-aware routing           | `weatherAwareRouting/`                 | Calculation plus external Google Maps and Open-Meteo APIs |                          5000 | Not applicable                     |
-| Personalised EV insights        | `personalisedEVInsights/`              | Loads `kproto_bundle.pkl`                                 |                          5000 | No                                 |
-| Demand forecasting              | `demandForecasting/`                   | Loads `ev_demand_model.pkl`                               |                          5000 | No                                 |
-| Cost comparison                 | `costComparison/`                      | Trains and selects a model during API startup             |                          5000 | Yes                                |
-| Vehicle price prediction        | `pricePrediction/`                     | Loads `price_best_model_latest.joblib`                    |                          5000 | No                                 |
-| Charging-station recommendation | `charging_station_recommendation_api/` | Deterministic filtering and weighted scoring              | 5000 through the combined API | No model training required         |
-| Reliability scoring             | `reliability_scoring_api/`             | Deterministic reliability and sentiment scoring           |     5000 under `/reliability` | No model training required         |
-| Environmental impact model      | `environmental_impact_analysis/`       | Loads `co2_savings_model.pkl`; notebook can regenerate it | 5000 through the combined API | Yes, through the notebook          |
+| Capability | Implementation | Runtime type | Default port | Training source in this repository |
+|---|---|---|---:|---|
+| Weather-aware routing | `weatherAwareRouting/` | Calculation plus external Google Maps and Open-Meteo APIs | 5000 | Not applicable |
+| Personalised EV insights | `personalisedEVInsights/` | Loads `kproto_bundle.pkl` | 5000 | No |
+| Demand forecasting | `demandForecasting/` | Loads `ev_demand_model.pkl` | 5000 | No |
+| Cost comparison | `costComparison/` | Trains and selects a model during API startup | 5000 | Yes |
+| Vehicle price prediction | `pricePrediction/` | Loads `price_best_model_latest.joblib` | 5000 | No |
+| Charging-station recommendation | `charging_station_recommendation_api/` | Trained preference model with deterministic fallback and per-user adjustment | 5000 through the combined API | Yes; the exported artifact is used at runtime when available |
+| Reliability scoring | `reliability_scoring_api/` | Deterministic reliability and sentiment scoring | 5000 under `/reliability` | No model training required |
+| Environmental impact model | `environmental_impact_analysis/` | Loads `co2_savings_model.pkl` for prediction | 5000 under `/environmentalImpact` | Yes, through the notebook |
 
 The Node API calls the combined Python service through `PYTHON_API_URL`. Reliability scoring is also served by that process through `RELIABILITY_API_URL=http://127.0.0.1:5000/reliability`.
 
@@ -39,9 +39,9 @@ The Node API calls the combined Python service through `PYTHON_API_URL`. Reliabi
 - Run the combined service from `server/python-services`. Several model and data paths are relative to that directory.
 - The combined service cannot import successfully without a valid `GOOGLE_MAPS_API_KEY`, even when only a non-routing feature is being tested.
 - Cost comparison training runs in memory at every combined-service startup. It does not save the selected model to disk.
-- Reliability scoring and charging recommendations are scoring systems, not trained ML models.
-- Price prediction, charging recommendations, and reliability scoring are all served by the combined Python process. Use `npm run dev:python`.
-- There is currently no Python Dockerfile or Compose file in the repository. Section 9 provides a reproducible development-container command without claiming that EVAT has a production container image.
+- Charging recommendations use the trained preference model when its artifact loads, fall back to explicit scoring formulas when necessary, and can apply a small per-user history adjustment.
+- Price prediction, environmental impact, charging recommendations, and reliability scoring are all served by the combined Python process. Use `npm run dev:python`.
+- Dockerfiles and a Compose definition are available for the web, Node, and combined Python services. Section 9 describes this local container workflow.
 
 ## 3. Prerequisites
 
@@ -321,9 +321,8 @@ Run all notebook cells from top to bottom. Confirm that the final artifact is cr
 uv run --locked --project .. python predict.py
 ```
 
-The environmental model is mounted at `POST /environmentalImpact/predict` in
-the combined FastAPI application. `predict.py` is also an offline verification
-utility.
+The combined FastAPI application mounts the model at `POST /environmentalImpact/predict`. The Node environmental-impact service loads EV and ICE records from MongoDB, derives the model payload, calls that endpoint, and combines the prediction with the stored vehicle summaries.
+`predict.py` is also an offline verification utility.
 
 ### 7.3 Artifact-only models: training is not reproducible here
 
@@ -348,9 +347,11 @@ For price prediction, use `PRICE_MODEL_PATH` to test a candidate without
 overwriting the current model. Test other replacements on a branch and retain
 the original files.
 
-### 7.4 Non-training services
+### 7.4 Charging-recommendation model and rule-based services
 
-Charging recommendations and reliability scoring use explicit formulas and rules. Changes to weights or thresholds are code/configuration changes, not model retraining. Validate those changes with tests and representative inputs.
+The charging-preference training pipeline writes a Joblib model and coefficient JSON. The active ranker consumes the model when it loads successfully, falls back to the fixed-weight heuristic if the artifact is unavailable or inference fails, and then applies a per-user adjustment when enough selection history is supplied. Use `npm run train:charging-recommendation-model` to rebuild the dataset from MongoDB and retrain the artifact, and validate the result with representative ranking inputs and the Python tests.
+
+Reliability scoring remains formula- and rule-based. Changes to its runtime weights or thresholds are code/configuration changes, not model retraining.
 
 ## 8. Verify the deployment
 
@@ -418,49 +419,23 @@ npm run test:server
 
 ### 9.1 Current Docker support
 
-The repository currently contains only `server/node-api/Dockerfile`. That image builds the Node API and does not package the Python ML services. There is no committed Python Dockerfile or Docker Compose definition.
+The repository includes container definitions for the React/Nginx web app, Node API, and combined Python service. `docker-compose.yml` connects those services on one network; MongoDB remains external and is configured through `MONGODB_URI`.
 
-The following one-off container is suitable for local verification of the combined Python service. It mounts the working tree into a disposable Python 3.12 container. Because the project is bind-mounted, `uv sync` may create or update the ignored `server/python-services/.venv` directory on the host.
-
-macOS or Linux:
+From the repository root:
 
 ```bash
-docker run --rm -it \
-  --name evat-ml \
-  -p 5000:5000 \
-  --env-file server/node-api/.env \
-  -v "$PWD:/workspace" \
-  -w /workspace/server/python-services \
-  python:3.12-slim \
-  sh -lc "apt-get update && apt-get install -y --no-install-recommends libgomp1 && rm -rf /var/lib/apt/lists/* && pip install --no-cache-dir uv && uv sync --locked && uv run python -m uvicorn main:app --host 0.0.0.0 --port 5000"
-```
-
-Windows PowerShell:
-
-```powershell
-docker run --rm -it `
-  --name evat-ml `
-  -p 5000:5000 `
-  --env-file server/node-api/.env `
-  -v "${PWD}:/workspace" `
-  -w /workspace/server/python-services `
-  python:3.12-slim `
-  sh -lc "apt-get update && apt-get install -y --no-install-recommends libgomp1 && rm -rf /var/lib/apt/lists/* && pip install --no-cache-dir uv && uv sync --locked && uv run python -m uvicorn main:app --host 0.0.0.0 --port 5000"
-```
-
-Verify from the host:
-
-```bash
+docker compose build
+docker compose up -d
+docker compose ps
 curl --fail http://127.0.0.1:5000/
 ```
 
 Notes:
 
-- This command installs packages every time. Create a reviewed Python Dockerfile before using containers routinely or in production.
 - Do not bake `.env` files or credentials into an image.
-- Mounting the repository is appropriate for local development, not production.
-- If the Node API runs on the host, `PYTHON_API_URL=http://127.0.0.1:5000` works. If Node runs in another container, both containers need a shared Docker network and the URL must use the Python container's service name.
-- A production image should pin dependency versions, copy only required source and artifacts, run as a non-root user, include a health check, and use a controlled artifact release process.
+- Compose overrides the internal Node-to-Python URLs with the `pythonsvc` service name.
+- Host ports are configurable through the root `.env`; the container ports remain fixed.
+- Treat Compose as the local container workflow. Production still requires reviewed secret injection, artifact releases, monitoring, and rollback procedures.
 
 ## 10. Troubleshooting
 
