@@ -4,7 +4,7 @@ Centralizes configurable values and removes hardcoded business logic
 Uses only data available in charger_info_mel.csv
 """
 
-# Charging Configuration - Based on CSV data``
+# Charging Configuration - Based on CSV data
 CHARGING_CONFIG = {
     # Standard EV battery capacity estimates (kWh) - will be replaced by vehicle-specific data later
     'STANDARD_BATTERY_CAPACITY': 60,  # Average EV battery capacity
