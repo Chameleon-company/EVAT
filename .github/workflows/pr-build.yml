@@ -79,5 +79,11 @@ jobs:
             charging_station_recommendation_api/tests \
             environmental_impact_analysis/tests \
             pricePrediction/tests \
+            costComparison/tests/test_error_handling.py \
+            personalisedEVInsights/tests/test_error_handling.py \
+            reliability_scoring_api/tests/test_error_handling.py \
+            demandForecasting/tests/test_error_handling.py \
+            weatherAwareRouting/tests/test_error_handling.py \
+            tests/test_error_handling.py \
             -v
             
