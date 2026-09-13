@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import ChargerSessionController from '../../src/controllers/charger-session-controller';
 import ChargerSessionService from '../../src/services/charger-session-service';
+import { UserStatsService }  from "../../src/services/user-stats-service";
 
 // Mock the service layer interactions
 const mockService = {
@@ -13,9 +14,9 @@ const mockService = {
 
 // Mock charger-session-controller behaviour
 describe('charger-session-controller', () => {
-  let req: Partial<Request>;
-  let res: Partial<Response>;
-  let controller: ChargerSessionController;
+  let req: any;
+  let res: any;
+  let controller: any;
 
   // Prepare the statements (req/res objects)
   beforeEach(() => {
@@ -25,7 +26,7 @@ describe('charger-session-controller', () => {
       json: jest.fn(),
     };
     // Mock service instance
-    controller = new ChargerSessionController(mockService as unknown as ChargerSessionService);
+    controller = new ChargerSessionController(mockService as unknown as ChargerSessionService, {} as unknown as UserStatsService);
     jest.clearAllMocks();
   });
 
@@ -75,7 +76,10 @@ describe('charger-session-controller', () => {
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         message: `Charging session ID ${mockSession._id} ended.`,
-        data: mockSession,
+        data: {
+          session: mockSession,
+          newAchievements: [],
+        },
       });
     });
 

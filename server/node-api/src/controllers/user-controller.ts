@@ -2,7 +2,6 @@ import e, { Request, Response } from "express";
 import UserService from "../services/user-service";
 import { UserItemResponse } from "../dtos/user-item-response";
 import jwt from "jsonwebtoken";
-import generateToken from "../utils/generate-token";
 
 interface JwtPayload {
     id: string;
@@ -55,47 +54,38 @@ export default class UserController {
 
             const token = authHeader.split(" ")[1];
 
+            let decoded: JwtPayload;
             try {
-                const decoded = jwt.verify(token, process.env.JWT_SECRET) as JwtPayload;
-                const user = await this.userService.getUserById(decoded.id);
-                if (!user) {
-                    return res.status(404).json({ message: "User not found" });
-                }
+              decoded = jwt.verify(token, process.env.JWT_SECRET) as JwtPayload;
+            } catch (error) {
+              const isExpiredToken =
+                error instanceof Error &&
+                (error.name === "TokenExpiredError" || error.message === "TokenExpiredError");
 
-                // Update last login
-                //user.lastLogin = new Date();
-                await user.save();
-
-                return res.status(200).json({
-                    message: "Automatic Login Successful",
-                    data: {
-                        user,
-                        accessToken: token, // same one, still valid
-                    },
-                });
-            } catch (err) {
+              if (!isExpiredToken) {
+                return res.status(401).json({ message: "Invalid token" });
+              }
 
                 const decoded = jwt.decode(token) as JwtPayload;
                 if (!decoded?.id) {
                     return res.status(401).json({ message: "Invalid token" });
                 }
 
-                const user = await this.userService.getUserById(decoded.id);
-                if (!user || !user.refreshTokenExpiresAt) {
-                    return res.status(404).json({ message: "User or refresh token not found" });
+                // Actual refresh token to be shown so it can be verified and matched against the stored one
+                const { refreshToken } = req.body;
+                if (!refreshToken) {
+                    return res.status(401).json({ message: "Refresh token is required to renew an expired session" });
                 }
 
-                const nowUnix = Math.floor(Date.now() / 1000);
-                const refreshTokenExpiryUnix = Math.floor(
-                    new Date(user.refreshTokenExpiresAt).getTime() / 1000
-                );
+                try {
+                    const { accessToken: newAccessToken } =
+                        await this.userService.refreshAccessToken(refreshToken);
 
-                if (refreshTokenExpiryUnix > nowUnix) {
-                    // if still valid, make a new AccessToken
-                    const newAccessToken = generateToken(user, "1h");
+                    const user = await this.userService.getUserById(decoded.id);
+                    if (!user) {
+                        return res.status(404).json({ message: "User not found" });
+                    }
 
-                    // Update last login
-                    //user.lastLogin = new Date();
                     await user.save();
 
                     // OK status with data and a new AccessToken
@@ -107,10 +97,25 @@ export default class UserController {
                         },
                     });
 
-                } else {
+                } catch (refreshError) {
                     return res.status(401).json({ message: "Refresh token expired, please log in again" });
                 }
             }
+
+              const user = await this.userService.getUserById(decoded.id);
+              if (!user) {
+                return res.status(404).json({ message: "User not found" });
+              }
+
+              await user.save();
+
+              return res.status(200).json({
+                message: "Automatic Login Successful",
+                data: {
+                  user,
+                  accessToken: token,
+                },
+              });
         } catch (error: any) {
             console.error("jwtLogin error:", error);
             return res.status(500).json({ message: "Internal server error", error: error.message });

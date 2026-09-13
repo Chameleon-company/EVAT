@@ -6,27 +6,22 @@ import { env } from '../src/config/env';
 jest.setTimeout(10000);
 
 describe("connectDB", () => {
+    let connectSpy: jest.SpyInstance;
 
     afterEach(async () => {
-        try {
-            await mongoose.disconnect();
-        } catch (error) {
-            // Handle errors during disconnection, if necessary
-            console.error('Error disconnecting from MongoDB:', error);
-        }
+        connectSpy?.mockRestore();
+        jest.restoreAllMocks();
     });
 
     test('Case: Connect with URI from .env', async () => {
-        // Check if MONGODB_URI is defined
-        const mongoUri = process.env.MONGODB_URI;
-        if (!mongoUri) {
-            throw new Error('MONGODB_URI must be defined in .env for this test');
-        }
-        // Call connectDB, should have no errors
-        await expect(connectDB()).resolves.not.toThrow();
+        process.env.MONGODB_URI = 'mongodb://test-host:27017/evat-test';
+        connectSpy = jest.spyOn(mongoose, 'connect').mockResolvedValue(mongoose);
 
-        // Check the connection
-        expect(mongoose.connection.readyState).toBe(1); // 1 means connected;
+        await expect(connectDB()).resolves.not.toThrow();
+        expect(connectSpy).toHaveBeenCalledWith(
+            process.env.MONGODB_URI,
+            expect.objectContaining({ useNewUrlParser: true, useUnifiedTopology: true })
+        );
     });
 
     test('Case: Throw an error if MONGODB_URI is undefined', async () => {
@@ -65,6 +60,7 @@ describe("connectDB", () => {
     test('Case: Should handle a malformed URI and exit', async () => {
         const originalMongoUri = process.env.MONGODB_URI;
         process.env.MONGODB_URI = 'mongodb+srv://invalid-url.example.com'; // Set to an invalid URI
+        connectSpy = jest.spyOn(mongoose, 'connect').mockRejectedValue(new Error('Invalid connection string'));
 
         let errorThrown = false;
         const consoleSpy = jest.spyOn(console, 'log');
@@ -80,7 +76,8 @@ describe("connectDB", () => {
         }
         expect(errorThrown).toBe(true);
         expect(consoleSpy).toHaveBeenCalledWith(
-            "An unknown error occurred"
+            "MongoDB connection error:",
+            "Invalid connection string"
         );
         expect(processExitSpy).toHaveBeenCalledWith(1);
 

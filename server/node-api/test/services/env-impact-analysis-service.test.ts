@@ -7,14 +7,11 @@ import {
   afterEach,
 } from "@jest/globals";
 
-import fetch from "node-fetch";
-
 import EnvImpactAnalysisService from "../../src/services/env-impact-analysis-service";
 import EnvImpactAnalysisRepository from "../../src/repositories/env-impact-analysis-repository";
 
-jest.mock("node-fetch", () => jest.fn());
-
-const mockedFetch = jest.mocked(fetch);
+// Source calls the global fetch (Node's built-in implementation), not node-fetch.
+const mockedFetch = jest.fn() as jest.MockedFunction<typeof fetch>;
 
 describe("EnvImpactAnalysisService", () => {
   let service: EnvImpactAnalysisService;
@@ -22,6 +19,7 @@ describe("EnvImpactAnalysisService", () => {
   beforeEach(() => {
     service = new EnvImpactAnalysisService();
     jest.clearAllMocks();
+    global.fetch = mockedFetch;
   });
 
   afterEach(() => {
