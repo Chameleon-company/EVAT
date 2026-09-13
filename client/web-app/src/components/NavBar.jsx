@@ -222,6 +222,11 @@ function NavBar() {
       </div>
 
       <div className="flex items-center gap-2">
+        <div
+          id="navbar-chat-trigger"
+          className="flex items-center"
+        />
+
         <button
           type="button"
           aria-label="Notifications"

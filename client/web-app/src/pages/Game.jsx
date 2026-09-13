@@ -12,6 +12,7 @@ function Game() {
   const [user, setUser] = useState(() =>
     JSON.parse(localStorage.getItem("currentUser"))
   );
+
   const [gameProfile, setGameProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");

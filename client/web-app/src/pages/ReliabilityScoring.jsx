@@ -30,14 +30,16 @@ const formatNumber = (value, digits = 1) =>
 const Card = ({ children, className = "" }) => (
   <div
     className={`rounded-2xl border border-slate-200 bg-white p-5 shadow-sm
-      transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg ${className}`}
+      transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg
+      dark:border-emerald-900/60 dark:bg-[#050806] dark:shadow-emerald-950/20
+      dark:hover:border-emerald-800/70 ${className}`}
   >
     {children}
   </div>
 );
 
 const Label = ({ children }) => (
-  <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+  <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
     {children}
   </label>
 );
@@ -50,6 +52,11 @@ const Input = (props) => (
       placeholder:text-slate-400
       hover:border-slate-300
       focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100
+      dark:border-emerald-900/60 dark:bg-[#08100c] dark:text-slate-100
+      dark:placeholder:text-slate-500
+      dark:hover:border-emerald-700
+      dark:focus:border-emerald-500 dark:focus:bg-[#0b1510]
+      dark:focus:ring-emerald-900/50
       ${props.className || ""}`}
   />
 );
@@ -61,17 +68,26 @@ const Select = (props) => (
       text-sm text-slate-800 outline-none transition
       hover:border-slate-300
       focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100
+      dark:border-emerald-900/60 dark:bg-[#08100c] dark:text-slate-100
+      dark:hover:border-emerald-700
+      dark:focus:border-emerald-500 dark:focus:bg-[#0b1510]
+      dark:focus:ring-emerald-900/50
       ${props.className || ""}`}
   />
 );
 
 const SentimentBadge = ({ label }) => {
-  if (!label) return <span className="text-slate-400">—</span>;
+  if (!label) {
+    return <span className="text-slate-400 dark:text-slate-500">—</span>;
+  }
 
   const styles = {
-    positive: "bg-emerald-50 text-emerald-700 border-emerald-200",
-    negative: "bg-red-50 text-red-700 border-red-200",
-    neutral: "bg-slate-50 text-slate-600 border-slate-200",
+    positive:
+      "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-900/60",
+    negative:
+      "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/50 dark:text-red-400 dark:border-red-900/60",
+    neutral:
+      "bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-900 dark:text-slate-400 dark:border-slate-700",
   };
 
   const key = String(label).toLowerCase();
@@ -243,22 +259,23 @@ export default function ReliabilityScoring() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 dark:bg-black">
       <NavBar />
 
       <main className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        {/* Header */}
         <header className="mb-8">
-          <span className="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold tracking-wide text-emerald-700">
+          <span className="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold tracking-wide text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/50 dark:text-emerald-400">
             USE CASE
           </span>
 
-          <h1 className="mt-4 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+          <h1 className="mt-4 text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
             Charger Reliability{" "}
-            <span className="text-emerald-600">Scoring</span>
+            <span className="text-emerald-600 dark:text-emerald-400">
+              Scoring
+            </span>
           </h1>
 
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500 dark:text-slate-400">
             Explore Melbourne station reliability, uptime, and user sentiment.
             Score any charger using the reliability formula.
           </p>
@@ -267,12 +284,14 @@ export default function ReliabilityScoring() {
             <div
               className={`mt-4 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium ${
                 health.data_loaded
-                  ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                  : "border-amber-200 bg-amber-50 text-amber-700"
+                  ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/50 dark:text-emerald-400"
+                  : "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-400"
               }`}
             >
               <span className="h-2 w-2 rounded-full bg-current" />
+
               ML service: {health.status}
+
               {health.data_loaded
                 ? ` · ${health.station_count} stations`
                 : " · data not loaded"}
@@ -280,14 +299,12 @@ export default function ReliabilityScoring() {
           )}
         </header>
 
-        {/* Error */}
         {error && (
-          <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+          <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-400">
             {error}
           </div>
         )}
 
-        {/* KPI cards */}
         <section className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[
             ["Stations", summary?.total_stations ?? "—"],
@@ -305,34 +322,37 @@ export default function ReliabilityScoring() {
             ],
           ].map(([label, value]) => (
             <Card key={label} className="group">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 {label}
               </p>
-              <p className="mt-2 text-3xl font-bold text-slate-900 transition group-hover:text-emerald-600">
+
+              <p className="mt-2 text-3xl font-bold text-slate-900 transition group-hover:text-emerald-600 dark:text-white dark:group-hover:text-emerald-400">
                 {value}
               </p>
             </Card>
           ))}
         </section>
 
-        {/* Filters + scoring */}
         <section className="grid gap-6 lg:grid-cols-2">
           <Card>
-            <h2 className="text-xl font-bold text-slate-900">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white">
               Explore stations
             </h2>
-            <p className="mt-1 text-sm text-slate-500">
+
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
               Filter Melbourne chargers by suburb, sentiment and reliability.
             </p>
 
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
               <div>
                 <Label>Suburb</Label>
+
                 <Select
                   value={suburb}
                   onChange={(e) => setSuburb(e.target.value)}
                 >
                   <option value="All">All</option>
+
                   {suburbs.map((s) => (
                     <option key={s} value={s}>
                       {s}
@@ -343,6 +363,7 @@ export default function ReliabilityScoring() {
 
               <div>
                 <Label>Sentiment</Label>
+
                 <Select
                   value={sentiment}
                   onChange={(e) => setSentiment(e.target.value)}
@@ -355,6 +376,7 @@ export default function ReliabilityScoring() {
 
               <div>
                 <Label>Minimum score</Label>
+
                 <Input
                   type="number"
                   min="0"
@@ -370,7 +392,7 @@ export default function ReliabilityScoring() {
                   type="button"
                   onClick={loadDashboard}
                   disabled={loadingData}
-                  className="w-full rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="w-full rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-emerald-600 dark:text-white dark:hover:bg-emerald-500"
                 >
                   {loadingData ? "Refreshing…" : "Refresh data"}
                 </button>
@@ -378,8 +400,8 @@ export default function ReliabilityScoring() {
             </div>
 
             {summary?.sentiment_counts && (
-              <div className="mt-5 rounded-xl bg-slate-50 p-4 text-sm text-slate-600">
-                <span className="font-semibold text-slate-800">
+              <div className="mt-5 rounded-xl bg-slate-50 p-4 text-sm text-slate-600 dark:bg-[#08100c] dark:text-slate-300">
+                <span className="font-semibold text-slate-800 dark:text-white">
                   Sentiment:
                 </span>{" "}
                 Positive {summary.sentiment_counts.Positive ?? 0} · Neutral{" "}
@@ -390,16 +412,18 @@ export default function ReliabilityScoring() {
           </Card>
 
           <Card>
-            <h2 className="text-xl font-bold text-slate-900">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white">
               Score a station
             </h2>
-            <p className="mt-1 text-sm text-slate-500">
+
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
               Calculate reliability using station status and charging power.
             </p>
 
             <form onSubmit={handleScore} className="mt-6 space-y-4">
               <div>
                 <Label>Name (optional)</Label>
+
                 <Input
                   value={scoreName}
                   onChange={(e) => setScoreName(e.target.value)}
@@ -410,6 +434,7 @@ export default function ReliabilityScoring() {
               <div className="grid gap-4 sm:grid-cols-3">
                 <div>
                   <Label>Status</Label>
+
                   <Select
                     value={scoreStatus}
                     onChange={(e) => setScoreStatus(e.target.value)}
@@ -422,6 +447,7 @@ export default function ReliabilityScoring() {
 
                 <div>
                   <Label>Power (kW)</Label>
+
                   <Input
                     type="number"
                     min="0"
@@ -433,6 +459,7 @@ export default function ReliabilityScoring() {
 
                 <div>
                   <Label>Max power (kW)</Label>
+
                   <Input
                     type="number"
                     min="0"
@@ -446,38 +473,40 @@ export default function ReliabilityScoring() {
               <button
                 type="submit"
                 disabled={scoreLoading}
-                className="w-full rounded-lg bg-emerald-600 px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full rounded-lg bg-emerald-600 px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700 hover:shadow-md dark:bg-emerald-500 dark:text-black dark:hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {scoreLoading ? "Scoring…" : "Compute reliability →"}
               </button>
             </form>
 
             {scoreResult && (
-              <div className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 p-5">
-                <p className="text-xs font-bold uppercase tracking-wide text-emerald-700">
+              <div className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 p-5 dark:border-emerald-900/60 dark:bg-emerald-950/40">
+                <p className="text-xs font-bold uppercase tracking-wide text-emerald-700 dark:text-emerald-400">
                   Reliability score
                 </p>
 
-                <p className="mt-1 text-4xl font-bold text-emerald-700">
+                <p className="mt-1 text-4xl font-bold text-emerald-700 dark:text-emerald-400">
                   {formatNumber(scoreResult.reliability_score, 2)}
                 </p>
 
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-lg bg-white p-3">
-                    <p className="text-xs font-semibold text-slate-500">
+                  <div className="rounded-lg bg-white p-3 dark:bg-[#08100c]">
+                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                       Breakdown
                     </p>
-                    <p className="mt-1 text-sm text-slate-700">
-                      Status {formatNumber(scoreResult.status_score, 0)} ·
-                      Power {formatNumber(scoreResult.power_score, 2)}
+
+                    <p className="mt-1 text-sm text-slate-700 dark:text-slate-300">
+                      Status {formatNumber(scoreResult.status_score, 0)} · Power{" "}
+                      {formatNumber(scoreResult.power_score, 2)}
                     </p>
                   </div>
 
-                  <div className="rounded-lg bg-white p-3">
-                    <p className="text-xs font-semibold text-slate-500">
+                  <div className="rounded-lg bg-white p-3 dark:bg-[#08100c]">
+                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                       Formula
                     </p>
-                    <p className="mt-1 text-sm text-slate-700">
+
+                    <p className="mt-1 text-sm text-slate-700 dark:text-slate-300">
                       {scoreResult.formula}
                     </p>
                   </div>
@@ -485,33 +514,38 @@ export default function ReliabilityScoring() {
               </div>
             )}
 
-            <form onSubmit={handleSentiment} className="mt-8 border-t border-slate-100 pt-6">
-              <h3 className="text-lg font-bold text-slate-900">
+            <form
+              onSubmit={handleSentiment}
+              className="mt-8 border-t border-slate-100 pt-6 dark:border-emerald-900/60"
+            >
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">
                 Analyse feedback
               </h3>
 
               <div className="mt-4">
                 <Label>User feedback</Label>
+
                 <textarea
                   rows={3}
                   value={feedbackText}
                   onChange={(e) => setFeedbackText(e.target.value)}
-                  className="w-full resize-none rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100"
+                  className="w-full resize-none rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100 dark:border-emerald-900/60 dark:bg-[#08100c] dark:text-slate-100 dark:placeholder:text-slate-500 dark:hover:border-emerald-700 dark:focus:border-emerald-500 dark:focus:bg-[#0b1510] dark:focus:ring-emerald-900/50"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={sentimentLoading}
-                className="mt-3 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 disabled:opacity-50"
+                className="mt-3 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 disabled:opacity-50 dark:border-emerald-900/60 dark:bg-[#08100c] dark:text-slate-200 dark:hover:border-emerald-700 dark:hover:bg-emerald-950/40 dark:hover:text-emerald-400"
               >
                 {sentimentLoading ? "Analysing…" : "Analyse sentiment"}
               </button>
 
               {sentimentResult && (
-                <div className="mt-4 flex items-center justify-between rounded-xl bg-slate-50 p-4">
+                <div className="mt-4 flex items-center justify-between rounded-xl bg-slate-50 p-4 dark:bg-[#08100c]">
                   <SentimentBadge label={sentimentResult.sentiment_label} />
-                  <span className="text-sm font-semibold text-slate-700">
+
+                  <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
                     Compound{" "}
                     {formatNumber(sentimentResult.sentiment_score, 2)}
                   </span>
@@ -521,15 +555,15 @@ export default function ReliabilityScoring() {
           </Card>
         </section>
 
-        {/* Station table */}
         <Card className="mt-6 overflow-hidden p-0">
-          <div className="border-b border-slate-100 px-5 py-5">
+          <div className="border-b border-slate-100 px-5 py-5 dark:border-emerald-900/60">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
-                <h2 className="text-xl font-bold text-slate-900">
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white">
                   Station list
                 </h2>
-                <p className="mt-1 text-sm text-slate-500">
+
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                   Showing {stations.length} of {stationsTotal} stations
                 </p>
               </div>
@@ -537,17 +571,17 @@ export default function ReliabilityScoring() {
           </div>
 
           {loadingData ? (
-            <div className="px-5 py-12 text-center text-sm text-slate-500">
+            <div className="px-5 py-12 text-center text-sm text-slate-500 dark:text-slate-400">
               Loading stations…
             </div>
           ) : stations.length === 0 ? (
-            <div className="px-5 py-12 text-center text-sm text-slate-500">
+            <div className="px-5 py-12 text-center text-sm text-slate-500 dark:text-slate-400">
               No stations match the current filters.
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[900px] text-left text-sm">
-                <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+                <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-[#08100c] dark:text-slate-400">
                   <tr>
                     {[
                       "Station",
@@ -566,42 +600,43 @@ export default function ReliabilityScoring() {
                   </tr>
                 </thead>
 
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-slate-100 dark:divide-emerald-950/60">
                   {stations.map((station) => (
                     <tr
                       key={station.charger_id || station.charger_name}
-                      className="transition hover:bg-emerald-50/40"
+                      className="transition hover:bg-emerald-50/40 dark:hover:bg-emerald-950/20"
                     >
                       <td className="px-5 py-4">
-                        <p className="font-semibold text-slate-900">
+                        <p className="font-semibold text-slate-900 dark:text-white">
                           {station.charger_name || "Unknown"}
                         </p>
-                        <p className="mt-0.5 text-xs text-slate-400">
+
+                        <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">
                           {station.charger_id}
                         </p>
                       </td>
 
-                      <td className="px-5 py-4 text-slate-600">
+                      <td className="px-5 py-4 text-slate-600 dark:text-slate-300">
                         {station.suburb || "—"}
                       </td>
 
-                      <td className="px-5 py-4 text-slate-600">
+                      <td className="px-5 py-4 text-slate-600 dark:text-slate-300">
                         {station.status || "—"}
                       </td>
 
                       <td className="px-5 py-4">
-                        <span className="font-bold text-emerald-600">
+                        <span className="font-bold text-emerald-600 dark:text-emerald-400">
                           {formatNumber(station.reliability_score, 1)}
                         </span>
                       </td>
 
-                      <td className="px-5 py-4 text-slate-600">
+                      <td className="px-5 py-4 text-slate-600 dark:text-slate-300">
                         {station.uptime_pct != null
                           ? `${formatNumber(station.uptime_pct)}%`
                           : "—"}
                       </td>
 
-                      <td className="px-5 py-4 text-slate-600">
+                      <td className="px-5 py-4 text-slate-600 dark:text-slate-300">
                         {formatNumber(station.rating, 1)}
                       </td>
 
@@ -609,7 +644,7 @@ export default function ReliabilityScoring() {
                         <SentimentBadge label={station.sentiment_label} />
                       </td>
 
-                      <td className="max-w-xs px-5 py-4 text-slate-500">
+                      <td className="max-w-xs px-5 py-4 text-slate-500 dark:text-slate-400">
                         <p className="truncate">
                           {station.user_feedback
                             ? station.user_feedback.slice(0, 90) +
@@ -625,7 +660,6 @@ export default function ReliabilityScoring() {
           )}
         </Card>
 
-        {/* Top stations */}
         <section className="mt-6 grid gap-6 lg:grid-cols-3">
           {[
             {
@@ -661,23 +695,26 @@ export default function ReliabilityScoring() {
             },
           ].map((group) => (
             <Card key={group.title}>
-              <h2 className="text-lg font-bold text-slate-900">
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white">
                 {group.title}
               </h2>
 
               {group.data.length === 0 ? (
-                <p className="mt-5 text-sm text-slate-400">{group.empty}</p>
+                <p className="mt-5 text-sm text-slate-400 dark:text-slate-500">
+                  {group.empty}
+                </p>
               ) : (
-                <ul className="mt-4 divide-y divide-slate-100">
+                <ul className="mt-4 divide-y divide-slate-100 dark:divide-emerald-950/60">
                   {group.data.map((s) => (
                     <li
                       key={`${group.title}-${s.charger_id}`}
                       className="py-3 transition hover:px-2"
                     >
-                      <p className="font-semibold text-slate-800">
+                      <p className="font-semibold text-slate-800 dark:text-slate-200">
                         {s.charger_name}
                       </p>
-                      <p className="mt-1 text-xs text-slate-500">
+
+                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                         {group.render(s)}
                       </p>
                     </li>

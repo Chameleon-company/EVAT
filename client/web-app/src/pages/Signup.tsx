@@ -169,7 +169,7 @@ function Signup() {
     <div
       className="
         flex min-h-full flex-col justify-center
-        bg-gray-50
+        bg-surface-50
         px-2 py-12 sm:px-6 lg:px-8
       "
     >
@@ -179,7 +179,7 @@ function Signup() {
           src="../src/assets/logo.png"
           className="mx-auto h-16 w-auto md:h-24"
         />
-        <h2 className="mt-8 text-center text-2xl/9 font-bold tracking-tight text-gray-900">
+        <h2 className="mt-8 text-center text-2xl/9 font-bold tracking-tight text-surface-900">
           Create a new account
         </h2>
       </div>
@@ -199,14 +199,14 @@ function Signup() {
             </Banner>
           </div>
         }
-        <div className="bg-white px-6 py-12 border border-surface-200 sm:rounded-lg sm:px-12">
+        <div className="bg-background px-6 py-12 border border-surface-200 sm:rounded-lg sm:px-12">
           <form action="javascript:;" className="space-y-6" onSubmit={handleSubmit}>
             <div>
-              <label htmlFor="first-name" className="block text-sm/6 font-medium text-gray-900">
+              <label htmlFor="first-name" className="block text-sm/6 font-medium text-surface-900">
                 Given name
               </label>
               <div className="relative mt-2">
-                <User className="absolute left-2 top-1/2 size-5 -mt-2.5 text-gray-300" />
+                <User className="absolute left-2 top-1/2 size-5 -mt-2.5 text-surface-300" />
 
                 <Input
                   id="first-name"
@@ -229,11 +229,11 @@ function Signup() {
             </div>
             
             <div>
-              <label htmlFor="last-name" className="block text-sm/6 font-medium text-gray-900">
+              <label htmlFor="last-name" className="block text-sm/6 font-medium text-surface-900">
                 Surname
               </label>
               <div className="relative mt-2">
-                <User className="absolute left-2 top-1/2 size-5 -mt-2.5 text-gray-300" />
+                <User className="absolute left-2 top-1/2 size-5 -mt-2.5 text-surface-300" />
 
                 <Input
                   id="last-name"
@@ -256,11 +256,11 @@ function Signup() {
             </div>
             
             <div>
-              <label htmlFor="mobile" className="block text-sm/6 font-medium text-gray-900">
+              <label htmlFor="mobile" className="block text-sm/6 font-medium text-surface-900">
                 Mobile number
               </label>
               <div className="relative mt-2">
-                <Phone className="absolute left-2 top-1/2 size-5 -mt-2.5 text-gray-300" />
+                <Phone className="absolute left-2 top-1/2 size-5 -mt-2.5 text-surface-300" />
 
                 <Input
                   id="mobile"
@@ -284,11 +284,11 @@ function Signup() {
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm/6 font-medium text-gray-900">
+              <label htmlFor="email" className="block text-sm/6 font-medium text-surface-900">
                 Email address
               </label>
               <div className="relative mt-2">
-                <Mail className="absolute left-2 top-1/2 size-5 -mt-2.5 text-gray-300" />
+                <Mail className="absolute left-2 top-1/2 size-5 -mt-2.5 text-surface-300" />
 
                 <Input
                   id="email"
@@ -311,11 +311,11 @@ function Signup() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm/6 font-medium text-gray-900">
+              <label htmlFor="password" className="block text-sm/6 font-medium text-surface-900">
                 Password
               </label>
               <div className="relative mt-2">
-                <KeyRound className="absolute left-2 top-1/2 size-5 -mt-2.5 text-gray-300" />
+                <KeyRound className="absolute left-2 top-1/2 size-5 -mt-2.5 text-surface-300" />
 
                 <Input
                   id="password"
@@ -330,7 +330,7 @@ function Signup() {
                 />
                 
                 <span
-                  className="absolute right-2 top-1/2 size-5 -mt-2.5 text-gray-700 transition-colors hover:text-gray-900"
+                  className="absolute right-2 top-1/2 size-5 -mt-2.5 text-surface-700 transition-colors hover:text-surface-900"
                   onClick={() => setShowPassword(!showPassword)}
                   role="button"
                 >
@@ -345,11 +345,11 @@ function Signup() {
             </div>
 
             <div>
-              <label htmlFor="password-confirmation" className="block text-sm/6 font-medium text-gray-900">
+              <label htmlFor="password-confirmation" className="block text-sm/6 font-medium text-surface-900">
                 Confirm password
               </label>
               <div className="relative mt-2">
-                <KeyRound className="absolute left-2 top-1/2 size-5 -mt-2.5 text-gray-300" />
+                <KeyRound className="absolute left-2 top-1/2 size-5 -mt-2.5 text-surface-300" />
 
                 <Input
                   id="password-confirmation"
@@ -363,7 +363,7 @@ function Signup() {
                 />
                 
                 <span
-                  className="absolute right-2 top-1/2 size-5 -mt-2.5 text-gray-700 transition-colors hover:text-gray-900"
+                  className="absolute right-2 top-1/2 size-5 -mt-2.5 text-surface-700 transition-colors hover:text-surface-900"
                   onClick={() => setShowPassword(!showPassword)}
                   role="button"
                 >
@@ -385,7 +385,7 @@ function Signup() {
           </form>
         </div>
 
-        <div className="flex justify-center w-full mt-8 gap-x-1.5 text-sm/6 text-gray-600">
+        <div className="flex justify-center w-full mt-8 gap-x-1.5 text-sm/6 text-surface-600">
           Already a member?
           <button
             type="button"

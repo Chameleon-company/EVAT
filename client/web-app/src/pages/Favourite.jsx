@@ -339,7 +339,7 @@ function Favourite() {
         )}
       </main>
 
-      <ChatBubble />
+      {/* <ChatBubble /> */}
     </div>
   );
 }

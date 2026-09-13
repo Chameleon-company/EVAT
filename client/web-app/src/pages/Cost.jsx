@@ -25,4 +25,3 @@ export default function Cost() {
     </div>
   );
 }
-

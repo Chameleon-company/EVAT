@@ -14,7 +14,6 @@ import WeatherAwareSelection from "./WeatherAwareSelection";
 import WeatherAwareResult from "./WeatherAwareResult";
 import TurnByTurnOverlay from "./TurnByTurnOverlayRouting";
 
-// Watches map bounds and reports them upward
 function BoundsWatcher({ onChange }) {
   const map = useMapEvents({
     moveend() {
@@ -42,7 +41,6 @@ function BoundsWatcher({ onChange }) {
   return null;
 }
 
-// Handles map click
 function MapClickHandler({ onLocationSelect }) {
   useMapEvents({
     click(e) {
@@ -64,7 +62,6 @@ export default function Map() {
 
   const [isDark, setIsDark] = useState(false);
 
-  // Route selection state
   const [originLocation, setOriginLocation] = useState(null);
   const [destinationLocation, setDestinationLocation] = useState(null);
   const [activeField, setActiveField] = useState("origin");
@@ -75,7 +72,6 @@ export default function Map() {
   const [weatherLoading, setWeatherLoading] = useState(false);
   const [weatherError, setWeatherError] = useState("");
 
-  // Convert map coordinates into an address
   const getAddressFromCoordinates = async (lat, lon) => {
     const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
@@ -99,7 +95,6 @@ export default function Map() {
     );
   };
 
-  // Handle map location selection
   const handleLocationSelect = async (location) => {
     setWeatherResult(null);
     setWeatherError("");
@@ -131,7 +126,6 @@ export default function Map() {
     }
   };
 
-  // Used by Google Place Autocomplete
   const handlePlaceSelect = (fieldName, place) => {
     const selectedLocation = {
       address: place.address,
@@ -151,7 +145,6 @@ export default function Map() {
     setRouteCoordinates([]);
   };
 
-  // Calculate weather-aware energy
   const handleCalculateEnergy = async () => {
     if (!originLocation || !destinationLocation) {
       setWeatherError(
@@ -216,7 +209,6 @@ export default function Map() {
     setWeatherError("");
   }, []);
 
-  // Dark mode
   useEffect(() => {
     if (isDark) {
       document.body.classList.add("dark-mode");
@@ -232,14 +224,20 @@ export default function Map() {
   return (
     <div
       className={`relative h-[calc(100vh-64px)] min-h-[650px] w-full overflow-hidden ${
-        isDark ? "dark bg-slate-950" : "bg-slate-100"
+        isDark
+          ? "dark bg-black text-white"
+          : "bg-slate-100 text-slate-900"
       }`}
     >
-      {/* Map container */}
       <div className="relative h-full w-full overflow-hidden">
-        {/* Map loading message */}
         {!bbox && !loading && user?.token && (
-          <div className="absolute left-4 top-4 z-[1100] max-w-xs rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-blue-800 shadow-lg">
+          <div
+            className={`absolute left-4 top-4 z-[1100] max-w-xs rounded-xl border px-4 py-3 shadow-lg ${
+              isDark
+                ? "border-emerald-900/60 bg-[#050806]/95 text-emerald-300"
+                : "border-blue-200 bg-blue-50 text-blue-800"
+            }`}
+          >
             <div className="flex items-start gap-3">
               <span className="text-lg">📍</span>
 
@@ -248,7 +246,13 @@ export default function Map() {
                   Map Loading
                 </p>
 
-                <p className="mt-1 text-xs leading-5 text-blue-700">
+                <p
+                  className={`mt-1 text-xs leading-5 ${
+                    isDark
+                      ? "text-emerald-400"
+                      : "text-blue-700"
+                  }`}
+                >
                   Wait for the map to load or move/zoom to search
                   for chargers.
                 </p>
@@ -257,9 +261,14 @@ export default function Map() {
           </div>
         )}
 
-        {/* Login warning */}
         {!user?.token && (
-          <div className="absolute left-4 top-4 z-[1100] max-w-xs rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-800 shadow-lg">
+          <div
+            className={`absolute left-4 top-4 z-[1100] max-w-xs rounded-xl border px-4 py-3 shadow-lg ${
+              isDark
+                ? "border-amber-900/60 bg-[#080603]/95 text-amber-300"
+                : "border-amber-200 bg-amber-50 text-amber-800"
+            }`}
+          >
             <div className="flex items-start gap-3">
               <span className="text-lg">⚠️</span>
 
@@ -268,7 +277,13 @@ export default function Map() {
                   Login Required
                 </p>
 
-                <p className="mt-1 text-xs leading-5 text-amber-700">
+                <p
+                  className={`mt-1 text-xs leading-5 ${
+                    isDark
+                      ? "text-amber-400"
+                      : "text-amber-700"
+                  }`}
+                >
                   Please log in to use weather-aware routing.
                 </p>
               </div>
@@ -276,7 +291,6 @@ export default function Map() {
           </div>
         )}
 
-        {/* Selection panel */}
         <WeatherAwareSelection
           originLocation={originLocation}
           destinationLocation={destinationLocation}
@@ -292,7 +306,6 @@ export default function Map() {
           onPlaceSelect={handlePlaceSelect}
         />
 
-        {/* Leaflet Map */}
         <MapContainer
           className="!h-full !w-full"
           center={[-37.8136, 144.9631]}
@@ -309,7 +322,6 @@ export default function Map() {
             onLocationSelect={handleLocationSelect}
           />
 
-          {/* Origin marker */}
           {originLocation?.lat && originLocation?.lon && (
             <Marker
               position={[
@@ -319,7 +331,6 @@ export default function Map() {
             />
           )}
 
-          {/* Destination marker */}
           {destinationLocation?.lat &&
             destinationLocation?.lon && (
               <Marker
@@ -330,7 +341,6 @@ export default function Map() {
               />
             )}
 
-          {/* Route */}
           {routeCoordinates.length > 0 && (
             <Polyline
               positions={routeCoordinates}
@@ -343,7 +353,6 @@ export default function Map() {
           )}
         </MapContainer>
 
-        {/* Turn-by-turn directions */}
         {weatherResult?.steps && (
           <TurnByTurnOverlay
             steps={weatherResult.steps}
@@ -351,7 +360,6 @@ export default function Map() {
           />
         )}
 
-        {/* Result panel */}
         {weatherResult && (
           <div className="absolute bottom-5 right-5 z-[1000] w-[420px] max-w-[calc(100%-2rem)] sm:bottom-20 sm:right-6">
             <WeatherAwareResult
@@ -361,7 +369,6 @@ export default function Map() {
           </div>
         )}
 
-        {/* Dark mode toggle */}
         <button
           type="button"
           aria-label="Toggle dark mode"
@@ -371,7 +378,11 @@ export default function Map() {
               : "Switch to dark mode"
           }
           onClick={() => setIsDark((prev) => !prev)}
-          className="absolute bottom-5 right-5 z-[1200] flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-lg shadow-lg transition hover:scale-105 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 sm:bottom-5 sm:left-5 sm:right-auto"
+          className={`absolute bottom-5 left-5 z-[1200] flex h-11 w-11 items-center justify-center rounded-full border text-lg shadow-lg transition hover:scale-105 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 ${
+            isDark
+              ? "border-emerald-900/60 bg-[#050806] text-white hover:bg-[#08100c] focus:ring-offset-black"
+              : "border-slate-200 bg-white text-slate-800 hover:bg-slate-50 focus:ring-offset-white"
+          }`}
         >
           {isDark ? "☀️" : "🌙"}
         </button>
