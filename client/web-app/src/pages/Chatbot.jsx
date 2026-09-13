@@ -13,11 +13,18 @@ const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 const GEMINI_MODEL = "gemini-3.6-flash";
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
-const getSessionId = () => {
-  const s = localStorage.getItem("evat_chat_session");
+// Saved chat data is keyed by account, so a shared browser never mixes two users' chats.
+const storageKey = (name, owner) => `evat_chat_${name}:${owner}`;
+// The keys used before chats were saved per account.
+const LEGACY_STORE_KEYS = ["evat_chat_rasa", "evat_chat_gemini", "evat_chat_history", "evat_chat_session"];
+
+// Rasa keeps one conversation per sender id, so each account gets its own.
+const getSessionId = (owner) => {
+  const key = storageKey("session", owner);
+  const s = localStorage.getItem(key);
   if (s) return s;
   const id = "evat-" + Math.random().toString(36).substring(2, 10);
-  localStorage.setItem("evat_chat_session", id);
+  localStorage.setItem(key, id);
   return id;
 };
 
@@ -28,8 +35,6 @@ const REQUEST_TIMEOUT_MS = 30000;
 
 // Conversations survive a refresh. Keep a bounded number of messages: AI answers are
 // long and localStorage is a few megabytes per origin.
-const RASA_STORE_KEY = "evat_chat_rasa";
-const GEMINI_STORE_KEY = "evat_chat_gemini";
 const MAX_STORED_MESSAGES = 50;
 
 /**
@@ -469,30 +474,58 @@ function Chips({ options, onSelect }) {
 
 // ── Main component ──────────────────────────────────────────
 
+/** The signed-in account's id, falling back to the saved login while the context loads. */
+const chatOwner = (user) => {
+  let account = user;
+  if (!account) {
+    try { account = JSON.parse(localStorage.getItem("currentUser") || "null"); } catch { account = null; }
+  }
+  return account?.id || account?._id || account?.email || "guest";
+};
+
+/**
+ * Chats are saved per account, and the page is rebuilt when the account changes, so
+ * one user never sees, or sends to Gemini as context, another user's conversation.
+ */
 export default function Chatbot() {
+  const { user } = useContext(UserContext);
+  const owner = chatOwner(user);
+
+  // Chats saved before they were kept per account could belong to anyone, so drop them.
+  useEffect(() => {
+    LEGACY_STORE_KEYS.forEach((key) => localStorage.removeItem(key));
+  }, []);
+
+  return <ChatbotPage key={owner} owner={owner} />;
+}
+
+function ChatbotPage({ owner }) {
   const navigate = useNavigate();
   const { user } = useContext(UserContext);
   const firstName = user?.firstName || "there";
+  const rasaStoreKey = storageKey("rasa", owner);
+  const geminiStoreKey = storageKey("gemini", owner);
+  const historyStoreKey = storageKey("history", owner);
 
   const [activeTab, setActiveTab] = useState("station");
   const [showHistory, setShowHistory] = useState(false);
 
   // Messages — each: { id, type, sender, text, payload, chips, time }
-  const [rasaMessages, setRasaMessages] = useState(() => loadStoredMessages(RASA_STORE_KEY));
+  const [rasaMessages, setRasaMessages] = useState(() => loadStoredMessages(rasaStoreKey));
   const [rasaInput, setRasaInput] = useState("");
   const [rasaLoading, setRasaLoading] = useState(false);
   // A restored conversation is already started, otherwise the input stays locked
   // behind "Click Start Chat to begin" with the previous messages visible above it.
-  const [started, setStarted] = useState(() => loadStoredMessages(RASA_STORE_KEY).length > 0);
+  const [started, setStarted] = useState(() => loadStoredMessages(rasaStoreKey).length > 0);
 
-  const [geminiMessages, setGeminiMessages] = useState(() => loadStoredMessages(GEMINI_STORE_KEY));
+  const [geminiMessages, setGeminiMessages] = useState(() => loadStoredMessages(geminiStoreKey));
   const [geminiInput, setGeminiInput] = useState("");
   const [geminiLoading, setGeminiLoading] = useState(false);
   const [showValueForm, setShowValueForm] = useState(false);
   const [valueLoading, setValueLoading] = useState(false);
 
   const [history, setHistory] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("evat_chat_history") || "[]"); } catch { return []; }
+    try { return JSON.parse(localStorage.getItem(historyStoreKey) || "[]"); } catch { return []; }
   });
 
   const [location, setLocation] = useState(null);
@@ -501,6 +534,12 @@ export default function Chatbot() {
   const rasaInputRef = useRef(null);
   const rasaAbortRef = useRef(null);
   const geminiAbortRef = useRef(null);
+  // Bumped by "+ New". A request remembers the value it started with and drops its
+  // reply if the chat has been cleared since.
+  const rasaGenerationRef = useRef(0);
+  const geminiGenerationRef = useRef(0);
+  // Per rated reply: the rating last chosen, the rating last saved, and whether a save is running.
+  const ratingSyncRef = useRef(new Map());
 
   /**
    * Track the in-flight request for a tab so it can be cancelled, either by the
@@ -555,7 +594,13 @@ export default function Chatbot() {
     const summary = `${features.Year} ${features.Brand} ${features.Model}, ` +
       `${Number(features.Mileage).toLocaleString()} km, ${features["Fuel Type"]}, ` +
       `${features.Transmission}, ${features.Condition}`;
-    const addBot = (text, extra) => setGeminiMessages(prev => [...prev, { from: "bot", text, time: timestamp(), ...extra }]);
+    // An estimate that arrives after "+ New" belongs to the cleared chat, so it is dropped.
+    const generation = geminiGenerationRef.current;
+    const addBot = (text, extra) => {
+      if (generation === geminiGenerationRef.current) {
+        setGeminiMessages(prev => [...prev, { from: "bot", text, time: timestamp(), ...extra }]);
+      }
+    };
 
     if (!isRetry) {
       setGeminiMessages(prev => [...prev, { from: "user", text: `Estimate the value of a ${summary}`, time: timestamp() }]);
@@ -601,15 +646,20 @@ export default function Chatbot() {
 
   useEffect(() => { rasaBottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [rasaMessages, rasaLoading]);
   useEffect(() => { geminiBottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [geminiMessages, geminiLoading]);
-  useEffect(() => { localStorage.setItem("evat_chat_history", JSON.stringify(history)); }, [history]);
-  useEffect(() => { storeMessages(RASA_STORE_KEY, rasaMessages); }, [rasaMessages]);
-  useEffect(() => { storeMessages(GEMINI_STORE_KEY, geminiMessages); }, [geminiMessages]);
+  useEffect(() => { localStorage.setItem(historyStoreKey, JSON.stringify(history)); }, [history, historyStoreKey]);
+  useEffect(() => { storeMessages(rasaStoreKey, rasaMessages); }, [rasaMessages, rasaStoreKey]);
+  useEffect(() => { storeMessages(geminiStoreKey, geminiMessages); }, [geminiMessages, geminiStoreKey]);
 
   const addRasaMessage = (msg) => {
     setRasaMessages(prev => [...prev, { id: Date.now() + Math.random(), time: timestamp(), ...msg }]);
   };
 
   const sendToRasa = async (text) => {
+    // A reply that arrives after "+ New" belongs to the cleared chat, so it is dropped.
+    const generation = rasaGenerationRef.current;
+    const addReply = (msg) => {
+      if (generation === rasaGenerationRef.current) addRasaMessage(msg);
+    };
     const entry = beginRequest(rasaAbortRef);
     setRasaLoading(true);
     try {
@@ -617,14 +667,14 @@ export default function Chatbot() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          sender: getSessionId(),
+          sender: getSessionId(owner),
           message: text,
           metadata: location || {},
         }),
         signal: entry.controller.signal,
       });
       if (!res.ok) {
-        addRasaMessage({
+        addReply({
           type: "text",
           sender: "bot",
           text: await describeHttpFailure(res, "The station assistant"),
@@ -633,9 +683,9 @@ export default function Chatbot() {
         return;
       }
       const data = await res.json();
-      handleRasaResponse(data || []);
+      handleRasaResponse(data || [], addReply);
     } catch (error) {
-      addRasaMessage({
+      addReply({
         type: "text",
         sender: "bot",
         text: cancelledMessage(error, entry) || describeRequestError(error, "the station assistant"),
@@ -654,7 +704,9 @@ export default function Chatbot() {
     await sendToRasa(failed.retry);
   };
 
-  const handleRasaResponse = (messages) => {
+  // addReply comes from sendToRasa, so the staggered messages below are also dropped
+  // if the chat is cleared while they are still being shown.
+  const handleRasaResponse = (messages, addReply = addRasaMessage) => {
     messages.forEach((msg, i) => {
       setTimeout(() => {
         // Text message
@@ -663,17 +715,17 @@ export default function Chatbot() {
           const needsNumberChips = /press|type/i.test(clean) && /1.*2.*3|1, 2, or 3/i.test(clean);
           const needsFcpChips = /fastest|cheapest|premium/i.test(clean) && !/1.*2.*3/.test(clean);
 
-          addRasaMessage({ type: "text", sender: "bot", text: clean });
+          addReply({ type: "text", sender: "bot", text: clean });
 
           if (needsNumberChips) {
-            setTimeout(() => addRasaMessage({ type: "chips", sender: "bot", chips: ["1", "2", "3"] }), 200);
+            setTimeout(() => addReply({ type: "chips", sender: "bot", chips: ["1", "2", "3"] }), 200);
           }
           if (needsFcpChips) {
-            setTimeout(() => addRasaMessage({ type: "chips", sender: "bot", chips: ["Cheapest", "Fastest", "Premium"] }), 200);
+            setTimeout(() => addReply({ type: "chips", sender: "bot", chips: ["Cheapest", "Fastest", "Premium"] }), 200);
           }
           // Rasa buttons
           if (msg.buttons?.length) {
-            setTimeout(() => addRasaMessage({ type: "chips", sender: "bot", chips: msg.buttons.map(b => b.title), payloads: msg.buttons.map(b => b.payload) }), 200);
+            setTimeout(() => addReply({ type: "chips", sender: "bot", chips: msg.buttons.map(b => b.title), payloads: msg.buttons.map(b => b.payload) }), 200);
           }
         }
 
@@ -681,11 +733,11 @@ export default function Chatbot() {
         const payload = msg.custom || msg.json_message || null;
         if (payload && typeof payload === "object") {
           if (payload.type === "directions") {
-            addRasaMessage({ type: "directions", sender: "bot", payload });
+            addReply({ type: "directions", sender: "bot", payload });
           } else if (payload.type === "traffic") {
-            addRasaMessage({ type: "traffic", sender: "bot", payload });
+            addReply({ type: "traffic", sender: "bot", payload });
           } else if (Array.isArray(payload.stations)) {
-            addRasaMessage({ type: "stations", sender: "bot", payload });
+            addReply({ type: "stations", sender: "bot", payload });
           }
         }
       }, i * 350);
@@ -758,12 +810,18 @@ export default function Chatbot() {
    * replies are left out of that context, since they were never real answers.
    */
   const askGemini = async (msg, earlier) => {
+    // A reply that arrives after "+ New" belongs to the cleared chat, so it is dropped.
+    const generation = geminiGenerationRef.current;
+    const isCurrent = () => generation === geminiGenerationRef.current;
+    const addReply = (reply) => {
+      if (isCurrent()) setGeminiMessages(prev => [...prev, { from: "bot", time: timestamp(), ...reply }]);
+    };
     const entry = beginRequest(geminiAbortRef);
     setGeminiLoading(true);
     try {
       if (!GEMINI_API_KEY) {
         setTimeout(() => {
-          setGeminiMessages(prev => [...prev, { from: "bot", text: "Add VITE_GEMINI_API_KEY to your .env to enable EVAT-AI.", time: timestamp() }]);
+          addReply({ text: "Add VITE_GEMINI_API_KEY to your .env to enable EVAT-AI." });
           setGeminiLoading(false);
         }, 400);
         return;
@@ -779,17 +837,17 @@ export default function Chatbot() {
         signal: entry.controller.signal,
       });
       if (!res.ok) {
-        const failure = await describeHttpFailure(res, "EVAT-AI");
-        setGeminiMessages(prev => [...prev, { from: "bot", text: failure, time: timestamp(), retry: msg }]);
+        addReply({ text: await describeHttpFailure(res, "EVAT-AI"), retry: msg });
         return;
       }
       const data = await res.json();
       const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I couldn't generate a response.";
-      setGeminiMessages(prev => [...prev, { from: "bot", text: reply, time: timestamp() }]);
-      setHistory(prev => [{ id: Date.now(), title: msg.slice(0, 40), tab: "ai", date: new Date().toISOString() }, ...prev.slice(0, 19)]);
+      addReply({ text: reply });
+      if (isCurrent()) {
+        setHistory(prev => [{ id: Date.now(), title: msg.slice(0, 40), tab: "ai", date: new Date().toISOString() }, ...prev.slice(0, 19)]);
+      }
     } catch (error) {
-      const text = cancelledMessage(error, entry) || describeRequestError(error, "EVAT-AI");
-      setGeminiMessages(prev => [...prev, { from: "bot", text, time: timestamp(), retry: msg }]);
+      addReply({ text: cancelledMessage(error, entry) || describeRequestError(error, "EVAT-AI"), retry: msg });
     } finally {
       endRequest(geminiAbortRef, entry);
       setGeminiLoading(false);
@@ -817,10 +875,13 @@ export default function Chatbot() {
 
   /**
    * Record a thumbs up or down on a reply so the team can see which answers fall short.
-   * Clicking the same thumb again clears it. The choice shows straight away and is
-   * undone if the server does not save it.
+   * Clicking the same thumb again clears it. The choice shows straight away.
+   *
+   * Saves for one reply run one at a time: a change of mind made while a save is under
+   * way is sent once that save finishes, so the stored rating always ends on the
+   * user's latest choice. If a save fails, the thumbs go back to what the server holds.
    */
-  const handleRate = async (tab, index, value) => {
+  const handleRate = (tab, index, value) => {
     const isStation = tab === "station";
     const messages = isStation ? rasaMessages : geminiMessages;
     const setMessages = isStation ? setRasaMessages : setGeminiMessages;
@@ -829,22 +890,45 @@ export default function Chatbot() {
 
     // EVAT-AI messages have no id of their own, so the first rating gives them one.
     const messageId = String(target.id ?? `${Date.now()}-${index}`);
-    const previous = target.rating || null;
-    const rating = previous === value ? null : value;
+    let sync = ratingSyncRef.current.get(messageId);
+    if (!sync) {
+      sync = { chosen: target.rating || null, saved: target.rating || null, saving: false };
+      ratingSyncRef.current.set(messageId, sync);
+    }
+    const chosen = sync.chosen === value ? null : value;
+    sync.chosen = chosen;
+
+    setMessages(prev => prev.map((m, i) => (
+      i === index ? { ...m, id: m.id ?? messageId, rating: chosen, ratingFailed: false } : m
+    )));
+    if (sync.saving) return; // the save under way sends this choice when it finishes
+
     const question = messages.slice(0, index).reverse()
       .find(m => (m.sender || m.from) === "user" && m.text)?.text || "";
-    const patch = (fields) => setMessages(prev => prev.map((m, i) => (
-      i === index ? { ...m, id: m.id ?? messageId, ...fields } : m
+    const details = { messageId, tab, reply: target.text, question };
+    // Matched by id, since "+ New" or a retry may have moved the reply by the time a save ends.
+    const showSaved = (fields) => setMessages(prev => prev.map(m => (
+      String(m.id) === messageId ? { ...m, ...fields } : m
     )));
 
-    patch({ rating, ratingFailed: false });
-    try {
-      if (!user?.token) throw new Error("Not signed in");
-      await rateChatbotReply({ messageId, rating, tab, reply: target.text, question }, user.token);
-    } catch (error) {
-      console.warn("Chatbot rating not saved:", error.message);
-      patch({ rating: previous, ratingFailed: true });
-    }
+    const saveLatest = async () => {
+      sync.saving = true;
+      try {
+        if (!user?.token) throw new Error("Not signed in");
+        while (sync.chosen !== sync.saved) {
+          const rating = sync.chosen;
+          await rateChatbotReply({ ...details, rating }, user.token);
+          sync.saved = rating;
+        }
+      } catch (error) {
+        console.warn("Chatbot rating not saved:", error.message);
+        sync.chosen = sync.saved;
+        showSaved({ rating: sync.saved, ratingFailed: true });
+      } finally {
+        sync.saving = false;
+      }
+    };
+    saveLatest();
   };
 
   const renderRasaMessage = (msg) => {
@@ -947,11 +1031,14 @@ export default function Chatbot() {
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
             <p style={{ color: "#999", fontSize: "10px", fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", margin: 0 }}>Recent Chats</p>
             <button onClick={() => {
+              // Invalidate replies still on their way first, or they would refill the new chat.
+              rasaGenerationRef.current += 1;
+              geminiGenerationRef.current += 1;
               stopRasa(); stopGemini(); setShowValueForm(false);
               setStarted(false); setRasaMessages([]); setGeminiMessages([]);
-              localStorage.removeItem("evat_chat_session");
-              localStorage.removeItem(RASA_STORE_KEY);
-              localStorage.removeItem(GEMINI_STORE_KEY);
+              localStorage.removeItem(storageKey("session", owner));
+              localStorage.removeItem(rasaStoreKey);
+              localStorage.removeItem(geminiStoreKey);
               setHistory(prev => prev.map(h => ({ ...h, active: false })));
             }} style={{ background: "linear-gradient(135deg,#6366f1,#4f46e5)", color: "#fff", border: "none", borderRadius: "8px", padding: "5px 10px", fontSize: "11px", fontWeight: 600, cursor: "pointer" }}>+ New</button>
           </div>
