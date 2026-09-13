@@ -1,6 +1,8 @@
 import warnings
 warnings.filterwarnings("ignore")
 
+from pathlib import Path
+
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
@@ -20,13 +22,15 @@ FEATURES = [
 _model = None
 _model_name = None
 _trained_data = None
+SERVICE_DIR = Path(__file__).resolve().parent
+DATA_DIR = SERVICE_DIR / "data"
 
 
-def load_and_train(data_path: str = "costComparison/data/dummy_data.csv"):
+def load_and_train(data_path: str | Path | None = None):
     print("Training")
     global _model, _model_name, _trained_data
 
-    df = pd.read_csv(data_path)
+    df = pd.read_csv(data_path or DATA_DIR / "dummy_data.csv")
     df["petrol_price_per_l"]        = df["petrol_price_per_l"].clip(0, 5.0)
     df["electricity_price_per_kwh"] = df["electricity_price_per_kwh"].clip(0, 2.0)
     df["distance_km"]               = df["distance_km"].clip(0, df["distance_km"].quantile(0.99))
@@ -237,7 +241,7 @@ def get_chart_data(
 
 def get_ev_vehicles() -> dict:
     """Returns nested dict of EV makes -> models -> variants from CSV"""
-    df = pd.read_csv("costComparison/data/test.ev_vehicles.csv")
+    df = pd.read_csv(DATA_DIR / "test.ev_vehicles.csv")
     df = df.drop_duplicates()
 
     make_col = next((c for c in df.columns if c.lower() in ["make", "brand", "manufacturer"]), None)
@@ -262,7 +266,7 @@ def get_ev_vehicles() -> dict:
 
 def get_ice_vehicles() -> dict:
     """Returns nested dict of ICE makes -> models -> variants from CSV"""
-    df = pd.read_csv("costComparison/data/ice_vehicles.csv")
+    df = pd.read_csv(DATA_DIR / "ice_vehicles.csv")
     df = df.drop_duplicates()
 
     result = {}
@@ -278,7 +282,7 @@ def get_ice_vehicles() -> dict:
 
 def get_ev_efficiency(make: str, model: str, variant: str = None) -> float:
     """Looks up EV efficiency from CSV, returns kWh/km"""
-    df = pd.read_csv("costComparison/data/test.ev_vehicles.csv")
+    df = pd.read_csv(DATA_DIR / "test.ev_vehicles.csv")
     df = df.drop_duplicates()
 
     make_col = next((c for c in df.columns if c.lower() in ["make", "brand", "manufacturer"]), None)
@@ -338,7 +342,7 @@ def get_ev_efficiency(make: str, model: str, variant: str = None) -> float:
 
 def get_ice_efficiency(make: str, model: str, variant: str = None) -> float:
     """Looks up ICE fuel efficiency from CSV, returns L/100km"""
-    df = pd.read_csv("costComparison/data/ice_vehicles.csv")
+    df = pd.read_csv(DATA_DIR / "ice_vehicles.csv")
     df = df.drop_duplicates()
 
     mask = df["make"].astype(str).str.lower() == make.lower()

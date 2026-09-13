@@ -1,7 +1,6 @@
 import PredictRepository from "../repositories/predict-repository";
 import Congestion, { ICongestion } from "../models/congestion-model";
 import mongoose from "mongoose";
-import fetch from "node-fetch";
 
 const PYTHON_API = process.env.PYTHON_API_URL;
 

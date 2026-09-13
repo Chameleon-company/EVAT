@@ -392,6 +392,13 @@ const weatherAwareRoute = [
   { method: 'POST',   endpoint: '/weather-aware-routing/predict',  label: 'Get weather data',  body: templates.weatherAwareRouteBody},
 ]
 
+// Nearby restaurants and stores (Google Places)
+const nearbyPlaces = [
+  { method: 'GET',    endpoint: '/nearby-places?lat={latValue}&lon={lonValue}', label: 'Get places near a location' },
+  { method: 'GET',    endpoint: '/nearby-places/station/{stationId}',           label: 'Get places near a charger' },
+  { method: 'GET',    endpoint: '/nearby-places/photo?name={photoName}',        label: 'Get a place photo' },
+];
+
 // export all groups
 export {
   adminAuth,
@@ -410,6 +417,7 @@ export {
   iceVehicle,
   insight,
   weatherAwareRoute,
+  nearbyPlaces,
 };
 
 // export as one array
@@ -430,6 +438,7 @@ export const allEndpoints = [
   ...iceVehicle,
   ...insight,
   ...weatherAwareRoute,
+  ...nearbyPlaces,
 ];
 
 //export default apiEndpoints;

@@ -28,7 +28,7 @@ The main Python entry point is `server/python-services/main.py`. It exposes most
 | Demand forecasting | `demandForecasting/` | Loads `ev_demand_model.pkl` | 5000 | No |
 | Cost comparison | `costComparison/` | Trains and selects a model during API startup | 5000 | Yes |
 | Vehicle price prediction | `pricePrediction/` | Loads `price_best_model_latest.joblib` | 5000 | No |
-| Charging-station recommendation | `charging_station_recommendation_api/` | Deterministic runtime ranking plus an offline preference-model pipeline | 5000 through the combined API | Yes, but the trained preference artifact is not yet used at runtime |
+| Charging-station recommendation | `charging_station_recommendation_api/` | Trained preference model with deterministic fallback and per-user adjustment | 5000 through the combined API | Yes; the exported artifact is used at runtime when available |
 | Reliability scoring | `reliability_scoring_api/` | Deterministic reliability and sentiment scoring | 5000 under `/reliability` | No model training required |
 | Environmental impact model | `environmental_impact_analysis/` | Loads `co2_savings_model.pkl` for prediction | 5000 under `/environmentalImpact` | Yes, through the notebook |
 
@@ -39,16 +39,16 @@ The Node API calls the combined Python service through `PYTHON_API_URL`. Reliabi
 - Run the combined service from `server/python-services`. Several model and data paths are relative to that directory.
 - The combined service cannot import successfully without a valid `GOOGLE_MAPS_API_KEY`, even when only a non-routing feature is being tested.
 - Cost comparison training runs in memory at every combined-service startup. It does not save the selected model to disk.
-- Reliability scoring and the active charging-recommendation ranker use explicit formulas. A separately trained charging-preference artifact exists but is not integrated into the ranker.
+- Charging recommendations use the trained preference model when its artifact loads, fall back to explicit scoring formulas when necessary, and can apply a small per-user history adjustment.
 - Price prediction, environmental impact, charging recommendations, and reliability scoring are all served by the combined Python process. Use `npm run dev:python`.
-- There is currently no Python Dockerfile or Compose file in the repository. Section 9 provides a reproducible development-container command without claiming that EVAT has a production container image.
+- Dockerfiles and a Compose definition are available for the web, Node, and combined Python services. Section 9 describes this local container workflow.
 
 ## 3. Prerequisites
 
 Install:
 
 - Git;
-- Python 3.11 (recommended; Python 3.10 or newer is required by current type syntax);
+- uv, which manages the project's pinned Python 3.12 environment;
 - Node.js 18 or newer and npm, if running the full EVAT stack;
 - MongoDB access, if running the Node API; and
 - Docker Desktop or Docker Engine only if using the optional Docker workflow.
@@ -57,7 +57,7 @@ Check the tools:
 
 ```bash
 git --version
-python3 --version
+uv --version
 node --version
 npm --version
 docker --version  # optional
@@ -67,45 +67,23 @@ All commands below assume the terminal starts in the EVAT repository root.
 
 ## 4. Install dependencies
 
-### 4.1 Create and activate one shared Python environment
+### 4.1 Install uv
 
-macOS or Linux:
+Follow the [official installation instructions](https://docs.astral.sh/uv/getting-started/installation/).
+For example, use `brew install uv` on macOS with Homebrew or
+`winget install --id=astral-sh.uv -e` on Windows.
 
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip setuptools wheel
-```
+### 4.2 Install the Python dependencies
 
-Windows PowerShell:
-
-```powershell
-py -3.11 -m venv .venv
-.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip setuptools wheel
-```
-
-If PowerShell blocks activation for the current terminal, run:
-
-```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-.venv\Scripts\Activate.ps1
-```
-
-### 4.2 Install the combined service dependencies
+Create and synchronize the Python 3.12 environment from the committed lockfile:
 
 ```bash
-python -m pip install -r server/python-services/requirements.txt
+npm run python:sync
 ```
 
-### 4.3 Service-specific requirements
+Note that uv creates `server/python-services/.venv`. It does not need to be activated separately.
 
-The shared requirements file covers the consolidated Python API and all services
-loaded by `server/python-services/main.py`. The older service-level requirement
-files are retained for historical standalone use and are not needed for normal
-local development.
-
-### 4.4 Install full-stack dependencies
+### 4.3 Install full-stack dependencies
 
 This step is only required when the React client or Node API will be run:
 
@@ -113,11 +91,14 @@ This step is only required when the React client or Node API will be run:
 npm install
 ```
 
-### 4.5 Confirm important imports
+Alternatively, `npm run install:all` performs both the npm installation and the
+Python synchronization.
+
+### 4.4 Confirm important imports
 
 ```bash
-python -c "import fastapi, uvicorn, pandas, sklearn, joblib, kmodes, lightgbm; print('Combined ML dependencies are available')"
-python -c "import vaderSentiment; print('Reliability dependencies are available')"
+cd server/python-services
+uv run --locked python -c "import fastapi, uvicorn, pandas, sklearn, joblib, kmodes, lightgbm, vaderSentiment; print('Python dependencies are available')"
 ```
 
 ## 5. Configure the environment
@@ -219,7 +200,7 @@ Only load pickle or Joblib artifacts obtained from a trusted EVAT source. These 
 
 ### 6.1 Combined ML service
 
-Activate the virtual environment, then run from the repository root:
+Run from the repository root:
 
 ```bash
 npm run dev:python
@@ -229,7 +210,7 @@ Equivalent direct command:
 
 ```bash
 cd server/python-services
-python -m uvicorn main:app --host 127.0.0.1 --port 5000 --reload
+uv run --locked python -m uvicorn main:app --host 127.0.0.1 --port 5000 --reload
 ```
 
 Wait for the following startup stages:
@@ -254,7 +235,8 @@ The recommendation endpoint is mounted in the combined service:
 curl http://127.0.0.1:5000/docs
 ```
 
-Use `POST /charging-station-recommendations/rank`. Although an npm script and service README describe a standalone process on port 8002, the current module does not define a FastAPI `app`, `/health`, or standalone route. Do not use the standalone command until that application wrapper is implemented.
+Use `POST /charging-station-recommendations/rank`. The recommendation feature
+is intentionally part of the combined API and has no standalone process.
 
 ### 6.3 Reliability scoring service
 
@@ -289,7 +271,7 @@ For a non-reloading local deployment, remove `--reload`:
 
 ```bash
 cd server/python-services
-python -m uvicorn main:app --host 127.0.0.1 --port 5000 --workers 1
+uv run --locked python -m uvicorn main:app --host 127.0.0.1 --port 5000 --workers 1
 ```
 
 Use one worker for the current combined application because each worker independently trains and stores the cost-comparison model in memory.
@@ -308,7 +290,7 @@ Run the training selection manually:
 
 ```bash
 cd server/python-services
-python -c "from costComparison.model_runner import load_and_train, get_model_name; load_and_train('costComparison/data/dummy_data.csv'); print('Selected model:', get_model_name())"
+uv run --locked python -c "from costComparison.model_runner import load_and_train, get_model_name; load_and_train('costComparison/data/dummy_data.csv'); print('Selected model:', get_model_name())"
 ```
 
 The pipeline compares Gradient Boosting, Random Forest, and Ridge using a fixed train/test split and selects the highest test R². The selected model remains only in that Python process. Restarting the API retrains it.
@@ -326,21 +308,21 @@ Before replacing the CSV:
 
 The notebook `server/python-services/environmental_impact_analysis/Clean_Model_Code.ipynb` trains and writes `co2_savings_model.pkl`.
 
-Install Jupyter separately:
+Run Jupyter as a one-off tool from the environmental feature directory:
 
 ```bash
-python -m pip install jupyterlab
 cd server/python-services/environmental_impact_analysis
-python -m jupyter lab Clean_Model_Code.ipynb
+uv run --project .. --with jupyterlab python -m jupyter lab Clean_Model_Code.ipynb
 ```
 
 Run all notebook cells from top to bottom. Confirm that the final artifact is created in the same directory:
 
 ```bash
-python predict.py
+uv run --locked --project .. python predict.py
 ```
 
 The combined FastAPI application mounts the model at `POST /environmentalImpact/predict`. The Node environmental-impact service loads EV and ICE records from MongoDB, derives the model payload, calls that endpoint, and combines the prediction with the stored vehicle summaries.
+`predict.py` is also an offline verification utility.
 
 ### 7.3 Artifact-only models: training is not reproducible here
 
@@ -361,11 +343,15 @@ To replace one safely:
 7. run schema, health, and representative prediction checks; and
 8. replace the committed artifact only after review.
 
-For price prediction, use `PRICE_MODEL_PATH` to test a candidate without overwriting the current model. Personalised insights and demand forecasting currently use hard-coded relative artifact paths, so test replacements on a branch and retain the original files.
+For price prediction, use `PRICE_MODEL_PATH` to test a candidate without
+overwriting the current model. Test other replacements on a branch and retain
+the original files.
 
-### 7.4 Non-training services
+### 7.4 Charging-recommendation model and rule-based services
 
-Reliability scoring and the active charging-recommendation ranker use explicit formulas and rules. Changes to their runtime weights or thresholds are code/configuration changes, not automatic model retraining. The separate charging-preference training pipeline writes a candidate Joblib model and coefficient JSON, but neither output is consumed by the active ranker. Validate formula changes and any future model integration with tests and representative inputs.
+The charging-preference training pipeline writes a Joblib model and coefficient JSON. The active ranker consumes the model when it loads successfully, falls back to the fixed-weight heuristic if the artifact is unavailable or inference fails, and then applies a per-user adjustment when enough selection history is supplied. Use `npm run train:charging-recommendation-model` to rebuild the dataset from MongoDB and retrain the artifact, and validate the result with representative ranking inputs and the Python tests.
+
+Reliability scoring remains formula- and rule-based. Changes to its runtime weights or thresholds are code/configuration changes, not model retraining.
 
 ## 8. Verify the deployment
 
@@ -417,16 +403,11 @@ curl --fail -X POST http://127.0.0.1:5000/reliability/score \
 
 ### 8.5 Automated tests
 
-The recommendation filtering and ranking units currently have working Python tests. Run them from the repository root with both import roots configured:
+Run all Python tests from the repository root:
 
 ```bash
-PYTHONPATH="$PWD/server/python-services:$PWD/server/python-services/charging_station_recommendation_api" \
-  .venv/bin/python -m pytest \
-  server/python-services/charging_station_recommendation_api/tests/test_candidate_filters.py \
-  server/python-services/charging_station_recommendation_api/tests/test_ranking_service.py
+npm run test:python
 ```
-
-On Windows PowerShell, set `$env:PYTHONPATH` to the same two absolute directories separated by a semicolon, then run `python -m pytest` with the two test paths. The current `test_main.py` expects a standalone FastAPI `app` that the module does not define, so it fails during collection and is excluded above.
 
 Run the full-stack backend tests separately from the repository root:
 
@@ -438,49 +419,23 @@ npm run test:server
 
 ### 9.1 Current Docker support
 
-The repository currently contains only `server/node-api/Dockerfile`. That image builds the Node API and does not package the Python ML services. There is no committed Python Dockerfile or Docker Compose definition.
+The repository includes container definitions for the React/Nginx web app, Node API, and combined Python service. `docker-compose.yml` connects those services on one network; MongoDB remains external and is configured through `MONGODB_URI`.
 
-The following one-off container is suitable for local verification of the combined Python service. It mounts the working tree, installs dependencies into a disposable Python 3.11 container, and leaves the repository unchanged.
-
-macOS or Linux:
+From the repository root:
 
 ```bash
-docker run --rm -it \
-  --name evat-ml \
-  -p 5000:5000 \
-  --env-file server/node-api/.env \
-  -v "$PWD:/workspace" \
-  -w /workspace/server/python-services \
-  python:3.11-slim \
-  sh -lc "apt-get update && apt-get install -y --no-install-recommends libgomp1 && rm -rf /var/lib/apt/lists/* && pip install --no-cache-dir -r /workspace/server/python-services/requirements.txt && uvicorn main:app --host 0.0.0.0 --port 5000"
-```
-
-Windows PowerShell:
-
-```powershell
-docker run --rm -it `
-  --name evat-ml `
-  -p 5000:5000 `
-  --env-file server/node-api/.env `
-  -v "${PWD}:/workspace" `
-  -w /workspace/server/python-services `
-  python:3.11-slim `
-  sh -lc "apt-get update && apt-get install -y --no-install-recommends libgomp1 && rm -rf /var/lib/apt/lists/* && pip install --no-cache-dir -r /workspace/server/python-services/requirements.txt && uvicorn main:app --host 0.0.0.0 --port 5000"
-```
-
-Verify from the host:
-
-```bash
+docker compose build
+docker compose up -d
+docker compose ps
 curl --fail http://127.0.0.1:5000/
 ```
 
 Notes:
 
-- This command installs packages every time. Create a reviewed Python Dockerfile before using containers routinely or in production.
 - Do not bake `.env` files or credentials into an image.
-- Mounting the repository is appropriate for local development, not production.
-- If the Node API runs on the host, `PYTHON_API_URL=http://127.0.0.1:5000` works. If Node runs in another container, both containers need a shared Docker network and the URL must use the Python container's service name.
-- A production image should pin dependency versions, copy only required source and artifacts, run as a non-root user, include a health check, and use a controlled artifact release process.
+- Compose overrides the internal Node-to-Python URLs with the `pythonsvc` service name.
+- Host ports are configurable through the root `.env`; the container ports remain fixed.
+- Treat Compose as the local container workflow. Production still requires reviewed secret injection, artifact releases, monitoring, and rollback procedures.
 
 ## 10. Troubleshooting
 
@@ -501,7 +456,7 @@ If port 5000 is already in use, run Python on another port:
 
 ```bash
 cd server/python-services
-python -m uvicorn main:app --host 127.0.0.1 --port 5001 --reload
+uv run --locked python -m uvicorn main:app --host 127.0.0.1 --port 5001 --reload
 ```
 
 Set the Node API to the same address:
@@ -524,27 +479,36 @@ Get-NetTCPConnection -LocalPort 5000 -State Listen  # Windows PowerShell
 
 ### `FileNotFoundError` for a model, CSV, or feature file
 
-Cause: the combined service was started from the wrong working directory or an artifact is missing.
+Cause: a required artifact is missing or an override environment variable points
+to an invalid file.
 
-Fix: run `npm run dev:python` from the repository root, or change to `server/python-services` before invoking Uvicorn. Then run the artifact checks in Section 5.5.
+Fix: run `npm run test:python` to exercise the artifact-loading smoke tests, then
+check that all committed artifacts are present.
 
-### `uvicorn: command not found` or a missing Python module
+### `uv: command not found` or a missing Python module
 
-Activate `.venv` and install the appropriate requirements. A more reliable invocation is:
+Install uv, then synchronize the locked environment:
 
 ```bash
-python -m uvicorn main:app --host 127.0.0.1 --port 5000
+npm run python:sync
 ```
 
-For `No module named 'vaderSentiment'`, install the reliability requirements. For `field_validator` import errors, reinstall the root requirements so that the current Pydantic version matches FastAPI.
+Do not install missing application modules individually with pip. Add legitimate
+dependencies to `pyproject.toml` and update the lockfile instead.
 
 ### A pickle or Joblib artifact fails to load
 
 Model artifacts can depend on the Python and library versions used during training.
 
-1. use Python 3.11;
-2. recreate `.venv` rather than mixing global packages;
-3. reinstall the documented requirements;
+The currently committed artifacts contain estimators serialized by different
+scikit-learn versions (1.8 and 1.9). The project initially locks scikit-learn
+1.8 because the price pipeline depends on it, but the environmental artifact
+may emit compatibility warnings until the ML team supplies matching training
+metadata or re-exports the models from one agreed environment.
+
+1. use the locked Python 3.12 environment;
+2. recreate `.venv` with `npm run python:sync` rather than mixing global packages;
+3. run the model artifact smoke tests;
 4. confirm the artifact was not truncated; and
 5. obtain the training environment metadata from the artifact owner if incompatibility remains.
 
@@ -557,6 +521,16 @@ Cost comparison trains three candidate models at startup. Wait for the model R²
 ### Demand forecast returns a date error
 
 The weather integration accepts future dates only, up to 16 days ahead. Use a postcode returned by `/demandForecasting/postcodes` and a supported future date. The service falls back to 20°C when Open-Meteo cannot be reached.
+
+### Price or charging recommendation endpoints are unavailable
+
+Both features are mounted in the combined Python service. Start it with:
+
+```bash
+npm run dev:python
+```
+
+Then use the `/pricePrediction/*` endpoints or `POST /charging-station-recommendations/rank`.
 
 ### Node returns a Python connection error
 
@@ -590,11 +564,11 @@ Before marking an ML deployment change complete:
 ## 12. Quick command reference
 
 ```bash
-# Activate Python
-source .venv/bin/activate
+# Install all JavaScript and Python dependencies
+npm run install:all
 
-# Install all current Python dependencies
-python -m pip install -r server/python-services/requirements.txt
+# Synchronize only the locked Python environment
+npm run python:sync
 
 # Run combined ML service
 npm run dev:python
@@ -607,9 +581,6 @@ curl --fail http://127.0.0.1:5000/
 curl --fail http://127.0.0.1:5000/pricePrediction/health
 curl --fail http://127.0.0.1:5000/reliability/health
 
-# Test charging recommendation units (run from repository root)
-PYTHONPATH="$PWD/server/python-services:$PWD/server/python-services/charging_station_recommendation_api" \
-  .venv/bin/python -m pytest \
-  server/python-services/charging_station_recommendation_api/tests/test_candidate_filters.py \
-  server/python-services/charging_station_recommendation_api/tests/test_ranking_service.py
+# Run all Python tests
+npm run test:python
 ```

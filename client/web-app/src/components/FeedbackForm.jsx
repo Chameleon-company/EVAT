@@ -117,7 +117,7 @@ function FeedbackForm() {
           </div>
           <div className="spacer-small">  </div>
           {/* Name Error Message */}
-          {isNameEmpty && <ErrorMessage error='required'/>}
+          {isNameEmpty && <ErrorMessage error="Name is required."/>}
 
           {/* Enter Email */}
           <label className='form-label required' htmlFor="email">E-Mail</label>
@@ -135,7 +135,7 @@ function FeedbackForm() {
           </div>
           <div className="spacer-small">  </div>
           {/* Email Error Message */}
-          {isEmailEmpty && <ErrorMessage error='required'/>}
+          {isEmailEmpty && <ErrorMessage error="Email is required."/>}
 
           {/* Enter Suggestion */}
           <label className='form-label required' htmlFor="suggestion">Suggestion</label>
@@ -149,7 +149,7 @@ function FeedbackForm() {
           />
           <div className="spacer-small">  </div>
           {/* Suggestion Error Message */}
-          {isSuggestionEmpty && <ErrorMessage error='required'/>}
+          {isSuggestionEmpty && <ErrorMessage error="Suggestion is required."/>}
 
           <div className='spacer-small' />
           <button 

@@ -75,6 +75,14 @@ const useCases = [
     route: "/chatbot",
     status: "live",
   },
+  {
+    id: "nearby-places",
+    title: "Places Near Chargers",
+    description: "Find restaurants, cafes, and stores within walking distance of a charging station.",
+    icon: "🍽️",
+    route: "/map",
+    status: "live",
+  },
 ];
 
 export default function Dashboard() {

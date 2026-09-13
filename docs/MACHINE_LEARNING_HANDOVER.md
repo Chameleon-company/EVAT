@@ -2,7 +2,7 @@
 
 - **Task:** 058S1 — Prepare Machine Learning Handover Documentation
 - **Audience:** New EVAT students, developers, data scientists, and maintainers
-- **Last verified against:** `main` at `b13c949` (26 August 2026)
+- **Last verified against:** `main` at `cd715c1` (13 September 2026)
 - **Operational companion:** [Machine Learning Deployment Guide](MACHINE_LEARNING_DEPLOYMENT_GUIDE.md)
 - **Architecture companion:** [051S1 Machine Learning Pipeline Architecture (PR #34)](https://github.com/Chameleon-company/EVAT/pull/34)
 
@@ -58,8 +58,8 @@ flowchart LR
     Python --> Live[Google Maps and Open-Meteo]
     Python --> Rules[Ranking, reliability, and physics logic]
     Mongo --> Offline[Offline recommendation training]
-    Offline --> Candidate[(Preference model candidate)]
-    Candidate -. not integrated yet .-> Python
+    Offline --> Candidate[(Preference model artifact)]
+    Candidate --> Python
     Repo --> Web
     Repo --> Node
     Repo --> Python
@@ -89,7 +89,7 @@ EVAT/
 ├── .env.example                     Shared port and client API URL example
 ├── .github/
 │   ├── CODEOWNERS                    Requires evat-reviewers approval
-│   └── workflows/pr-build.yml        Node and web build checks
+│   └── workflows/pr-build.yml        Node/web builds and Python ML tests
 ├── client/
 │   ├── web-app/                      Active Vite and React web client
 │   └── mobile-app/                   Mobile projects; not in the main ML runtime
@@ -102,10 +102,12 @@ EVAT/
 │   │   ├── src/repositories/         MongoDB data access
 │   │   ├── src/models/               MongoDB and domain models
 │   │   ├── test/                     Jest unit and integration tests
-│   │   └── Dockerfile                Node-only container definition
+│   │   └── Dockerfile                Node API container definition
 │   └── python-services/
 │       ├── main.py                   Combined FastAPI entry point
-│       ├── requirements.txt          Shared Python runtime dependencies
+│       ├── pyproject.toml            Shared Python runtime dependencies
+│       ├── uv.lock                   Locked Python environment
+│       ├── Dockerfile                Combined Python service container
 │       ├── costComparison/           Startup-trained regression selection
 │       ├── demandForecasting/        Demand artifact and runtime features
 │       ├── environmental_impact_analysis/
@@ -113,9 +115,10 @@ EVAT/
 │       ├── personalisedEVInsights/   K-Prototypes artifact and inference
 │       ├── pricePrediction/          Price artifact, schema, and inference
 │       ├── charging_station_recommendation_api/
-│       │                              Fixed ranker plus offline preference training
+│       │                              Model ranking, fallback, and preference training
 │       ├── reliability_scoring_api/  Formula, VADER sentiment, and station CSV
 │       └── weatherAwareRouting/       Physics and external routing/weather APIs
+├── docker-compose.yml                Local web, Node, and Python stack
 └── docs/
     ├── MACHINE_LEARNING_DEPLOYMENT_GUIDE.md
     └── MACHINE_LEARNING_HANDOVER.md
@@ -135,13 +138,13 @@ rg -n "pricePrediction|price-prediction" client/web-app/src server/node-api/src 
 
 | Capability | Type | Training available here? | Active runtime asset or logic | Important status |
 |---|---|---:|---|---|
-| Charging preference | Logistic regression pipeline | Yes | `preference_model.joblib`, `preference_weights.json` | Candidate artifact is not consumed by the active ranker |
+| Charging preference | Logistic regression pipeline | Yes | `preference_model.joblib`, `preference_weights.json` | Active when the artifact loads; otherwise ranking falls back to fixed weights |
 | Cost comparison | Best of Gradient Boosting, Random Forest, Ridge | Yes | Best pipeline held in memory | Trains on every combined-service startup; not persisted |
 | Environmental impact | Gradient Boosting regression pipeline | Yes, notebook | `co2_savings_model.pkl` | No holdout evaluation is implemented in the notebook |
 | Vehicle price | Serialized fitted pipeline/model | No | `price_best_model_latest.joblib` | Original training and evaluation are missing |
 | Charging demand | LightGBM artifact, according to inference code | No | `ev_demand_model.pkl` | Original training and evaluation are missing |
 | Personalised insights | K-Prototypes bundle | No | `kproto_bundle.pkl` | Cluster definitions in Node must stay aligned with artifact IDs |
-| Charging-station ranking | Fixed weighted scoring | Not applicable | `services/scoring.py` | Active logic is not the preference model |
+| Charging-station ranking | Model probability, fixed-weight fallback, and per-user adjustment | Yes | `services/preference_model.py`, `services/scoring.py`, `services/personalization.py` | Uses recent selection history when at least three selections are available |
 | Reliability scoring | Fixed formula plus VADER | Not applicable locally | Formula, VADER lexicon, station CSV | VADER is third-party pretrained logic |
 | Weather-aware routing | Physics and thresholds | Not applicable | Python formulas and vehicle constants | Depends on Google Maps and Open-Meteo |
 
@@ -158,7 +161,7 @@ Outputs:
 - `training/model_output/preference_model.joblib` — fitted preprocessing and classifier;
 - `training/model_output/preference_weights.json` — coefficients, split information, and metrics.
 
-Serving status: the active recommendation service still uses fixed weights from `services/scoring.py`. Integrating this learned model is future work and requires an explicit feature-contract and rollout decision.
+Serving status: the active recommendation service uses the trained model's selection probability when the artifact loads. It falls back to fixed weights from `services/scoring.py` if the artifact is unavailable or inference fails, then applies a small per-user adjustment when sufficient selection history is present.
 
 ### 5.2 Cost-comparison model
 
@@ -217,10 +220,10 @@ Row counts below exclude the header and describe the current committed snapshots
 
 | Dataset | Current rows | Purpose | Producer or source | Regeneration status |
 |---|---:|---|---|---|
-| `charging_station_recommendation_api/training/training_dataset.csv` | 326 | Candidate-choice classification | `dataset_builder.py` from MongoDB sessions | Reproducible with database access |
-| `costComparison/data/dummy_data.csv` | 9,999 | Cost model selection | Not documented | Training code exists; source provenance missing |
-| `costComparison/data/test.ev_vehicles.csv` | 58 | EV efficiency lookup | Not documented | No generator recorded |
-| `costComparison/data/ice_vehicles.csv` | 55 | ICE efficiency lookup | Not documented | No generator recorded |
+| `charging_station_recommendation_api/training/training_dataset.csv` | 386 | Candidate-choice classification | `dataset_builder.py` from MongoDB sessions | Reproducible with database access |
+| `costComparison/data/dummy_data.csv` | 10,000 | Cost model selection | Not documented | Training code exists; source provenance missing |
+| `costComparison/data/test.ev_vehicles.csv` | 59 | EV efficiency lookup | Not documented | No generator recorded |
+| `costComparison/data/ice_vehicles.csv` | 56 | ICE efficiency lookup | Not documented | No generator recorded |
 | `demandForecasting/postcode_baseline.csv` | 2,533 | Baseline daily demand by postcode | Not documented | No generator recorded |
 | `demandForecasting/postcode_coords.csv` | 2,533 | Coordinates for weather lookup | Not documented | No generator recorded |
 | `environmental_impact_analysis/Data/*.csv` | 200 each | EV, diesel, and petrol vehicle consumption | Not documented in repository | Consumed by notebook |
@@ -272,8 +275,8 @@ The Node API normally listens on `http://localhost:8080`. Swagger is available a
 | Price schema/model | `GET /api/predict/price/schema`, `GET /api/predict/price/model/info` | Inspect live feature/model contract |
 | Price prediction | `POST /api/predict/price`, `POST /api/predict/price/batch` | Single or batch vehicle-price prediction |
 | Reliability health | `GET /api/reliability/health` | Public proxy health check |
-| Reliability data | `GET /api/reliability/suburbs`, `/summary`, `/stations`, `/stations/:id`, `/top` | Query station reliability data |
-| Reliability scoring | `POST /api/reliability/score`, `/score/batch`, `/sentiment` | Score stations or feedback |
+| Reliability data | `GET /api/reliability/suburbs`, `GET /api/reliability/summary`, `GET /api/reliability/stations`, `GET /api/reliability/stations/:id`, `GET /api/reliability/top` | Query station reliability data |
+| Reliability scoring | `POST /api/reliability/score`, `POST /api/reliability/score/batch`, `POST /api/reliability/sentiment` | Score stations or feedback |
 | Environmental impact | `POST /api/env-impact-analysis/compare` | Load EV/ICE records and predict savings |
 | Personalised insights | `POST /api/personalised-ev-insights/` | Persist questionnaire, predict cluster, save result |
 | Latest insight | `GET /api/personalised-ev-insights/latest` | Retrieve current user's latest result |
@@ -295,7 +298,7 @@ The Python service normally listens on `http://127.0.0.1:5000`. Swagger is at `/
 | Cost comparison | `POST /costComparison/predict`, `/charts`; vehicle lookup and efficiency paths under `/costComparison/vehicles` |
 | Price prediction | `GET /pricePrediction/health`, `/schema`, `/model/info`; `POST /predict`, `/predict/batch` under `/pricePrediction` |
 | Charging ranking | `POST /charging-station-recommendations/rank` |
-| Reliability | `/reliability/health`, `/suburbs`, `/summary`, `/stations`, `/stations/{id}`, `/top`, `/score`, `/score/batch`, `/sentiment` |
+| Reliability | `GET /reliability/health`, `GET /reliability/suburbs`, `GET /reliability/summary`, `GET /reliability/stations`, `GET /reliability/stations/{id}`, `GET /reliability/top`, `POST /reliability/score`, `POST /reliability/score/batch`, `POST /reliability/sentiment` |
 
 When a contract changes, update all layers in one pull request: Python request/response model, Node service and controller, Swagger comments, client service and form, tests, and documentation.
 
@@ -306,10 +309,11 @@ When a contract changes, update all layers in one pull request: Python request/r
 - Git;
 - Node.js 18 or newer; CI currently uses Node 24;
 - npm;
-- Python 3.11 recommended;
+- Python 3.12;
+- uv;
 - MongoDB access;
 - valid project credentials for Google-backed features; and
-- Docker only if reviewing the current Node container or building future deployment support.
+- Docker Compose v2.24 or newer for the optional container workflow.
 
 ### 9.2 Install dependencies
 
@@ -317,19 +321,22 @@ From the repository root:
 
 ```bash
 npm install
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip setuptools wheel
-python -m pip install -r server/python-services/requirements.txt
+npm run python:sync
 ```
 
-The recommendation training tools additionally require their training requirements, including `pymongo`:
+`npm run python:sync` creates the locked shared runtime environment at `server/python-services/.venv`.
+
+The recommendation training dependencies **must** be installed in a separate virtual environment because their exact pins differ from the shared runtime environment:
 
 ```bash
+python3.12 -m venv .venv-training
+source .venv-training/bin/activate
+python -m pip install --upgrade pip setuptools wheel
 python -m pip install -r server/python-services/charging_station_recommendation_api/training/requirements.txt
+deactivate
 ```
 
-Those requirements pin older data-science package versions than the shared runtime file. Prefer a separate training virtual environment when exact reproducibility matters.
+Do not install the pinned training requirements into `server/python-services/.venv` or another shared runtime environment. Doing so can replace runtime package versions and prevent committed model artifacts from loading.
 
 ### 9.3 Environment files
 
@@ -354,7 +361,7 @@ Never place secrets in client `VITE_*` variables unless they are explicitly safe
 
 ### 10.1 Start services
 
-Activate `.venv`, then start the full stack:
+Start the full stack from the repository root; the Python script uses the locked uv environment automatically:
 
 ```bash
 npm run dev
@@ -387,7 +394,7 @@ npm run build:server
 npm run build:client
 ```
 
-The current CI workflow installs with `npm ci` and builds both targets. It does not run Jest, Python tests, linting, model smoke tests, or artifact validation.
+The current CI workflow installs with `npm ci`, builds the Node and web targets, and runs the charging-recommendation, environmental-impact, and price-prediction Python tests. It does not run Jest, client tests, or linting.
 
 The current server TypeScript configuration has no `outDir`, so a local server build emits untracked `.js` files beside `server.ts` and the files under `src/`. Check `git status` after building and remove only confirmed generated files; a future change should configure a dedicated ignored build directory. If the client reports a missing module that exists in the lockfile, stop development processes, run `npm ci`, and build again before changing source code.
 
@@ -407,24 +414,19 @@ npm run test:integration:recommendation-history --workspace=server
 
 The root defines `test:client`, but the current client package has no `test` script. Treat client testing as a known configuration gap rather than assuming `npm run test:client` works.
 
-### 10.4 Python recommendation tests
+### 10.4 Python ML tests
 
-Run the currently working ranking units from the repository root:
+Run the standard Python suite from the repository root:
 
 ```bash
-PYTHONPATH="$PWD/server/python-services:$PWD/server/python-services/charging_station_recommendation_api" \
-  .venv/bin/python -m pytest \
-  server/python-services/charging_station_recommendation_api/tests/test_candidate_filters.py \
-  server/python-services/charging_station_recommendation_api/tests/test_ranking_service.py
+npm run test:python
 ```
 
-The current `tests/test_main.py` expects a standalone FastAPI `app` that `charging_station_recommendation_api/main.py` does not define, so it fails during collection and is intentionally excluded until the wrapper or test is corrected.
-
-Run training helper tests with the training package on `PYTHONPATH`:
+Run the training helper tests in the required isolated training environment:
 
 ```bash
 PYTHONPATH="$PWD/server/python-services/charging_station_recommendation_api" \
-  .venv/bin/python -m unittest \
+  .venv-training/bin/python -m unittest \
   server/python-services/charging_station_recommendation_api/training/test_training_pipeline.py
 ```
 
@@ -469,22 +471,28 @@ Use Swagger for representative authenticated Node requests. A useful change-spec
 
 The repository documents local development and a non-reloading local Python process. It does not contain a complete reviewed production deployment for the full ML stack.
 
-For a stable local Python process:
+For a stable local Python process using the locked environment:
 
 ```bash
 cd server/python-services
-python -m uvicorn main:app --host 127.0.0.1 --port 5000 --workers 1
+uv run --locked python -m uvicorn main:app --host 127.0.0.1 --port 5000 --workers 1
 ```
 
 Use one worker because each worker independently trains the cost model and loads its own artifact copies.
 
 ### 11.2 Docker status
 
-Only `server/node-api/Dockerfile` exists. There is no Python Dockerfile or Docker Compose file. The Node Dockerfile does not package the React client, MongoDB, Python models, reference datasets, or Python dependencies.
+The repository contains Dockerfiles for the web client, Node API, and combined Python service, plus `docker-compose.yml` for running those three services on one network. MongoDB is not included and must be configured through `MONGODB_URI`.
 
-Treat the Dockerfile as a starting point, not a complete EVAT deployment. Review it before production use: it installs production-only dependencies before invoking the TypeScript build even though TypeScript is a development dependency, and it does not define health checks, a non-root user, or multi-stage output.
+For local container use:
 
-The deployment guide contains a disposable Python development-container command. A future production design should use a reviewed Python image, pinned dependencies, non-root execution, health checks, explicit artifact versions, secret injection, and a Node/Python network contract.
+```bash
+docker compose build
+docker compose up -d
+docker compose ps
+```
+
+The Compose stack includes health checks and configurable host ports. Treat it as the documented local container workflow; production deployment still requires reviewed secret injection, artifact versioning, monitoring, rollback, and infrastructure configuration.
 
 ### 11.3 Model release workflow
 
@@ -526,7 +534,7 @@ Every path is covered by `.github/CODEOWNERS`, so a member of `@Chameleon-compan
 | Python fails with Google credentials error | Missing `GOOGLE_MAPS_API_KEY` in `server/node-api/.env` | Configure a valid restricted key and restart |
 | Port 5000 already in use | macOS Control Center/AirPlay or another service | Use `lsof`, choose another port, update Node URL |
 | Model or CSV not found | Python started from the wrong working directory | Start through root npm script or from `server/python-services` |
-| Joblib/pickle load error | Dependency mismatch or damaged/untrusted artifact | Use Python 3.11 and documented dependencies; verify provenance |
+| Joblib/pickle load error | Dependency mismatch or damaged/untrusted artifact | Recreate the locked Python 3.12 environment; verify provenance |
 | Client build cannot resolve an installed package file | Stale or incomplete `node_modules` | Stop dev processes, run `npm ci`, then rebuild |
 | Server build leaves many untracked `.js` files | TypeScript has no dedicated output directory | Confirm they are generated, remove only those files, then add an `outDir` in a separate fix |
 | Combined API startup appears slow | Cost candidates train during lifespan | Wait for model R² and selected-model messages |
@@ -547,12 +555,12 @@ Do not conceal startup failures with placeholder credentials, untrusted artifact
 3. Move cost-comparison training out of API startup and load an approved persisted pipeline.
 4. Prevent optional weather-routing credentials from blocking unrelated Python capabilities.
 5. Separate or isolate capabilities so one import/artifact failure does not stop every ML endpoint.
-6. Add a supported full-stack deployment definition for Node, Python, client, and service networking.
+6. Harden the full-stack Compose definition for the selected production platform and release process.
 
 ### Priority 1 — quality and integration
 
 1. Add leakage-safe evaluation to environmental impact and time-based backtesting to demand forecasting.
-2. Decide whether and how the preference model should replace or blend with fixed recommendation weights.
+2. Evaluate and monitor the preference-model ranking, heuristic fallback, and per-user adjustment against agreed acceptance criteria.
 3. Add Python API contract tests, Node proxy integration tests, and browser-level critical-flow tests.
 4. Fix the recommendation standalone `test_main.py` contract or remove the unsupported standalone expectation.
 5. Add a client test script and include tests/linting in CI.
@@ -615,8 +623,13 @@ Before the incoming team makes its first model change:
 ```bash
 # Node and Python dependencies
 npm install
-source .venv/bin/activate
-python -m pip install -r server/python-services/requirements.txt
+npm run python:sync
+
+# Isolated recommendation-training dependencies
+python3.12 -m venv .venv-training
+source .venv-training/bin/activate
+python -m pip install -r server/python-services/charging_station_recommendation_api/training/requirements.txt
+deactivate
 
 # Run independently
 npm run dev:client
@@ -629,6 +642,9 @@ npm run build:client
 
 # Node tests
 npm run test:server -- --runInBand
+
+# Python tests
+npm run test:python
 
 # Python service health
 curl --fail http://127.0.0.1:5000/
