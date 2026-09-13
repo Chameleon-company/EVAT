@@ -54,8 +54,10 @@ export default class PricePredictionController {
     }
 
     for (const [key, rule] of Object.entries(NUMERIC_FEATURES)) {
-      const value = Number(features[key]);
-      if (!Number.isFinite(value)) {
+      // The raw value is what reaches the ML service, so it must already be a number.
+      // Number() would turn false, [] or "" into 0 and let them through.
+      const value = features[key];
+      if (typeof value !== "number" || !Number.isFinite(value)) {
         return `Invalid value for ${key}: expected a number`;
       }
       if (value < rule.min || (rule.max !== undefined && value > rule.max)) {
@@ -63,6 +65,13 @@ export default class PricePredictionController {
           rule.max !== undefined ? `between ${rule.min} and ${rule.max}` : `at least ${rule.min}`;
         return `Invalid value for ${key}: expected a number ${range}`;
       }
+    }
+
+    // Zero is how an electric vehicle is described. For any other fuel the ML service
+    // treats it as missing and quietly substitutes a training-data median instead.
+    const fuelType = String(features["Fuel Type"]).trim().toLowerCase();
+    if (features["Engine Size"] === 0 && fuelType !== "electric") {
+      return "Invalid value for Engine Size: must be greater than 0 unless Fuel Type is Electric";
     }
 
     return null;

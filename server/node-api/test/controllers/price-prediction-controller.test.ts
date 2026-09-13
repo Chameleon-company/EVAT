@@ -369,6 +369,83 @@ describe("PricePredictionController", () => {
       expect(message).toContain("Invalid value for Engine Size");
     });
 
+    test("Case: Rejects a boolean Mileage instead of treating it as zero", async () => {
+      // Arrange + Act
+      const message = await rejectionFor({ ...validFeatures, Mileage: false });
+
+      // Assert
+      expect(mockService.predict).not.toHaveBeenCalled();
+      expect(message).toBe("Invalid value for Mileage: expected a number");
+    });
+
+    test("Case: Rejects an array Engine Size instead of treating it as zero", async () => {
+      // Arrange + Act
+      const message = await rejectionFor({ ...validFeatures, "Engine Size": [] });
+
+      // Assert
+      expect(mockService.predict).not.toHaveBeenCalled();
+      expect(message).toBe("Invalid value for Engine Size: expected a number");
+    });
+
+    test("Case: Rejects a numeric string where a number is expected", async () => {
+      // Arrange + Act
+      const message = await rejectionFor({ ...validFeatures, Year: "2022" });
+
+      // Assert
+      expect(mockService.predict).not.toHaveBeenCalled();
+      expect(message).toBe("Invalid value for Year: expected a number");
+    });
+
+    test("Case: Rejects an Engine Size of zero for a petrol vehicle", async () => {
+      // Arrange + Act
+      const message = await rejectionFor({ ...validFeatures, "Fuel Type": "Petrol", "Engine Size": 0 });
+
+      // Assert
+      expect(mockService.predict).not.toHaveBeenCalled();
+      expect(mockResponse.status).toHaveBeenCalledWith(400);
+      expect(message).toBe(
+        "Invalid value for Engine Size: must be greater than 0 unless Fuel Type is Electric"
+      );
+    });
+
+    test("Case: Accepts a positive Engine Size for a petrol vehicle", async () => {
+      // Arrange
+      mockRequest = {
+        body: { features: { ...validFeatures, "Fuel Type": "Petrol", "Engine Size": 2.5 } },
+      };
+      mockService.predict = jest.fn().mockResolvedValue({ predicted_price: 30000 });
+
+      // Act
+      await controller.predict(mockRequest as Request, mockResponse as Response);
+
+      // Assert
+      expect(mockService.predict).toHaveBeenCalledTimes(1);
+      expect(mockResponse.status).toHaveBeenCalledWith(200);
+    });
+
+    test("Case: Applies the Engine Size rule to every record in a batch", async () => {
+      // Arrange
+      mockRequest = {
+        body: {
+          records: [
+            { features: validFeatures },
+            { features: { ...validFeatures, "Fuel Type": "Diesel", "Engine Size": 0 } },
+          ],
+        },
+      };
+      mockService.predictBatch = jest.fn();
+
+      // Act
+      await controller.predictBatch(mockRequest as Request, mockResponse as Response);
+
+      // Assert
+      expect(mockService.predictBatch).not.toHaveBeenCalled();
+      expect(mockResponse.status).toHaveBeenCalledWith(400);
+      expect((mockResponse.json as jest.Mock).mock.calls[0][0].message).toBe(
+        "records[1]: Invalid value for Engine Size: must be greater than 0 unless Fuel Type is Electric"
+      );
+    });
+
     test("Case: Rejects a non-text Brand", async () => {
       // Arrange + Act
       const message = await rejectionFor({ ...validFeatures, Brand: 12345 });
