@@ -13,6 +13,7 @@ import costComparison.model_runner
 import pricePrediction.price_prediction_api
 import charging_station_recommendation_api.main
 import reliability_scoring_api.main as reliability_scoring
+import occupancy_prediction.occupancy_prediction
 from charging_station_recommendation_api.models.request import RankChargingStationsRequest
 from charging_station_recommendation_api.models.response import RankChargingStationsResponse
 from environmental_impact_analysis.predict import predict_savings
@@ -113,6 +114,18 @@ def demandForecastingPredict(request: DFPredictionRequest):
 @app.get("/demandForecasting/postcodes")
 def demandForecasting_list_postcodes():
     return demandForecasting.demandForecasting.list_postcodes()
+
+# =============================================================
+# Charging Time Insights Use Case
+class OccupancyPredictionRequest(BaseModel):
+    station_id: str
+    date: Optional[date] = None
+    time: Optional[str] = None
+    historical_occupancy: Dict[str, float]
+
+@app.post("/occupancyPrediction/predict")
+def occupancyPredictionPredict(request: OccupancyPredictionRequest):
+    return occupancy_prediction.occupancy_prediction.predict(request.model_dump())
 
 # =============================================================
 # Cost Comparison Use Case

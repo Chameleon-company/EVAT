@@ -115,7 +115,8 @@ describe("user-service", () => {
             const mockPassword = "password123";
             const mockFirstName = "Test User FirstName";
             const mockLastName = "Test User LastName";
-            const mockMobile = "Test User Mobile";
+            // Changed to Australian mobile format
+            const mockMobile = "0412345678";
 
             (UserRepository.findByEmail as jest.Mock).mockImplementation(() => {
                 throw new Error("Database connection error");
