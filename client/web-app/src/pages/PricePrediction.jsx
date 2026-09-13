@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import NavBar from "../components/NavBar";
 import { getPriceHealth, predictPrice } from "../services/pricePredictionService";
 import "../styles/Root.css";
@@ -51,18 +51,26 @@ export default function PricePrediction() {
   const tokenFull = localStorage.getItem("currentUser");
   const token = tokenFull ? JSON.parse(tokenFull).token : null;
 
+  // Numbers each health check. Checks can overlap (a slow first check and the re-check
+  // after a prediction, say), so only the latest one may update the page.
+  const healthRequestRef = useRef(0);
+
   /** Re-runnable so the page can recover when the service comes back. */
   const refreshHealth = useCallback(async () => {
+    const requestId = ++healthRequestRef.current;
+    const isLatest = () => requestId === healthRequestRef.current;
     setCheckingHealth(true);
     try {
-      setHealth(await getPriceHealth());
+      const next = await getPriceHealth();
+      if (isLatest()) setHealth(next);
     } catch (err) {
       // Detailed reason stays in the console; the banner must not claim a model failure
       // when the service was simply unreachable.
       console.warn("Price prediction health check failed:", err.message);
-      setHealth({ status: "unavailable", unreachable: true });
+      if (isLatest()) setHealth({ status: "unavailable", unreachable: true });
     } finally {
-      setCheckingHealth(false);
+      // An older check finishing must not re-enable "Check again" while a newer one runs.
+      if (isLatest()) setCheckingHealth(false);
     }
   }, []);
 
