@@ -43,6 +43,29 @@ interface ProcessedInsightData {
     all_fuel_efficiency_difference: number;
     all_monthly_fuel_spend_difference: number;
   };
+  evReadinessScore: number;
+  recommendationCategory: string;
+  annualKm: number;
+  estimatedAnnualFuelCost: number;
+  estimatedAnnualEvChargingCost: number;
+  estimatedAnnualSavings: number;
+  estimatedAnnualCo2ReductionKg: number;
+  personalisedPredictionInsight: string;
+  scoreComponents: {
+    drivingDemand: number;
+    financialBenefit: number;
+    chargingPracticality: number;
+    solarAccess: number;
+    environmentalPriority: number;
+    budgetReadiness: number;
+    roadTripPenalty: number;
+  };
+  assumptions: {
+    chargingProfile: string;
+    evEnergyKwhPerKm: number;
+    evCostPerKm: number;
+    electricityCo2KgPerKwh: number;
+  };
 }
 
 export default class PersonalisedEVInsightsRepository {
@@ -89,6 +112,16 @@ export default class PersonalisedEVInsightsRepository {
             similarDriverAverages: result.similarDriverAverages,
             allDriverAverages: result.allDriverAverages,
             comparison: result.comparison,
+            evReadinessScore: result.evReadinessScore,
+            recommendationCategory: result.recommendationCategory,
+            annualKm: result.annualKm,
+            estimatedAnnualFuelCost: result.estimatedAnnualFuelCost,
+            estimatedAnnualEvChargingCost: result.estimatedAnnualEvChargingCost,
+            estimatedAnnualSavings: result.estimatedAnnualSavings,
+            estimatedAnnualCo2ReductionKg: result.estimatedAnnualCo2ReductionKg,
+            personalisedPredictionInsight: result.personalisedPredictionInsight,
+            scoreComponents: result.scoreComponents,
+            assumptions: result.assumptions,
           },
         },
         { new: true }

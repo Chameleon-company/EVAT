@@ -328,6 +328,8 @@ For local Python setup, model training support, service deployment, Docker usage
 
 For the end-to-end data, training, evaluation, artifact, and prediction architecture, see the [Machine Learning Pipeline Architecture](docs/MACHINE_LEARNING_PIPELINE_ARCHITECTURE.md).
 
+For the explainable EV readiness score and recommendation introduced by task 013S1, see [Personalised EV Usage Prediction and Scoring Recommendation](docs/013S1_PERSONALISED_EV_USAGE_SCORING.md).
+
 ---
 
 ## 🚧 Known Issues / Fixes Required

@@ -1,10 +1,11 @@
-import os
 import pickle
 from pathlib import Path
 import numpy as np
 import pandas as pd
 from typing import Union, List
 from fastapi import HTTPException
+
+from personalisedEVInsights.scoring import calculate_suitability
 
 # Load the bundle (model + metadata)
 SERVICE_DIR = Path(__file__).resolve().parent
@@ -45,7 +46,7 @@ def predict(payload: Union[dict, List[dict]]):
     """
     Expect JSON body containing at least the fields in FEATURE_COLS.
     Extra fields are ignored.
-    Returns: {"cluster": <int>}
+    Returns the existing driver cluster plus the 013S1 suitability result.
     """
     try:
 
@@ -67,13 +68,23 @@ def predict(payload: Union[dict, List[dict]]):
 
         # Predict
         clusters = kproto.predict(X, categorical=CAT_COLS)
+        suitability_results = [calculate_suitability(record) for record in records]
+
         # Return single prediction if input was a single object
         if single:
-            return {"cluster": int(clusters[0])}
+            return {
+                "cluster": int(clusters[0]),
+                "suitability": suitability_results[0],
+            }
         else:
-            return {"clusters": [int(c) for c in clusters]}
+            return {
+                "clusters": [int(c) for c in clusters],
+                "suitability": suitability_results,
+            }
 
     except HTTPException:
         raise
-    except HTTPException as e:
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e)) from e
+    except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

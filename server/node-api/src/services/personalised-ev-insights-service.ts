@@ -6,6 +6,37 @@ import { IPersonalisedEVInsights } from "../models/personalisedEVInsightsModel";
 
 const PYTHON_API = process.env.PYTHON_API_URL;
 
+interface SuitabilityPrediction {
+  evReadinessScore: number;
+  recommendationCategory: string;
+  annualKm: number;
+  estimatedAnnualFuelCost: number;
+  estimatedAnnualEvChargingCost: number;
+  estimatedAnnualSavings: number;
+  estimatedAnnualCo2ReductionKg: number;
+  personalisedPredictionInsight: string;
+  scoreComponents: {
+    drivingDemand: number;
+    financialBenefit: number;
+    chargingPracticality: number;
+    solarAccess: number;
+    environmentalPriority: number;
+    budgetReadiness: number;
+    roadTripPenalty: number;
+  };
+  assumptions: {
+    chargingProfile: string;
+    evEnergyKwhPerKm: number;
+    evCostPerKm: number;
+    electricityCo2KgPerKwh: number;
+  };
+}
+
+interface PersonalisedPrediction {
+  cluster: number;
+  suitability: SuitabilityPrediction;
+}
+
 export default class PersonalisedEVInsightsService {
   async submitInsights(
     userId: string,
@@ -22,8 +53,8 @@ export default class PersonalisedEVInsightsService {
         payload
       );
 
-      const cluster = await this.getClusterPrediction(payload);
-      const processedResult = this.buildProcessedResult(payload, cluster);
+      const prediction = await this.getPrediction(payload);
+      const processedResult = this.buildProcessedResult(payload, prediction);
 
       await PersonalisedEVInsightsRepository.updateInsightWithResult(
         savedRecord._id.toString(),
@@ -66,21 +97,35 @@ export default class PersonalisedEVInsightsService {
     if (!email) throw new Error("Email is required");
   }
 
-  private async getClusterPrediction(
+  private async getPrediction(
     payload: PersonalisedEVInsightsPayload
-  ): Promise<number> {
+  ): Promise<PersonalisedPrediction> {
     const response = await axios.post(`${PYTHON_API}/personalisedEVInsights/predict`, payload);
 
     if (response.data?.cluster === undefined || response.data?.cluster === null) {
-      throw new Error("Invalid cluster response from Flask API");
+      throw new Error("Invalid cluster response from Python API");
     }
 
-    return response.data.cluster;
+    const suitability = response.data?.suitability;
+    if (
+      !suitability ||
+      !Number.isFinite(suitability.evReadinessScore) ||
+      suitability.evReadinessScore < 0 ||
+      suitability.evReadinessScore > 100 ||
+      !suitability.recommendationCategory
+    ) {
+      throw new Error("Invalid suitability response from Python API");
+    }
+
+    return {
+      cluster: response.data.cluster,
+      suitability,
+    };
   }
 
   private buildProcessedResult(
     payload: PersonalisedEVInsightsPayload,
-    cluster: number
+    prediction: PersonalisedPrediction
   ) {
     const clusterInsights: Record<number, { profileType: string; description: string }> = {
       0: {
@@ -121,6 +166,7 @@ export default class PersonalisedEVInsightsService {
       monthly_fuel_spend: number;
     } = {weekly_km: 460.66, fuel_efficiency: 5.91, monthly_fuel_spend: 137.82};
 
+    const { cluster, suitability } = prediction;
     const insight = clusterInsights[cluster];
     const averages = clusterAverages[cluster];
 
@@ -208,6 +254,7 @@ export default class PersonalisedEVInsightsService {
           (payload.monthly_fuel_spend - allDrivers.monthly_fuel_spend).toFixed(2)
         ),
       },
+      ...suitability,
     };
   }
 
