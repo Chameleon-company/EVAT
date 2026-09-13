@@ -1,9 +1,9 @@
-
-const PYTHON_API = process.env.PYTHON_API_URL;
+/** Where `npm run dev:python` serves the combined Python service when PYTHON_API_URL is unset. */
+const DEFAULT_PYTHON_API = "http://127.0.0.1:5000";
 
 /**
- * Node proxy for the Price Prediction FastAPI service.
- * Mirrors the README contract at PRICE_API_URL (default http://localhost:8001):
+ * Node proxy for the Price Prediction routes of the combined Python service,
+ * mounted at {PYTHON_API_URL}/pricePrediction:
  *   GET  /health
  *   GET  /schema
  *   GET  /model/info
@@ -11,8 +11,11 @@ const PYTHON_API = process.env.PYTHON_API_URL;
  *   POST /predict/batch
  */
 export default class PricePredictionService {
+  // Read on every call and fall back to the local default, so an unset variable no
+  // longer sends requests to "undefined/pricePrediction".
   private getBaseUrl(): string {
-    return (`${PYTHON_API}/pricePrediction`).replace(/\/$/, "");
+    const root = (process.env.PYTHON_API_URL || DEFAULT_PYTHON_API).replace(/\/+$/, "");
+    return `${root}/pricePrediction`;
   }
 
   private unreachableMessage(): string {
@@ -94,23 +97,23 @@ export default class PricePredictionService {
     }
   }
 
-  /** GET {PRICE_API_URL}/health */
+  /** GET {PYTHON_API_URL}/pricePrediction/health */
   async getHealth(): Promise<any> {
     return this.proxyGet("/health");
   }
 
-  /** GET {PRICE_API_URL}/schema */
+  /** GET {PYTHON_API_URL}/pricePrediction/schema */
   async getSchema(): Promise<any> {
     return this.proxyGet("/schema");
   }
 
-  /** GET {PRICE_API_URL}/model/info */
+  /** GET {PYTHON_API_URL}/pricePrediction/model/info */
   async getModelInfo(): Promise<any> {
     return this.proxyGet("/model/info");
   }
 
   /**
-   * POST {PRICE_API_URL}/predict
+   * POST {PYTHON_API_URL}/pricePrediction/predict
    * Body matches README: { row_id?, features }
    */
   async predict(payload: {
@@ -121,7 +124,7 @@ export default class PricePredictionService {
   }
 
   /**
-   * POST {PRICE_API_URL}/predict/batch
+   * POST {PYTHON_API_URL}/pricePrediction/predict/batch
    * Body matches README: { records: [{ row_id?, features }] }
    */
   async predictBatch(payload: {
