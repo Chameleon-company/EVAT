@@ -6,14 +6,14 @@
         "notSelectedStation": 0
     },
     "trainingData": {
-        "completedSessions": 35,
-        "trainingSessions": 26,
-        "testingSessions": 9,
-        "candidateRows": 326,
-        "trainingRows": 240,
-        "testingRows": 86,
-        "positiveRows": 35,
-        "negativeRows": 291
+        "completedSessions": 41,
+        "trainingSessions": 30,
+        "testingSessions": 11,
+        "candidateRows": 386,
+        "trainingRows": 283,
+        "testingRows": 103,
+        "positiveRows": 41,
+        "negativeRows": 345
     },
     "trainingConfiguration": {
         "splitMethod": "GroupShuffleSplit by sessionId",
@@ -23,30 +23,30 @@
         "maxIterations": 2000
     },
     "metrics": {
-        "accuracy": 0.8255813953488372,
-        "precision": 0.36363636363636365,
-        "recall": 0.8888888888888888,
-        "f1": 0.5161290322580645,
-        "rocAuc": 0.8455988455988455
+        "accuracy": 0.8349514563106796,
+        "precision": 0.375,
+        "recall": 0.8181818181818182,
+        "f1": 0.5142857142857142,
+        "rocAuc": 0.9150197628458498
     },
-    "intercept": -0.5048305607910961,
+    "intercept": -0.5645752754878539,
     "weights": {
-        "numeric__distanceKm": 0.2765650106138732,
-        "numeric__durationMin": -1.8338868599620717,
-        "numeric__durationInTrafficMin": 0.8908410485941031,
-        "numeric__energyNeededKwh": -0.04073608438228519,
-        "numeric__chargingPoints": -0.0046157819110855085,
-        "numeric__temperatureC": -0.40235840720842986,
-        "numeric__windSpeedMs": 0.6017300032102778,
-        "categorical__roadTrafficCondition_light": -0.9331689852139109,
-        "categorical__roadTrafficCondition_moderate": 1.074239445060492,
-        "categorical__roadTrafficCondition_unknown": -0.14031293350849477,
-        "categorical__payAtLocation_no": 1.2691909787205453,
-        "categorical__payAtLocation_unknown": -1.268433452382461,
-        "categorical__operator_(unknown operator)": 1.0349253797228037,
-        "categorical__operator_chargefox": 0.2490095118523762,
-        "categorical__operator_evie networks": -0.4770435373899986,
-        "categorical__operator_tesla (including non-tesla)": -1.060364607775393,
-        "categorical__operator_unknown": 0.2542307799282972
+        "numeric__distanceKm": -0.5806301652368625,
+        "numeric__durationMin": -1.511663520749617,
+        "numeric__durationInTrafficMin": 1.0782320861954378,
+        "numeric__energyNeededKwh": 0.18761995448267868,
+        "numeric__chargingPoints": 0.08862213800972386,
+        "numeric__temperatureC": 0.07907825200724124,
+        "numeric__windSpeedMs": -0.19796626066351516,
+        "categorical__roadTrafficCondition_light": -0.7473759004557243,
+        "categorical__roadTrafficCondition_moderate": 0.8782393190934938,
+        "categorical__roadTrafficCondition_unknown": -0.1389090427276548,
+        "categorical__payAtLocation_no": 1.231195356399288,
+        "categorical__payAtLocation_unknown": -1.239240980489172,
+        "categorical__operator_(unknown operator)": 0.9743415564921878,
+        "categorical__operator_chargefox": 0.101166441858384,
+        "categorical__operator_evie networks": -0.7379570749274093,
+        "categorical__operator_tesla (including non-tesla)": -0.8429491380849778,
+        "categorical__operator_unknown": 0.49735259057192893
     }
 }
