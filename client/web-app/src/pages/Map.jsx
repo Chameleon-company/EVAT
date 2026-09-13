@@ -8,6 +8,7 @@ import { getChargers, getConnectorTypes, getOperatorTypes } from '../services/ch
 import NavBar from '../components/NavBar';
 import LocateUser from '../components/LocateUser';
 import ClusterMarkers from '../components/ClusterMarkers';
+import NearbyPlaceMarkers from '../components/NearbyPlaceMarkers';
 import SmartFilter from '../components/SmartFilter';
 import ChatBubble from "../components/ChatBubble";
 import ChargerSideBar from '../components/ChargerSideBar';
@@ -602,6 +603,7 @@ useEffect(() => {
             selectedStation={selectedStation}
             onSelectStation={(st) => setSelectedStation(st)}
           />
+          <NearbyPlaceMarkers selectedStation={selectedStation} />
           <LocateUser />
         </MapContainer>
 

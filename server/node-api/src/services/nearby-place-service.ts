@@ -3,9 +3,16 @@ import ChargingStationRepository from "../repositories/station-repository";
 import GoogleNearbyPlacesService, {
   NearbyPlace,
 } from "./google-nearby-places-service";
+import TtlCache from "../utils/ttl-cache";
 
 const DEFAULT_RADIUS_KM = 1;
 const MAX_RADIUS_KM = 3;
+
+/** Places results stay fresh for ~10 minutes to cut repeat Google Calls. */
+const PLACES_CACHE_TTL_MS = 10 * 60 * 1000;
+const PHOTO_CACHE_TTL_MS = 10 * 60 * 1000;
+const PLACES_CACHE_MAX = 200;
+const PHOTO_CACHE_MAX = 80;
 
 function stationCoordinates(station: {
   latitude?: number;
@@ -20,7 +27,44 @@ function stationCoordinates(station: {
   return { latitude: Number(latitude), longitude: Number(longitude) };
 }
 
+function normalizeCategory(category?: string): string {
+  return (category || "all").toLowerCase().trim() || "all";
+}
+
+function placesCacheKey(
+  latitude: number,
+  longitude: number,
+  radiusKm: number,
+  category: string
+): string {
+  // ~11 m precision is enough so tiny float differences still hit the cache.
+  return `places:${latitude.toFixed(4)}:${longitude.toFixed(4)}:${radiusKm}:${category}`;
+}
+
+function stationCacheKey(
+  stationId: string,
+  radiusKm: number,
+  category: string
+): string {
+  return `station:${stationId}:${radiusKm}:${category}`;
+}
+
 export default class NearbyPlaceService {
+  private readonly placesCache = new TtlCache<NearbyPlace[]>(
+    PLACES_CACHE_TTL_MS,
+    PLACES_CACHE_MAX
+  );
+  private readonly photoCache = new TtlCache<{ bytes: Buffer; contentType: string }>(
+    PHOTO_CACHE_TTL_MS,
+    PHOTO_CACHE_MAX
+  );
+
+  /** Test helper — clears in-memory caches. */
+  clearCaches(): void {
+    this.placesCache.clear();
+    this.photoCache.clear();
+  }
+
   private validateCoordinates(latitude: number, longitude: number) {
     if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
       throw new Error("latitude and longitude are required");
@@ -49,12 +93,22 @@ export default class NearbyPlaceService {
   ): Promise<NearbyPlace[]> {
     this.validateCoordinates(latitude, longitude);
     const radius = this.resolveRadiusKm(radiusKm);
-    return GoogleNearbyPlacesService.findNearbyPlaces(
+    const normalizedCategory = normalizeCategory(category);
+    const cacheKey = placesCacheKey(latitude, longitude, radius, normalizedCategory);
+
+    const cached = this.placesCache.get(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const places = await GoogleNearbyPlacesService.findNearbyPlaces(
       latitude,
       longitude,
       radius * 1000,
-      category
+      normalizedCategory
     );
+    this.placesCache.set(cacheKey, places);
+    return places;
   }
 
   async getNearbyForStation(
@@ -64,6 +118,15 @@ export default class NearbyPlaceService {
   ): Promise<NearbyPlace[]> {
     if (!stationId) {
       throw new Error("Station ID is required");
+    }
+
+    const radius = this.resolveRadiusKm(radiusKm);
+    const normalizedCategory = normalizeCategory(category);
+    const cacheKey = stationCacheKey(stationId, radius, normalizedCategory);
+
+    const cached = this.placesCache.get(cacheKey);
+    if (cached) {
+      return cached;
     }
 
     const station = await ChargingStationRepository.findById(stationId);
@@ -76,7 +139,15 @@ export default class NearbyPlaceService {
       throw new Error("Station location is unavailable");
     }
 
-    return this.getNearbyPlaces(coords.latitude, coords.longitude, radiusKm, category);
+    const places = await this.getNearbyPlaces(
+      coords.latitude,
+      coords.longitude,
+      radius,
+      normalizedCategory
+    );
+    // Also key by station id so reopen/filter hits skip the DB lookup.
+    this.placesCache.set(cacheKey, places);
+    return places;
   }
 
   async getPhotoUri(photoName: string): Promise<string> {
@@ -89,14 +160,21 @@ export default class NearbyPlaceService {
   async getPhoto(
     photoName: string
   ): Promise<{ bytes: Buffer; contentType: string }> {
+    const cached = this.photoCache.get(photoName);
+    if (cached) {
+      return cached;
+    }
+
     const photoUri = await this.getPhotoUri(photoName);
     const response = await axios.get(photoUri, {
       responseType: "arraybuffer",
       timeout: 8000,
     });
-    return {
+    const photo = {
       bytes: Buffer.from(response.data),
       contentType: String(response.headers["content-type"] || "image/jpeg"),
     };
+    this.photoCache.set(photoName, photo);
+    return photo;
   }
 }
