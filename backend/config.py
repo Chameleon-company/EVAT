@@ -32,7 +32,8 @@ CHARGING_CONFIG = {
 SEARCH_CONFIG = {
     'DEFAULT_RADIUS_KM': 8.0,
     'EMERGENCY_RADIUS_KM': 15.0,
-    'ROUTE_RADIUS_KM': 12.0,
+    # Keep route recommendations close to the actual TomTom road path.
+    'ROUTE_RADIUS_KM': 2.0,
     'PREFERENCE_RADIUS_KM': 10.0,
     'PREFERENCE_PREFILTER_KM': 10.0,
     'MAX_RESULTS': 20,

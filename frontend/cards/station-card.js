@@ -631,6 +631,8 @@ function addStationCards(
                 data-id="${station.station_id}"
                 data-latitude="${station.latitude ?? ""}"
                 data-longitude="${station.longitude ?? ""}"
+                data-origin-latitude="${station.origin_latitude ?? ""}"
+                data-origin-longitude="${station.origin_longitude ?? ""}"
               >
                 Get Directions
               </button>
@@ -742,6 +744,14 @@ function attachStationDirectionsHandlers() {
             const longitudeValue = button.getAttribute("data-longitude");
             const destinationLatitude = Number(latitudeValue);
             const destinationLongitude = Number(longitudeValue);
+            const originLatitudeValue = button.getAttribute(
+              "data-origin-latitude"
+            );
+            const originLongitudeValue = button.getAttribute(
+              "data-origin-longitude"
+            );
+            const originLatitude = Number(originLatitudeValue);
+            const originLongitude = Number(originLongitudeValue);
 
 
             if (!stationId) {
@@ -771,6 +781,16 @@ function attachStationDirectionsHandlers() {
             });
 
             if (
+              originLatitudeValue &&
+              originLongitudeValue &&
+              Number.isFinite(originLatitude) &&
+              Number.isFinite(originLongitude)
+            ) {
+              params.set(
+                "origin",
+                `${originLatitude},${originLongitude}`
+              );
+            } else if (
               userLocation &&
               Number.isFinite(Number(userLocation.lat)) &&
               Number.isFinite(Number(userLocation.lng))

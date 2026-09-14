@@ -42,6 +42,20 @@ class LLMService:
             )
         ]
 
+        messages.append(
+            LLMMessage(
+                role="system",
+                content=(
+                    "For nearby, preference, emergency, and live-availability "
+                    "tools: when the user names a suburb, postcode, or address, "
+                    "copy that exact place into the tool's location argument. "
+                    "A named place always overrides browser coordinates. Only "
+                    "use browser coordinates for wording such as near me, my "
+                    "location, or current location."
+                ),
+            )
+        )
+
         if history:
             messages.extend(history)
 
@@ -102,6 +116,20 @@ class LLMService:
             )
         ]
 
+        messages.append(
+            LLMMessage(
+                role="system",
+                content=(
+                    "For nearby, preference, emergency, and live-availability "
+                    "tools: when the user names a suburb, postcode, or address, "
+                    "copy that exact place into the tool's location argument. "
+                    "A named place always overrides browser coordinates. Only "
+                    "use browser coordinates for wording such as near me, my "
+                    "location, or current location."
+                ),
+            )
+        )
+
         # Make application-provided location visible to the LLM
         # before it decides whether a location-based tool is needed.
         if location_available:
@@ -160,7 +188,8 @@ class LLMService:
                     content=(
                         "The user is explicitly requesting live charging "
                         "availability. Use get_station_availability with "
-                        "the application-provided location. Do not use a "
+                        "the user's explicitly named location when provided; "
+                        "otherwise use the application-provided location. Do not use a "
                         "nearby-stations search for this request."
                     ),
                 ),
@@ -190,6 +219,12 @@ class LLMService:
                     preference = station_result.get("preference")
                     emergency = bool(station_result.get("emergency"))
                     connector = station_result.get("connector")
+                    search_location = station_result.get("location")
+                    location_suffix = (
+                        f" near {search_location}"
+                        if search_location
+                        else " near you"
+                    )
 
                     if emergency:
                         connector_label = (
@@ -202,40 +237,40 @@ class LLMService:
                             if connector_label:
                                 final_content = (
                                     f"I couldn't find any {connector_label} compatible "
-                                    "emergency charging stations near you."
+                                    f"emergency charging stations{location_suffix}."
                                 )
                             else:
                                 final_content = (
                                     "I couldn't find any emergency charging stations "
-                                    "near you."
+                                    f"{location_suffix}."
                                 )
 
                         elif count == 1:
                             if connector_label:
                                 final_content = (
                                     f"Here is 1 {connector_label} compatible "
-                                    "emergency charging station near you:"
+                                    f"emergency charging station{location_suffix}:"
                                 )
                             else:
                                 final_content = (
-                                    "Here is 1 emergency charging station near you:"
+                                    f"Here is 1 emergency charging station{location_suffix}:"
                                 )
 
                         elif connector_label:
                             final_content = (
                                 f"Here are {count} {connector_label} compatible "
-                                "emergency charging stations near you:"
+                                f"emergency charging stations{location_suffix}:"
                             )
 
                         else:
                             final_content = (
-                                f"Here are {count} emergency charging stations near you:"
+                                f"Here are {count} emergency charging stations{location_suffix}:"
                             )
 
                     elif preference:
                         final_content = (
                             f"Here are the {count} {preference} "
-                            "charging stations:"
+                            f"charging stations{location_suffix if search_location else ''}:"
                         )
 
                     elif (
@@ -248,10 +283,15 @@ class LLMService:
                         )
 
                     else:
-                        final_content = (
-                            f"Here are the {count} closest "
-                            "charging stations:"
-                        )
+                        if search_location:
+                            final_content = (
+                                f"Here are the {count} closest charging stations "
+                                f"to {search_location}:"
+                            )
+                        else:
+                            final_content = (
+                                f"Here are the {count} closest charging stations:"
+                            )
 
                 availability_result = next(
                     (
@@ -325,39 +365,79 @@ class LLMService:
 
             for tool_call in response.tool_calls:
                 arguments = dict(tool_call.arguments)
+                browser_location_phrases = (
+                    "my location",
+                    "current location",
+                    "my current location",
+                    "your location",
+                    "user location",
+                    "my position",
+                    "current position",
+                    "my current position",
+                    "your current position",
+                    "from here",
+                )
+                current_location_tools = {
+                    "get_station_availability",
+                    "get_nearby_stations",
+                    "get_stations_by_preference",
+                    "get_emergency_charging_stations",
+                }
+                named_location = arguments.get("location")
+                has_named_location = (
+                    isinstance(named_location, str)
+                    and bool(named_location.strip())
+                )
+                blocked_result = None
+
+                # Never trust coordinates invented by the language model.
+                # These tools must use either a named place or coordinates
+                # supplied by the browser/application.
+                if (
+                    tool_call.name in current_location_tools
+                    and not has_named_location
+                    and not location_available
+                ):
+                    blocked_result = {
+                        "error": (
+                            "Your current location could not be obtained. "
+                            "Please provide a suburb, postcode, or address."
+                        )
+                    }
+
+                if (
+                    tool_call.name == "get_route_stations"
+                    and not location_available
+                    and any(
+                        phrase in cleaned_message.lower()
+                        for phrase in browser_location_phrases
+                    )
+                ):
+                    blocked_result = {
+                        "error": (
+                            "Your current location could not be obtained. "
+                            "Please provide a specific starting location."
+                        )
+                    }
 
                 # Use browser location when a location-based tool
                 # does not already contain coordinates.
                 if location_available:
                     if tool_call.name == "get_station_availability":
-                        arguments.setdefault(
-                            "lat",
-                            latitude,
-                        )
-                        arguments.setdefault(
-                            "lon",
-                            longitude,
-                        )
+                        arguments["lat"] = latitude
+                        arguments["lon"] = longitude
+
+                    elif tool_call.name == "get_nearby_stations":
+                        arguments["latitude"] = latitude
+                        arguments["longitude"] = longitude
 
                     elif tool_call.name == "get_stations_by_preference":
-                        arguments.setdefault(
-                            "latitude",
-                            latitude,
-                        )
-                        arguments.setdefault(
-                            "longitude",
-                            longitude,
-                        )
+                        arguments["latitude"] = latitude
+                        arguments["longitude"] = longitude
 
                     elif tool_call.name == "get_emergency_charging_stations":
-                        arguments.setdefault(
-                            "latitude",
-                            latitude,
-                        )
-                        arguments.setdefault(
-                            "longitude",
-                            longitude,
-                        )
+                        arguments["latitude"] = latitude
+                        arguments["longitude"] = longitude
                         arguments.setdefault(
                             "vehicle_or_connector",
                             cleaned_message,
@@ -370,28 +450,11 @@ class LLMService:
                             if isinstance(start_location, str)
                             else ""
                         )
-                        message_text = cleaned_message.lower()
-                        browser_location_phrases = (
-                            "my location",
-                            "current location",
-                            "my current location",
-                            "your location",
-                            "user location",
-                            "my position",
-                            "current position",
-                            "my current position",
-                            "your current position",
-                            "from here",
-                        )
                         uses_browser_location = (
                             not start_text
                             or start_text == "here"
                             or any(
                                 phrase in start_text
-                                for phrase in browser_location_phrases
-                            )
-                            or any(
-                                phrase in message_text
                                 for phrase in browser_location_phrases
                             )
                         )
@@ -402,23 +465,26 @@ class LLMService:
                                 longitude,
                             ]
 
-                try:
-                    result = execute_tool_call(
-                        tool_call.name,
-                        arguments,
-                    )
-
-                except ValueError as exc:
-                    result = {
-                        "error": str(exc),
-                    }
-
-                except Exception:
-                    result = {
-                        "error": (
-                            "The EVAT backend tool could not be completed."
+                if blocked_result is not None:
+                    result = blocked_result
+                else:
+                    try:
+                        result = execute_tool_call(
+                            tool_call.name,
+                            arguments,
                         )
-                    }
+
+                    except ValueError as exc:
+                        result = {
+                            "error": str(exc),
+                        }
+
+                    except Exception:
+                        result = {
+                            "error": (
+                                "The EVAT backend tool could not be completed."
+                            )
+                        }
 
                 if isinstance(result, dict):
                     tool_results.append(result)

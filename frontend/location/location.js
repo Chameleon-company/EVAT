@@ -15,21 +15,45 @@ function resolveUserLocation() {
             return;
         }
 
+        const locationResolved = (position) => {
+            userLocation = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude,
+            };
+
+            resolve(userLocation);
+        };
+
+        const locationFailed = (error) => {
+            console.warn("Location permission/error:", error);
+            userLocation = null;
+            reject(error);
+        };
+
+        const retryWithNetworkLocation = (error) => {
+            if (error.code !== 3) {
+                locationFailed(error);
+                return;
+            }
+
+            console.warn(
+                "High-accuracy location timed out; retrying with network location."
+            );
+
+            navigator.geolocation.getCurrentPosition(
+                locationResolved,
+                locationFailed,
+                {
+                    enableHighAccuracy: false,
+                    timeout: 20000,
+                    maximumAge: 600000,
+                }
+            );
+        };
+
         navigator.geolocation.getCurrentPosition(
-            (position) => {
-                userLocation = {
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude,
-                };
-
-                resolve(userLocation);
-            },
-            (error) => {
-                console.warn("Location permission/error:", error);
-
-                userLocation = null;
-                reject(error);
-            },
+            locationResolved,
+            retryWithNetworkLocation,
             {
                 enableHighAccuracy: true,
                 timeout: 10000,

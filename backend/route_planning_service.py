@@ -120,10 +120,13 @@ def get_stations_along_route(
 ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
     """Get stations strategically placed along the route."""
 
+    # A five-kilometre minimum allowed stations well away from short urban
+    # routes. Scale the corridor for short trips and cap it at the configured
+    # route radius so results remain meaningfully along the TomTom path.
     search_radius = max(
-        5.0,
+        0.75,
         min(
-            route_distance * 0.3,
+            route_distance * 0.1,
             route_radius_km,
         ),
     )
@@ -257,6 +260,9 @@ def get_stations_along_route(
                 <= search_radius
             ):
                 station_info = dict(station)
+                station_info["distance_from_route_km"] = (
+                    min_perpendicular_distance
+                )
 
                 station_info["distance_from_start"] = (
                     calculate_distance(
@@ -296,9 +302,10 @@ def get_stations_along_route(
         )
 
     all_stations.sort(
-        key=lambda station: station[
-            "route_position_score"
-        ]
+        key=lambda station: (
+            station["route_position_score"],
+            station["distance_from_route_km"],
+        )
     )
 
     return all_stations[:max_results], all_stations

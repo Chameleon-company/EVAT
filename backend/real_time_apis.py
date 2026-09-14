@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import requests
 import datetime
+from urllib.parse import quote
 
 _station_cache: Dict[str, Dict[str, Any]] = {}
 logger = logging.getLogger(__name__)
@@ -235,9 +236,47 @@ class ApiManager:
 
         return None
 
-    """
-    Removed unused geocode.
-    """
+    def geocode_location(self, location: str) -> Optional[Tuple[float, float]]:
+        """Resolve an Australian place name or address to (lat, lon)."""
+        if (
+            not self._has_key()
+            or not isinstance(location, str)
+            or not location.strip()
+        ):
+            return None
+
+        try:
+            encoded_location = quote(location.strip(), safe='')
+            url = f"{self.base_url}/search/2/geocode/{encoded_location}.json"
+            params = {
+                'key': self.api_key,
+                'limit': 1,
+                'countrySet': 'AU',
+            }
+            response = requests.get(
+                url,
+                params=params,
+                timeout=self.timeout_seconds,
+            )
+            response.raise_for_status()
+            results = response.json().get('results') or []
+            if not results:
+                return None
+
+            position = results[0].get('position') or {}
+            latitude = float(position.get('lat'))
+            longitude = float(position.get('lon'))
+            if -90 <= latitude <= 90 and -180 <= longitude <= 180:
+                return latitude, longitude
+        except (
+            requests.RequestException,
+            TypeError,
+            ValueError,
+            KeyError,
+        ) as error:
+            logger.warning("TomTom geocoding failed for %r: %s", location, error)
+
+        return None
 
     def get_charging_availability(self, lat: float, lon: float) -> Dict[str, Any]:
         """

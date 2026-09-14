@@ -29,8 +29,8 @@ EVAT_TOOLS = [
         "function": {
             "name": "get_station_availability",
             "description": (
-                "Check EV charging station availability using latitude "
-                "and longitude."
+                "Check live EV charging availability near a named location "
+                "or the user's current coordinates."
             ),
             "parameters": {
                 "type": "object",
@@ -43,8 +43,14 @@ EVAT_TOOLS = [
                         "type": "number",
                         "description": "Longitude of the charging station.",
                     },
+                    "location": {
+                        "type": "string",
+                        "description": (
+                            "Named suburb, postcode, or address. Use this "
+                            "when the user names a place."
+                        ),
+                    },
                 },
-                "required": ["lat", "lon"],
             },
         },
     },
@@ -53,8 +59,8 @@ EVAT_TOOLS = [
         "function": {
             "name": "get_nearby_stations",
             "description": (
-                "Find EV charging stations near the user's current "
-                "location for a general request, without filtering by "
+                "Find EV charging stations near a named place or the user's "
+                "current location for a general request, without filtering by "
                 "preference. Use this for requests like 'find chargers "
                 "near me'."
             ),
@@ -69,6 +75,13 @@ EVAT_TOOLS = [
                         "type": "number",
                         "description": "User longitude.",
                     },
+                    "location": {
+                        "type": "string",
+                        "description": (
+                            "Named suburb, postcode, or address. Use this "
+                            "when the user names a place."
+                        ),
+                    },
                     "limit": {
                         "type": "integer",
                         "minimum": 1,
@@ -79,10 +92,6 @@ EVAT_TOOLS = [
                         ),
                     },
                 },
-                "required": [
-                    "latitude",
-                    "longitude",
-                ],
             },
         },
     },
@@ -91,7 +100,8 @@ EVAT_TOOLS = [
         "function": {
             "name": "get_stations_by_preference",
             "description": (
-                "Find nearby EV charging stations and order them by the "
+                "Find EV charging stations near a named place or current "
+                "location and order them by the "
                 "user's preference: closest, cheapest, or fastest."
             ),
             "parameters": {
@@ -104,6 +114,13 @@ EVAT_TOOLS = [
                     "longitude": {
                         "type": "number",
                         "description": "User longitude.",
+                    },
+                    "location": {
+                        "type": "string",
+                        "description": (
+                            "Named suburb, postcode, or address. Use this "
+                            "when the user names a place."
+                        ),
                     },
                     "preference": {
                         "type": "string",
@@ -127,8 +144,6 @@ EVAT_TOOLS = [
                     },
                 },
                 "required": [
-                    "latitude",
-                    "longitude",
                     "preference",
                 ],
             },
@@ -139,7 +154,8 @@ EVAT_TOOLS = [
         "function": {
             "name": "get_emergency_charging_stations",
             "description": (
-                "Find nearby EV charging stations for an urgent or emergency "
+                "Find EV charging stations near a named place or current "
+                "location for an urgent or emergency "
                 "charging situation, such as when the user's battery is very low. "
                 "Can also filter stations based on a vehicle model or connector type."
             ),
@@ -154,6 +170,13 @@ EVAT_TOOLS = [
                         "type": "number",
                         "description": "User longitude.",
                     },
+                    "location": {
+                        "type": "string",
+                        "description": (
+                            "Named suburb, postcode, or address. Use this "
+                            "when the user names a place."
+                        ),
+                    },
                     "vehicle_or_connector": {
                         "type": "string",
                         "description": (
@@ -163,10 +186,6 @@ EVAT_TOOLS = [
                         ),
                     },
                 },
-                "required": [
-                    "latitude",
-                    "longitude",
-                ],
             },
         },
     },
@@ -262,6 +281,37 @@ def _validate_coordinates(
     return latitude, longitude
 
 
+def _resolve_tool_location(
+    arguments: Dict[str, Any],
+    latitude_key: str = "latitude",
+    longitude_key: str = "longitude",
+) -> tuple[tuple[float, float], str | None]:
+    """Resolve an explicit named place first, then fall back to coordinates."""
+    location = arguments.get("location")
+    if isinstance(location, str) and location.strip():
+        location = location.strip()
+        coordinates = api_manager.geocode_location(location)
+
+        if not coordinates:
+            charger_data, _ = load_datasets()
+            coordinates = get_location_coordinates(
+                location,
+                charger_data,
+                DATA_CONFIG["CSV_COLUMNS"],
+            )
+
+        if not coordinates:
+            raise ValueError(f"Could not resolve location: {location}")
+
+        return _validate_coordinates(*coordinates), location
+
+    coordinates = _validate_coordinates(
+        arguments.get(latitude_key),
+        arguments.get(longitude_key),
+    )
+    return coordinates, None
+
+
 def _traffic_label(delay_minutes: Any) -> str:
     """Return a short traffic label from TomTom's route delay."""
 
@@ -287,6 +337,8 @@ def _station_for_card(
     """Map a station to the frontend schema and add route information."""
 
     mapped = dict(station)
+    mapped["origin_latitude"] = start_coords[0]
+    mapped["origin_longitude"] = start_coords[1]
 
     latitude = station.get(
         "latitude",
@@ -385,9 +437,10 @@ def execute_tool_call(
     # ---------------------------------------------------------
 
     if name == "get_station_availability":
-        lat, lon = _validate_coordinates(
-            arguments.get("lat"),
-            arguments.get("lon"),
+        (lat, lon), resolved_location = _resolve_tool_location(
+            arguments,
+            "lat",
+            "lon",
         )
 
         status, updated_at, data = get_station_availability(
@@ -428,6 +481,7 @@ def execute_tool_call(
             "status": status,
             "updated_at": updated_at,
             "data": data,
+            "location": resolved_location,
         }
 
         # The frontend already renders station cards for any structured
@@ -459,9 +513,8 @@ def execute_tool_call(
         return result
 
     if name == "get_nearby_stations":
-        latitude, longitude = _validate_coordinates(
-            arguments.get("latitude"),
-            arguments.get("longitude"),
+        (latitude, longitude), resolved_location = _resolve_tool_location(
+            arguments
         )
 
         limit = arguments.get("limit", 5)
@@ -493,12 +546,12 @@ def execute_tool_call(
             "show_availability": True,
             "count": len(card_stations),
             "stations": card_stations,
+            "location": resolved_location,
         }
 
     if name == "get_stations_by_preference":
-        latitude, longitude = _validate_coordinates(
-            arguments.get("latitude"),
-            arguments.get("longitude"),
+        (latitude, longitude), resolved_location = _resolve_tool_location(
+            arguments
         )
 
         preference = arguments.get("preference")
@@ -558,12 +611,12 @@ def execute_tool_call(
             "preference": preference,
             "count": len(card_stations),
             "stations": card_stations,
+            "location": resolved_location,
         }
 
     if name == "get_emergency_charging_stations":
-        latitude, longitude = _validate_coordinates(
-            arguments.get("latitude"),
-            arguments.get("longitude"),
+        (latitude, longitude), resolved_location = _resolve_tool_location(
+            arguments
         )
 
         vehicle_or_connector = arguments.get(
@@ -608,6 +661,7 @@ def execute_tool_call(
             "connector": connector,
             "count": len(card_stations),
             "stations": card_stations,
+            "location": resolved_location,
         }
 
     if name == "get_route_stations":
@@ -643,15 +697,17 @@ def execute_tool_call(
         charger_data, _ = load_datasets()
 
         start_coords = get_location_coordinates(
-            start_location,
-            charger_data,
-            DATA_CONFIG["CSV_COLUMNS"],
+            start_location, charger_data, DATA_CONFIG["CSV_COLUMNS"]
+        ) or (
+            api_manager.geocode_location(start_location)
+            if isinstance(start_location, str)
+            else None
         )
 
         end_coords = get_location_coordinates(
-            end_location,
-            charger_data,
-            DATA_CONFIG["CSV_COLUMNS"],
+            end_location, charger_data, DATA_CONFIG["CSV_COLUMNS"]
+        ) or api_manager.geocode_location(
+            end_location
         )
 
         if not start_coords:
