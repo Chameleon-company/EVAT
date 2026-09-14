@@ -1,24 +1,97 @@
-import React, { useContext } from "react";
-import { UserContext } from "../context/user.context";
-import { StyleSheet, Text, View, TouchableOpacity, Dimensions, Image, Alert } from "react-native";
-import { useNavigation } from '@react-navigation/native';
+import React from "react";
+import {
+    StyleSheet,
+    Text,
+    View,
+    TouchableOpacity,
+    Dimensions,
+} from "react-native";
+import { useTheme } from "../context/ThemeContext";
+import { useNavigation } from "@react-navigation/native";
 
 function NavigationInfo(props) {
     const navigation = useNavigation();
+    const { theme } = useTheme();
     const { travelTime, travelDistance, cancelFunction } = props;
 
+    const isDark = theme === "dark";
+
     return (
-        <View style={styles.infoBar}>
-            <View style={styles.infoDisplays}>
-                <Text style={styles.infoText}>{travelTime} min</Text>
+        <View
+            style={[
+                styles.infoBar,
+                {
+                    backgroundColor: "transparent",
+                },
+            ]}
+        >
+            <View
+                style={[
+                    styles.infoDisplays,
+                    {
+                        backgroundColor: isDark
+                            ? "#08100c"
+                            : "#ffffffcc",
+                        borderColor: isDark
+                            ? "#14532d"
+                            : "#888888bb",
+                    },
+                ]}
+            >
+                <Text
+                    style={[
+                        styles.infoText,
+                        {
+                            color: isDark ? "#f5fff8" : "#000000",
+                        },
+                    ]}
+                >
+                    {travelTime} min
+                </Text>
             </View>
-            <View style={styles.infoDisplays}>
-                <Text style={styles.infoText}>{travelDistance} km</Text>
+
+            <View
+                style={[
+                    styles.infoDisplays,
+                    {
+                        backgroundColor: isDark
+                            ? "#08100c"
+                            : "#ffffffcc",
+                        borderColor: isDark
+                            ? "#14532d"
+                            : "#888888bb",
+                    },
+                ]}
+            >
+                <Text
+                    style={[
+                        styles.infoText,
+                        {
+                            color: isDark ? "#f5fff8" : "#000000",
+                        },
+                    ]}
+                >
+                    {travelDistance} km
+                </Text>
             </View>
-            <TouchableOpacity style={styles.cancel} onPress={cancelFunction}>
+
+            <TouchableOpacity
+                style={[
+                    styles.cancel,
+                    {
+                        backgroundColor: isDark
+                            ? "#991b1b"
+                            : "#ff0000cc",
+                        borderColor: isDark
+                            ? "#ef4444"
+                            : "#888888bb",
+                    },
+                ]}
+                onPress={cancelFunction}
+            >
                 <Text style={styles.cancelText}>Cancel</Text>
             </TouchableOpacity>
-        </View >
+        </View>
     );
 }
 
@@ -26,50 +99,46 @@ const styles = StyleSheet.create({
     infoBar: {
         zIndex: 100,
         width: 60,
-        height: Dimensions.get('window').height / 10,
-        position: 'absolute',
-        flexDirection: 'column',
+        height: Dimensions.get("window").height / 10,
+        position: "absolute",
+        flexDirection: "column",
         bottom: "30%",
         right: 10,
-        color: 'white',
-        textAlign: 'center',
-        alignItems: 'center',
+        alignItems: "center",
         margin: 0,
         padding: 0,
     },
+
     infoDisplays: {
         width: 60,
         height: 60,
         borderRadius: 60,
-        backgroundColor: '#ffffffcc',
         marginBottom: 10,
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderColor: '#888888bb',
+        alignItems: "center",
+        justifyContent: "center",
         borderWidth: 1,
     },
+
     infoText: {
-        color: 'black',
         fontSize: 14,
-        fontWeight: 'bold',
+        fontWeight: "bold",
     },
+
     cancel: {
         width: 60,
         height: 60,
         borderRadius: 60,
-        backgroundColor: '#ff0000cc',
         marginBottom: 10,
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderColor: '#888888bb',
+        alignItems: "center",
+        justifyContent: "center",
         borderWidth: 1,
-        fontColor: 'white',
     },
+
     cancelText: {
-        color: 'white',
+        color: "white",
         fontSize: 14,
-        fontWeight: 'bold',
+        fontWeight: "bold",
     },
-})
+});
 
 export default NavigationInfo;

@@ -6,7 +6,9 @@ import {
   getIceVehicles,
 } from "../services/costComparisionTool";
 import CostCharts from "./CostCharts";
-import "../styles/Validation.css";
+import { Button } from "./Button.tsx";
+import { Input } from "./Input.tsx";
+import "./CostCalculation.css";
 
 const PulseDot = ({ color = "#00b482" }) => (
   <span style={{ position: "relative", display: "inline-flex", alignItems: "center", justifyContent: "center", width: 10, height: 10, marginRight: 6 }}>
@@ -37,32 +39,6 @@ function Ring({ pct, color, size = 56, children }) {
     </div>
   );
 }
-
-const selectStyle = {
-  width: "100%",
-  backgroundColor: "rgba(255,255,255,0.06)",
-  border: "1px solid rgba(255,255,255,0.1)",
-  borderRadius: "8px",
-  color: "#fff",
-  padding: "10px 14px",
-  fontSize: "14px",
-  outline: "none",
-  marginBottom: "4px",
-  boxSizing: "border-box",
-};
-
-const inputStyle = {
-  width: "100%",
-  backgroundColor: "rgba(255,255,255,0.06)",
-  border: "1px solid rgba(255,255,255,0.1)",
-  borderRadius: "8px",
-  color: "#fff",
-  padding: "10px 14px",
-  fontSize: "14px",
-  outline: "none",
-  marginBottom: "4px",
-  boxSizing: "border-box",
-};
 
 export default function CostCalculation() {
   const [evVehicles, setEvVehicles] = useState({});
@@ -165,204 +141,226 @@ export default function CostCalculation() {
   const savingsPositive = savings > 0;
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "#080f0a", fontFamily: "'Segoe UI', sans-serif", padding: "40px 24px" }}>
-      <style>{`
-        @keyframes pingAnim { 0%,100%{transform:scale(1);opacity:0.4} 50%{transform:scale(2.2);opacity:0} }
-        @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
-        .bento-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 14px; padding: 20px; animation: fadeUp 0.5s ease forwards; opacity: 0; }
-        .bento-card:nth-child(1){animation-delay:.05s}.bento-card:nth-child(2){animation-delay:.1s}.bento-card:nth-child(3){animation-delay:.15s}.bento-card:nth-child(4){animation-delay:.2s}.bento-card:nth-child(5){animation-delay:.25s}.bento-card:nth-child(6){animation-delay:.3s}
-        .card-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; color: rgba(255,255,255,0.35); margin: 0 0 8px 0; text-transform: uppercase; }
-        .field-label { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.45); letter-spacing: 0.5px; display: block; margin-bottom: 6px; margin-top: 14px; }
-        select option { background: #1a2035; color: #fff; }
-      `}</style>
+    <main className="relative z-10 mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8 lg:py-16">
+      <section className="mx-auto mb-10 max-w-3xl text-center sm:mb-12">
+        <span
+          className="
+            mb-4 inline-flex items-center rounded-full
+            border border-emerald-200 bg-emerald-50
+            px-3.5 py-1.5 text-xs font-semibold uppercase
+            text-emerald-700
+            dark:border-emerald-900/70
+            dark:bg-emerald-950/50
+            dark:text-emerald-400
+          "
+        >
+          Cost Comparison
+        </span>
 
-      <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
+        <h1
+          className="
+            text-4xl font-bold tracking-tight text-surface-900
+            sm:text-5xl
+          "
+        >
+          EV vs Petrol{" "}
+          <span className="text-emerald-600 dark:text-emerald-400">
+            Cost Analysis
+          </span>
+        </h1>
 
-        {/* Header */}
-        <div style={{ marginBottom: "32px", display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: "16px" }}>
-          <div>
-            <div style={{ display: "inline-flex", alignItems: "center", backgroundColor: "rgba(0,180,130,0.12)", border: "1px solid rgba(0,180,130,0.25)", borderRadius: "20px", padding: "4px 14px", marginBottom: "14px" }}>
-              <PulseDot />
-              <span style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "2px", color: "#00b482" }}>COST COMPARISON</span>
+        <p
+          className="
+            mx-auto mt-4 max-w-2xl text-sm leading-6 text-surface-500
+            sm:text-base
+            dark:text-surface-700/75
+          "
+        >
+          Daily running cost estimate · ML-powered savings prediction · Melbourne 2026
+        </p>
+      </section>
+
+      {serverResult && (
+        <div className="flex items-center gap-2 bg-[#00b482]/8 border border-[#00b482]/20 rounded-lg px-4 py-2">
+          <PulseDot />
+          <span className="text-xs text-surface-950/50">Calculated {ticker}s ago</span>
+        </div>
+      )}
+
+      {/* Main layout */}
+      <div className={`grid gap-4 mb-4 ${serverResult ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1"}`}>
+
+        {/* Form */}
+        <div className="bg-foreground/1 border border-foreground/10 rounded-[14px] p-6">
+          <div className="grid grid-cols-2 gap-4 mb-5">
+
+            {/* EV */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <span className="w-2 h-2 rounded-full bg-primary inline-block" />
+                <span className="text-xs font-bold text-primary tracking-[1px]">ELECTRIC VEHICLE</span>
+              </div>
+              <label className="text-sm font-semibold text-surface-400 tracking-[0.5px] block mb-1.5 mt-0">Make</label>
+              <select className="w-full bg-foreground/5 border border-foreground/10 rounded-lg px-3 py-2 text-surface-950 text-sm outline-none focus:border-primary" value={evMake} onChange={e => { setEvMake(e.target.value); setEvModel(""); setEvVariant(""); }}>
+                <option value="">Select make</option>
+                {evMakes.map(m => <option key={m} value={m}>{m}</option>)}
+              </select>
+              {formErrors.evMake && <span className="text-[#f87171] text-sm">{formErrors.evMake}</span>}
+
+              <label className="text-sm font-semibold text-surface-400 tracking-[0.5px] block mb-1.5 mt-3.5">Model</label>
+              <select className="w-full bg-foreground/5 border border-foreground/10 rounded-lg px-3 py-2 text-surface-950 text-sm outline-none focus:border-primary disabled:opacity-50" value={evModel} onChange={e => { setEvModel(e.target.value); setEvVariant(""); }} disabled={!evMake}>
+                <option value="">Select model</option>
+                {evModels.map(m => <option key={m} value={m}>{m}</option>)}
+              </select>
+              {formErrors.evModel && <span className="text-[#f87171] text-sm">{formErrors.evModel}</span>}
+
+              <label className="text-sm font-semibold text-surface-400 tracking-[0.5px] block mb-1.5 mt-3.5">Variant <span className="text-surface-950/30">(optional)</span></label>
+              <select className="w-full bg-foreground/5 border border-foreground/10 rounded-lg px-3 py-2 text-surface-950 text-sm outline-none focus:border-primary disabled:opacity-50" value={evVariant} onChange={e => setEvVariant(e.target.value)} disabled={!evModel}>
+                <option value="">Select variant</option>
+                {evVariants.map(v => <option key={v} value={v}>{v}</option>)}
+              </select>
             </div>
-            <h1 style={{ color: "#fff", fontSize: "32px", fontWeight: 800, margin: "0 0 8px 0" }}>EV vs Petrol <span style={{ color: "#00b482" }}>Cost Analysis</span></h1>
-            <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "14px", margin: 0 }}>Daily running cost estimate · ML-powered savings prediction · Melbourne 2026</p>
+
+            {/* ICE */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <span className="w-2 h-2 rounded-full bg-[#f87171] inline-block" />
+                <span className="text-xs font-bold text-[#f87171] tracking-[1px]">PETROL VEHICLE</span>
+              </div>
+              <label className="text-sm font-semibold text-surface-400 tracking-[0.5px] block mb-1.5 mt-0">Make</label>
+              <select className="w-full bg-foreground/5 border border-foreground/10 rounded-lg px-3 py-2 text-surface-950 text-sm outline-none focus:border-[#f87171]" value={iceMake} onChange={e => { setIceMake(e.target.value); setIceModel(""); setIceVariant(""); }}>
+                <option value="">Select make</option>
+                {iceMakes.map(m => <option key={m} value={m}>{m}</option>)}
+              </select>
+              {formErrors.iceMake && <span className="text-[#f87171] text-sm">{formErrors.iceMake}</span>}
+
+              <label className="text-sm font-semibold text-surface-400 tracking-[0.5px] block mb-1.5 mt-3.5">Model</label>
+              <select className="w-full bg-foreground/5 border border-foreground/10 rounded-lg px-3 py-2 text-surface-950 text-sm outline-none focus:border-[#f87171] disabled:opacity-50" value={iceModel} onChange={e => { setIceModel(e.target.value); setIceVariant(""); }} disabled={!iceMake}>
+                <option value="">Select model</option>
+                {iceModels.map(m => <option key={m} value={m}>{m}</option>)}
+              </select>
+              {formErrors.iceModel && <span className="text-[#f87171] text-sm">{formErrors.iceModel}</span>}
+
+              <label className="text-sm font-semibold text-surface-400 tracking-[0.5px] block mb-1.5 mt-3.5">Variant <span className="text-surface-950/30">(optional)</span></label>
+              <select className="w-full bg-foreground/5 border border-foreground/10 rounded-lg px-3 py-2 text-surface-950 text-sm outline-none focus:border-[#f87171] disabled:opacity-50" value={iceVariant} onChange={e => setIceVariant(e.target.value)} disabled={!iceModel}>
+                <option value="">Select variant</option>
+                {iceVariants.map(v => <option key={v} value={v}>{v}</option>)}
+              </select>
+            </div>
           </div>
-          {serverResult && (
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", backgroundColor: "rgba(0,180,130,0.08)", border: "1px solid rgba(0,180,130,0.2)", borderRadius: "8px", padding: "8px 16px" }}>
-              <PulseDot />
-              <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.5)" }}>Calculated {ticker}s ago</span>
+
+          {/* Trip details */}
+          <div className="border-t border-white/6 pt-4 mb-5">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="w-2 h-2 rounded-full bg-[#60a5fa] inline-block" />
+              <span className="text-xs font-bold text-[#60a5fa] tracking-[1px]">TRIP DETAILS</span>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <label className="text-sm font-semibold text-surface-950/45 tracking-[0.5px] block mb-1.5 mt-0">Avg km per day</label>
+                <Input className="w-full bg-foreground/5 text-surface-950 placeholder:text-surface-600" type="number" min="1" step="1" value={kmsPerDay}
+                  onChange={e => { setKmsPerDay(e.target.value); setFormErrors(p => ({ ...p, kmsPerDay: "" })); }}
+                  placeholder="e.g. 40" />
+                {formErrors.kmsPerDay && <span className="text-[#f87171] text-sm">{formErrors.kmsPerDay}</span>}
+              </div>
+              <div>
+                <label className="text-sm font-semibold text-surface-950/45 tracking-[0.5px] block mb-1.5 mt-0">Electricity ($/kWh)</label>
+                <Input className="w-full bg-foreground/5 text-surface-950 placeholder:text-surface-600" type="number" min="0.01" step="0.01" value={electricityCost}
+                  onChange={e => { setElectricityCost(e.target.value); setFormErrors(p => ({ ...p, electricityCost: "" })); }}
+                  placeholder="e.g. 0.30" />
+                {formErrors.electricityCost && <span className="text-[#f87171] text-sm">{formErrors.electricityCost}</span>}
+              </div>
+              <div>
+                <label className="text-sm font-semibold text-surface-950/45 tracking-[0.5px] block mb-1.5 mt-0">Petrol ($/L)</label>
+                <Input className="w-full bg-foreground/5 text-surface-950 placeholder:text-surface-600" type="number" min="0.01" step="0.01" value={petrolPrice}
+                  onChange={e => { setPetrolPrice(e.target.value); setFormErrors(p => ({ ...p, petrolPrice: "" })); }}
+                  placeholder="e.g. 2.00" />
+                {formErrors.petrolPrice && <span className="text-[#f87171] text-sm">{formErrors.petrolPrice}</span>}
+              </div>
+            </div>
+          </div>
+
+          <Button
+            onClick={handleCalculate}
+            variant="primary"
+            loading={loading}
+            loadingLabel="Calculating..."
+          >
+            {loading ? <PulseDot className="text-foreground" /> : "Calculate & Compare →"}
+          </Button>
+
+          {serverError && (
+            <div className="mt-3 bg-red-500/8 border border-red-500/20 rounded-lg p-3 text-[#f87171] text-[13px]">
+              {serverError}
             </div>
           )}
         </div>
 
-        {/* Main layout */}
-        <div style={{ display: "grid", gridTemplateColumns: serverResult ? "1fr 1fr" : "1fr", gap: "16px", marginBottom: "16px" }}>
-
-          {/* Form */}
-          <div style={{ backgroundColor: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "14px", padding: "24px" }}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "20px" }}>
-
-              {/* EV */}
-              <div>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
-                  <span style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: "#00b482", display: "inline-block" }} />
-                  <span style={{ fontSize: "12px", fontWeight: 700, color: "#00b482", letterSpacing: "1px" }}>ELECTRIC VEHICLE</span>
-                </div>
-                <label className="field-label" style={{ marginTop: 0 }}>Make</label>
-                <select style={selectStyle} value={evMake} onChange={e => { setEvMake(e.target.value); setEvModel(""); setEvVariant(""); }}>
-                  <option value="">Select make</option>
-                  {evMakes.map(m => <option key={m} value={m}>{m}</option>)}
-                </select>
-                {formErrors.evMake && <span style={{ color: "#f87171", fontSize: "11px" }}>{formErrors.evMake}</span>}
-
-                <label className="field-label">Model</label>
-                <select style={selectStyle} value={evModel} onChange={e => { setEvModel(e.target.value); setEvVariant(""); }} disabled={!evMake}>
-                  <option value="">Select model</option>
-                  {evModels.map(m => <option key={m} value={m}>{m}</option>)}
-                </select>
-                {formErrors.evModel && <span style={{ color: "#f87171", fontSize: "11px" }}>{formErrors.evModel}</span>}
-
-                <label className="field-label">Variant <span style={{ color: "rgba(255,255,255,0.3)" }}>(optional)</span></label>
-                <select style={selectStyle} value={evVariant} onChange={e => setEvVariant(e.target.value)} disabled={!evModel}>
-                  <option value="">Select variant</option>
-                  {evVariants.map(v => <option key={v} value={v}>{v}</option>)}
-                </select>
-              </div>
-
-              {/* ICE */}
-              <div>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
-                  <span style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: "#f87171", display: "inline-block" }} />
-                  <span style={{ fontSize: "12px", fontWeight: 700, color: "#f87171", letterSpacing: "1px" }}>PETROL VEHICLE</span>
-                </div>
-                <label className="field-label" style={{ marginTop: 0 }}>Make</label>
-                <select style={selectStyle} value={iceMake} onChange={e => { setIceMake(e.target.value); setIceModel(""); setIceVariant(""); }}>
-                  <option value="">Select make</option>
-                  {iceMakes.map(m => <option key={m} value={m}>{m}</option>)}
-                </select>
-                {formErrors.iceMake && <span style={{ color: "#f87171", fontSize: "11px" }}>{formErrors.iceMake}</span>}
-
-                <label className="field-label">Model</label>
-                <select style={selectStyle} value={iceModel} onChange={e => { setIceModel(e.target.value); setIceVariant(""); }} disabled={!iceMake}>
-                  <option value="">Select model</option>
-                  {iceModels.map(m => <option key={m} value={m}>{m}</option>)}
-                </select>
-                {formErrors.iceModel && <span style={{ color: "#f87171", fontSize: "11px" }}>{formErrors.iceModel}</span>}
-
-                <label className="field-label">Variant <span style={{ color: "rgba(255,255,255,0.3)" }}>(optional)</span></label>
-                <select style={selectStyle} value={iceVariant} onChange={e => setIceVariant(e.target.value)} disabled={!iceModel}>
-                  <option value="">Select variant</option>
-                  {iceVariants.map(v => <option key={v} value={v}>{v}</option>)}
-                </select>
-              </div>
+        {/* Results */}
+        {serverResult && (
+          <div className="flex flex-col gap-2.5">
+            <div className={`border rounded-[14px] p-6 text-center ${savingsPositive ? "bg-emerald-400/7 border-emerald-400/20" : "bg-red-400/7 border-red-400/20"}`}>
+              <p className="text-sm font-bold tracking-[1.5px] text-surface-950/35 m-0 mb-2.5">PREDICTED SAVINGS · EV VS PETROL</p>
+              <p className={`text-[48px] font-extrabold m-0 mb-1.5 ${savingsPositive ? "text-emerald-400" : "text-[#f87171]"}`}>
+                {savingsPositive ? "+" : "-"}${Math.abs(savings).toFixed(2)}
+              </p>
+              <span className={`text-xs px-3.5 py-1 rounded-[20px] border inline-block ${savingsPositive ? "bg-emerald-400/15 text-emerald-400 border-emerald-400/30" : "bg-red-400/15 text-[#f87171] border-red-400/30"}`}>
+                {savingsPositive ? "EV is cheaper for this trip" : "Petrol is cheaper for this trip"}
+              </span>
             </div>
 
-            {/* Trip details */}
-            <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "16px", marginBottom: "20px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
-                <span style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: "#60a5fa", display: "inline-block" }} />
-                <span style={{ fontSize: "12px", fontWeight: 700, color: "#60a5fa", letterSpacing: "1px" }}>TRIP DETAILS</span>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px" }}>
-                <div>
-                  <label className="field-label" style={{ marginTop: 0 }}>Avg km per day</label>
-                  <input style={inputStyle} type="number" min="1" step="1" value={kmsPerDay}
-                    onChange={e => { setKmsPerDay(e.target.value); setFormErrors(p => ({ ...p, kmsPerDay: "" })); }}
-                    placeholder="e.g. 40" />
-                  {formErrors.kmsPerDay && <span style={{ color: "#f87171", fontSize: "11px" }}>{formErrors.kmsPerDay}</span>}
+            <div className="grid grid-cols-3 gap-2.5">
+              {[
+                { label: "EV trip cost", value: `$${serverResult.ev_trip_cost?.toFixed(2) ?? "—"}`, color: "#00b482", pct: 40, icon: "⚡" },
+                { label: "Petrol trip cost", value: `$${serverResult.ice_trip_cost?.toFixed(2) ?? "—"}`, color: "#f87171", pct: 70, icon: "⛽" },
+                { label: "CO₂ saved", value: `${serverResult.co2_saved_kg?.toFixed(2) ?? "—"} kg`, color: "#34d399", pct: 60, icon: "🌿" },
+              ].map(({ label, value, color, pct, icon }) => (
+                <div key={label} className="bento-card text-center" style={{ borderTop: `2px solid ${color}` }}>
+                  <p className="text-[10px] font-bold tracking-[1.5px] text-surface-950/35 m-0 mb-2 uppercase">
+                    {label}
+                  </p>
+                  <Ring pct={pct} color={color} size={56} key={label + ticker}>
+                    <span className="text-xs">{icon}</span>
+                  </Ring>
+                  <p style={{ color }} className="text-base font-bold mt-2 mb-0">{value}</p>
                 </div>
-                <div>
-                  <label className="field-label" style={{ marginTop: 0 }}>Electricity ($/kWh)</label>
-                  <input style={inputStyle} type="number" min="0.01" step="0.01" value={electricityCost}
-                    onChange={e => { setElectricityCost(e.target.value); setFormErrors(p => ({ ...p, electricityCost: "" })); }}
-                    placeholder="e.g. 0.30" />
-                  {formErrors.electricityCost && <span style={{ color: "#f87171", fontSize: "11px" }}>{formErrors.electricityCost}</span>}
-                </div>
-                <div>
-                  <label className="field-label" style={{ marginTop: 0 }}>Petrol ($/L)</label>
-                  <input style={inputStyle} type="number" min="0.01" step="0.01" value={petrolPrice}
-                    onChange={e => { setPetrolPrice(e.target.value); setFormErrors(p => ({ ...p, petrolPrice: "" })); }}
-                    placeholder="e.g. 2.00" />
-                  {formErrors.petrolPrice && <span style={{ color: "#f87171", fontSize: "11px" }}>{formErrors.petrolPrice}</span>}
-                </div>
-              </div>
+              ))}
             </div>
 
-            <button onClick={handleCalculate} disabled={loading}
-              style={{ backgroundColor: loading ? "rgba(0,180,130,0.3)" : "#00b482", color: "#fff", border: "none", borderRadius: "8px", padding: "12px 28px", fontWeight: 700, fontSize: "14px", cursor: loading ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: "8px" }}>
-              {loading ? (<><PulseDot color="#fff" />Calculating...</>) : "Calculate & Compare →"}
-            </button>
-
-            {serverError && (
-              <div style={{ marginTop: "12px", backgroundColor: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: "8px", padding: "12px 16px", color: "#f87171", fontSize: "13px" }}>
-                {serverError}
-              </div>
-            )}
-          </div>
-
-          {/* Results */}
-          {serverResult && (
-            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-              <div style={{ backgroundColor: savingsPositive ? "rgba(52,211,153,0.07)" : "rgba(248,113,113,0.07)", border: `1px solid ${savingsPositive ? "rgba(52,211,153,0.2)" : "rgba(248,113,113,0.2)"}`, borderRadius: "14px", padding: "24px", textAlign: "center" }}>
-                <p style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "1.5px", color: "rgba(255,255,255,0.35)", margin: "0 0 10px 0" }}>PREDICTED SAVINGS · EV VS PETROL</p>
-                <p style={{ fontSize: "48px", fontWeight: 800, color: savingsPositive ? "#34d399" : "#f87171", margin: "0 0 6px 0" }}>
-                  {savingsPositive ? "+" : "-"}${Math.abs(savings).toFixed(2)}
-                </p>
-                <span style={{ fontSize: "12px", backgroundColor: savingsPositive ? "rgba(52,211,153,0.15)" : "rgba(248,113,113,0.15)", color: savingsPositive ? "#34d399" : "#f87171", padding: "4px 14px", borderRadius: "20px", border: `1px solid ${savingsPositive ? "rgba(52,211,153,0.3)" : "rgba(248,113,113,0.3)"}` }}>
-                  {savingsPositive ? "EV is cheaper for this trip" : "Petrol is cheaper for this trip"}
-                </span>
-              </div>
-
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px" }}>
-                {[
-                  { label: "EV trip cost", value: `$${serverResult.ev_trip_cost?.toFixed(2) ?? "—"}`, color: "#00b482", pct: 40, icon: "⚡" },
-                  { label: "Petrol trip cost", value: `$${serverResult.ice_trip_cost?.toFixed(2) ?? "—"}`, color: "#f87171", pct: 70, icon: "⛽" },
-                  { label: "CO₂ saved", value: `${serverResult.co2_saved_kg?.toFixed(2) ?? "—"} kg`, color: "#34d399", pct: 60, icon: "🌿" },
-                ].map(({ label, value, color, pct, icon }) => (
-                  <div key={label} className="bento-card" style={{ textAlign: "center", borderTop: `2px solid ${color}` }}>
-                    <p className="card-label">{label}</p>
-                    <Ring pct={pct} color={color} size={56} key={label + ticker}>
-                      <span style={{ fontSize: "12px" }}>{icon}</span>
-                    </Ring>
-                    <p style={{ color, fontSize: "16px", fontWeight: 700, margin: "8px 0 0 0" }}>{value}</p>
+            <div className="grid grid-cols-2 gap-2.5">
+              {[
+                { label: "EV emissions", value: `${serverResult.ev_co2_kg?.toFixed(2) ?? "—"} kg`, color: "#00b482", pct: 30 },
+                { label: "ICE emissions", value: `${serverResult.ice_co2_kg?.toFixed(2) ?? "—"} kg`, color: "#f87171", pct: 80 },
+              ].map(({ label, value, color, pct }) => (
+                <div key={label} className="bento-card">
+                  <p className="text-sm font-bold tracking-[1.5px] text-surface-950/35 m-0 mb-2 uppercase">
+                    {label}
+                  </p>
+                  <p style={{ color }} className="text-xl font-bold m-0 mb-2">{value}</p>
+                  <div className="h-1 bg-white/8 rounded-[2px] overflow-hidden">
+                    <div style={{ width: `${pct}%`, backgroundColor: color }} className="h-full rounded-xs transition-[width] duration-[1400ms] ease-out" />
                   </div>
-                ))}
-              </div>
-
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-                {[
-                  { label: "EV emissions", value: `${serverResult.ev_co2_kg?.toFixed(2) ?? "—"} kg`, color: "#00b482", pct: 30 },
-                  { label: "ICE emissions", value: `${serverResult.ice_co2_kg?.toFixed(2) ?? "—"} kg`, color: "#f87171", pct: 80 },
-                ].map(({ label, value, color, pct }) => (
-                  <div key={label} className="bento-card">
-                    <p className="card-label">{label}</p>
-                    <p style={{ color, fontSize: "20px", fontWeight: 700, margin: "0 0 8px 0" }}>{value}</p>
-                    <div style={{ height: "4px", backgroundColor: "rgba(255,255,255,0.08)", borderRadius: "2px", overflow: "hidden" }}>
-                      <div style={{ height: "100%", width: `${pct}%`, backgroundColor: color, borderRadius: "2px", transition: "width 1.4s ease" }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 16px", backgroundColor: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "8px" }}>
-                <PulseDot color="#60a5fa" />
-                <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.3)" }}>ML model: {serverResult.model_version}</span>
-              </div>
+                </div>
+              ))}
             </div>
-          )}
-        </div>
 
-        {chartData && <CostCharts chartData={chartData} />}
-
-        {!serverResult && !loading && (
-          <div style={{ textAlign: "center", padding: "60px 0", color: "rgba(255,255,255,0.15)" }}>
-            <div style={{ fontSize: "52px", marginBottom: "16px", opacity: 0.5 }}>⚡</div>
-            <p style={{ fontSize: "16px", margin: "0 0 8px 0", color: "rgba(255,255,255,0.3)" }}>Select vehicles and enter trip details to compare costs</p>
-            <p style={{ fontSize: "13px", margin: 0, color: "rgba(255,255,255,0.15)" }}>Powered by LightGBM ML model</p>
+            <div className="flex items-center gap-2 px-4 py-2.5 bg-white/2 border border-white/6 rounded-lg">
+              <PulseDot color="#60a5fa" />
+              <span className="text-sm text-surface-950/30">ML model: {serverResult.model_version}</span>
+            </div>
           </div>
         )}
       </div>
-    </div>
+
+      {chartData && <CostCharts chartData={chartData} />}
+
+      {!serverResult && !loading && (
+        <div className="text-center py-8 text-surface-950/15">
+          <div className="text-6xl mb-12 opacity-50">⚡</div>
+          <p className="text-base m-0 mb-2 text-surface-700">Select vehicles and enter trip details to compare costs</p>
+          <p className="text-sm m-0 text-surface-600">Powered by LightGBM ML model</p>
+        </div>
+      )}
+    </main>
   );
 }

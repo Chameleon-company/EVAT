@@ -169,15 +169,18 @@ export default function EVChatBubble() {
 
       {/* Floating button */}
       <button
+        id="evchatbubble-btn"
         onClick={() => setOpen(prev => !prev)}
+        className="
+          fixed flex items-center justify-center z-11
+          bottom-(--evchatbubble-button-bottom) right-2
+          border-none
+          size-16 rounded-full cursor-pointer
+          md:bottom-(--evchatbubble-button-bottom-md) md:right-4
+        "
         style={{
-          position: "fixed", bottom: "24px", right: "24px",
-          width: "56px", height: "56px", borderRadius: "50%",
-          backgroundColor: "#00b482", border: "none",
-          boxShadow: "0 8px 24px rgba(0,180,130,0.4)",
-          cursor: "pointer", fontSize: "22px",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          zIndex: 9999, transition: "transform 0.2s, box-shadow 0.2s",
+          backgroundColor: "#00b482", boxShadow: "0 8px 24px rgba(0,180,130,0.4)", fontSize: "22px",
+          transition: "transform 0.2s, box-shadow 0.2s",
         }}
         onMouseEnter={e => { e.currentTarget.style.transform = "scale(1.1)"; e.currentTarget.style.boxShadow = "0 12px 32px rgba(0,180,130,0.5)"; }}
         onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,180,130,0.4)"; }}

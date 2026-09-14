@@ -17,17 +17,8 @@ import ChargingRecommendations from '../components/ChargingRecommendations';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
-import '../styles/Root.css';
-import '../styles/SmartFilter.css';
-import '../styles/Map.css';
-import '../styles/Buttons.css';
-import '../styles/Elements.css';
-import '../styles/Fonts.css';
-import '../styles/Forms.css';
-import '../styles/NavBar.css';
-import '../styles/Sidebar.css';
-import '../styles/Tables.css';
-import '../styles/Validation.css';
+import { Banner } from '../components/Banner';
+import { Button } from '../components/Button';
 
 // Configure default Leaflet marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -320,19 +311,19 @@ export default function Map() {
   const [operatorTypes, setOperatorTypes] = useState([]);
 
   // local UI state for the floating dark-mode button icon
-  const [isDark, setIsDark] = useState(false);
+  // const [isDark, setIsDark] = useState(false);
 
   // toggle dark mode only when inside the Map page
-  useEffect(() => {
-    if (isDark) {
-      document.body.classList.add("dark-mode");
-    } else {
-      document.body.classList.remove("dark-mode");
-    }
-    return () => {
-      document.body.classList.remove("dark-mode");
-    };
-  }, [isDark]);
+  // useEffect(() => {
+  //   if (isDark) {
+  //     document.body.classList.add("dark-mode");
+  //   } else {
+  //     document.body.classList.remove("dark-mode");
+  //   }
+  //   return () => {
+  //     document.body.classList.remove("dark-mode");
+  //   };
+  // }, [isDark]);
 
   // Fetch chargers once per login. The API ignores bbox, so refetching on every
   // map pan floods the browser/server and blocks nearby places from loading.
@@ -488,103 +479,43 @@ useEffect(() => {
   }, [stations, filters]);
 
   return (
-    <div className={`map-page ${isDark ? "dark" : ""}`}>
+    <>
       <NavBar />
-      <div className='container-map'>
-        <button
-          className="btn btn-primary btn-filter btn-small"
-          onClick={() => setIsFilterOpen(true)}
-        >
-          🔍 Smart Filters
-        </button>
-
+      <div className="relative h-(--content-height) overflow-auto [&~#evchatbubble-btn]:[--evchatbubble-button-bottom:--spacing(16)] [&~#evchatbubble-btn]:[--evchatbubble-button-bottom-md:--spacing(4)]">
         {loading && bbox && (
-          <div className="map-status-message map-loading" style={{
-            position: 'absolute',
-            top: 12,
-            left: 12,
-            zIndex: 1000,
-            background: '#fff',
-            padding: '8px 12px',
-            borderRadius: 6,
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-            fontSize: '14px',
-            fontWeight: 500
-          }}>
+          <Banner type="info" className="absolute z-11 font-medium max-w-80 top-2 right-2 md:top-[unset] md:right-[unset] md:bottom-4 md:left-4">
             Loading charging stations…
-          </div>
+          </Banner>
         )}
         {err && (
-          <div className="map-status-message map-error" style={{
-            position: 'absolute',
-            top: 12,
-            left: 12,
-            zIndex: 1000,
-            background: '#ffebee',
-            color: '#c62828',
-            padding: '8px 12px',
-            borderRadius: 6,
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-            fontSize: '14px',
-            fontWeight: 500,
-            borderLeft: '4px solid #f44336',
-            maxWidth: '300px'
-          }}>
+          <Banner type="error" className="absolute z-11 font-medium max-w-80 top-2 right-2 md:top-[unset] md:right-[unset] md:bottom-4 md:left-4">
             {err}
-          </div>
+          </Banner>
         )}
         {!bbox && !loading && user?.token && (
-          <div className="map-status-message map-info" style={{
-            position: 'absolute',
-            top: 12,
-            left: 12,
-            zIndex: 1000,
-            background: '#e3f2fd',
-            color: '#1565c0',
-            padding: '12px 16px',
-            borderRadius: 8,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-            fontSize: '14px',
-            fontWeight: 500,
-            borderLeft: '4px solid #2196f3',
-            maxWidth: '320px',
-            lineHeight: '1.5'
-          }}>
-            <div style={{ fontWeight: 600, marginBottom: '4px' }}>
+          <Banner type="info" className="absolute z-11 font-medium max-w-80 top-2 right-2 md:top-[unset] md:right-[unset] md:bottom-4 md:left-4">
+            <div className="mb-1 font-semibold">
               📍 Map Loading
             </div>
-            <div style={{ fontSize: '13px', opacity: 0.9 }}>
+            <div className="text-sm">
               Wait for map to load or move/zoom to search for chargers
             </div>
-          </div>
+          </Banner>
         )}
         {!user?.token && (
-          <div className="map-status-message map-warning" style={{
-            position: 'absolute',
-            top: 12,
-            left: 12,
-            zIndex: 1000,
-            background: '#fff3cd',
-            color: '#856404',
-            padding: '12px 16px',
-            borderRadius: 8,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-            fontSize: '14px',
-            fontWeight: 500,
-            borderLeft: '4px solid #ffc107',
-            maxWidth: '300px'
-          }}>
-            <div style={{ fontWeight: 600, marginBottom: '4px' }}>
+          <Banner type="warning" className="absolute z-11 font-medium max-w-80 top-2 right-2 md:top-[unset] md:right-[unset] md:bottom-4 md:left-4">
+            <div className="mb-1 font-semibold">
               ⚠️ Login Required
             </div>
-            <div style={{ fontSize: '13px', opacity: 0.9 }}>
+            <div className="text-sm">
               Please log in to search for charging stations
+              Wait for map to load or move/zoom to search for chargers
             </div>
-          </div>
+          </Banner>
         )}
 
         <MapContainer
-          className="map-visible-area hide-scrollbar "
+          className="h-full z-10"
           center={[-37.8136, 144.9631]}
           zoom={13}
           whenCreated={(mapInstance) => {
@@ -605,15 +536,23 @@ useEffect(() => {
           <LocateUser />
         </MapContainer>
 
-        <button
+        {/* <button
           className="btn btn-primary btn-dark-mode"
           aria-label="Toggle dark mode"
           onClick={() => setIsDark(prev => !prev)}
           title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
         >
           {isDark ? '🌙' : '☀️'}
-        </button>
+        </button> */}
 
+        <div className="absolute z-11 left-3 bottom-18 md:bottom-[unset] md:top-3 md:left-12 md:rounded-xl">
+          <Button
+            variant="transparent"
+            onClick={() => setIsFilterOpen(true)}
+          >
+            🔍 Smart Filters
+          </Button>
+        </div>
         <SmartFilter
           isOpen={isFilterOpen}
           onClose={() => setIsFilterOpen(false)}
@@ -638,8 +577,8 @@ useEffect(() => {
         <FloatingVoiceAssistant onQueryResult={handleVoiceResult} />
 
         {/* Existing chat bubble (kept as is) */}
-        <ChatBubble />
+        {/* <ChatBubble /> */}
       </div>
-    </div>
+    </>
   );
 }

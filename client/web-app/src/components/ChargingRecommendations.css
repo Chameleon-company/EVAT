@@ -1,49 +1,6 @@
-/* .
-   CHARGING RECOMMENDATIONS
-   Right-side floating map panel
-   */
-
 .charging-recommendations {
-    position: absolute;
-
-    /* RIGHT SIDE OF MAP */
-    top: 105px;
-    right: 100px;
-    left: auto;
-
-    z-index: 1500;
-
-    width: 350px;
-    max-width: calc(100vw - 180px);
-    max-height: calc(100vh - 145px);
-
-    padding: 18px;
-
-    /* EVAT dark theme */
-    background: rgba(8, 20, 15, 0.96);
-
-    border: 1px solid rgba(0, 0, 0, 0.55);
-    border-radius: 16px;
-
-    box-shadow:
-        0 14px 35px rgba(0, 0, 0, 0.35),
-        0 0 20px rgba(0, 0, 0, 0.08);
-
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-
-    overflow-y: auto;
-    overflow-x: hidden;
-
-    font-family: inherit;
-
     animation: recommendationPanelEnter 0.25s ease-out;
 }
-
-
-/* .
-   PANEL SCROLLBAR
-   */
 
 .charging-recommendations::-webkit-scrollbar {
     width: 6px;

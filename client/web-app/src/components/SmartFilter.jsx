@@ -1,27 +1,18 @@
-import { useEffect, useRef } from 'react';
-import { Star, Heart, MessageCircle, X, ChevronDown, ChevronUp } from 'lucide-react';
-
-import '../styles/SmartFilter.css';
+import { useEffect, useRef } from "react";
+import { X } from "lucide-react";
+import { Button } from './Button';
+import { twMerge } from "tailwind-merge";
+import clsx from "clsx";
 
 /**
  * SmartFilter Component
- * 
+ *
  * A comprehensive filtering modal for EV charging stations that allows users to:
- * - Filter by charger type (CCS, CHAdeMO, Type 1, Type 2)
- * - Filter by charging speed (<22kW, 22-50kW, 50-150kW, 150kW+)
- * - Set price range with a slider (0-100)
- * - Toggle availability filter (show only available stations)
- * - Toggle congestion overlay (reworked from reliability layer)
- * 
- * @param {boolean} isOpen - Controls modal visibility
- * @param {function} onClose - Callback to close the modal
- * @param {object} filters - Current filter state from parent component
- * @param {function} setFilters - Function to update filters in parent
- * @param {number} filteredCount - Number of stations matching current filters
- * @param {number} priceMin - Minimum price of station
- * @param {number} priceMax - Maximum price of station
- * @param {array} connectorTypes - Types of connectors to filter between
- * @param {array} operatorTypes - Types of operators to filter between
+ * - Filter by charger type
+ * - Filter by charging speed
+ * - Set price range
+ * - Toggle availability filter
+ * - Toggle congestion overlay
  */
 const SmartFilter = ({
   isOpen,
@@ -32,128 +23,140 @@ const SmartFilter = ({
   priceMin,
   priceMax,
   connectorTypes,
-  operatorTypes
+  operatorTypes,
 }) => {
+  const chargingSpeeds = [
+    "<7kW",
+    "7-22kW",
+    "22-50kW",
+    "50-150kW",
+    "150kW-250kW",
+    "250kW+",
+  ];
 
-  // Available filter options - these could be moved to a config file in a larger app
-  const chargingSpeeds = [ '<7kW', '7-22kW', '22-50kW', '50-150kW', '150kW-250kW', '250kW+'];
+  const modalRef = useRef(null);
 
-  /**
-   * Toggle charger type selection
-   */
+  // -----------------------------
+  // Charger Type
+  // -----------------------------
   const handleChargerTypeToggle = (type) => {
-    setFilters(prev => ({
-      ...prev,
-      chargerType: prev.chargerType.includes(type)
-        ? prev.chargerType.filter(t => t !== type)
-        : [...prev.chargerType, type]
-    }));
-  };
-
-  /**
-   * Toggle charging speed selection
-   */
-  const handleChargingSpeedToggle = (speed) => {
-    setFilters(prev => ({
-      ...prev,
-      chargingSpeed: prev.chargingSpeed.includes(speed)
-        ? prev.chargingSpeed.filter(s => s !== speed)
-        : [...prev.chargingSpeed, speed]
-    }));
-  };
-
-  /**
-   * Update price range filter
-   */
-  const handleMinChange = (e) => {
-    const newMin = parseInt(e.target.value);
     setFilters((prev) => ({
       ...prev,
-      priceRange: [Math.min(newMin, prev.priceRange[1]), prev.priceRange[1]], // keep min ≤ max
+      chargerType: prev.chargerType.includes(type)
+        ? prev.chargerType.filter((t) => t !== type)
+        : [...prev.chargerType, type],
+    }));
+  };
+
+  // -----------------------------
+  // Charging Speed
+  // -----------------------------
+  const handleChargingSpeedToggle = (speed) => {
+    setFilters((prev) => ({
+      ...prev,
+      chargingSpeed: prev.chargingSpeed.includes(speed)
+        ? prev.chargingSpeed.filter((s) => s !== speed)
+        : [...prev.chargingSpeed, speed],
+    }));
+  };
+
+  // -----------------------------
+  // Price Range
+  // -----------------------------
+  const handleMinChange = (e) => {
+    const newMin = parseInt(e.target.value, 10);
+
+    setFilters((prev) => ({
+      ...prev,
+      priceRange: [
+        Math.min(newMin, prev.priceRange[1]),
+        prev.priceRange[1],
+      ],
     }));
   };
 
   const handleMaxChange = (e) => {
-    const newMax = parseInt(e.target.value);
+    const newMax = parseInt(e.target.value, 10);
+
     setFilters((prev) => ({
       ...prev,
-      priceRange: [prev.priceRange[0], Math.max(newMax, prev.priceRange[0])], // keep max ≥ min
+      priceRange: [
+        prev.priceRange[0],
+        Math.max(newMax, prev.priceRange[0]),
+      ],
     }));
   };
 
-  /**
-   * Toggle charger operator selection
-   */
+  // -----------------------------
+  // Operator
+  // -----------------------------
   const handleOperatorToggle = (type) => {
-  setFilters(prev => ({
-    ...prev,
-    operatorType: prev.operatorType.includes(type)
-      ? prev.operatorType.filter(o => o !== type)
-      : [...prev.operatorType, type]
-  }));
-};
+    setFilters((prev) => ({
+      ...prev,
+      operatorType: prev.operatorType.includes(type)
+        ? prev.operatorType.filter((o) => o !== type)
+        : [...prev.operatorType, type],
+    }));
+  };
 
-  /**
-   * Toggle availability filter
-   */
+  // -----------------------------
+  // Availability
+  // -----------------------------
   const handleAvailabilityToggle = () => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
-      showOnlyAvailable: !prev.showOnlyAvailable
+      showOnlyAvailable: !prev.showOnlyAvailable,
     }));
   };
 
-  /**
-   * Toggle congestion icons
-   * Enables/disables the congestion icons on the map
-   */
+  // -----------------------------
+  // Congestion
+  // -----------------------------
   const handleCongestionToggle = () => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
-      showCongestion: !prev.showCongestion
+      showCongestion: !prev.showCongestion,
     }));
   };
 
-  /**
-   * Reset all filters to default values
-   */
+  // -----------------------------
+  // Reset
+  // -----------------------------
   const handleReset = () => {
-    const resetFilters = {
+    setFilters({
       chargerType: [],
       chargingSpeed: [],
       priceRange: [priceMin, priceMax],
       operatorType: [],
       showOnlyAvailable: false,
-      showCongestion: true
-    };
-    setFilters(resetFilters);
+      showCongestion: true,
+    });
   };
 
-  /**
-   * Closes the window (keeping apply button just for UX)
-   */
+  // -----------------------------
+  // Apply
+  // -----------------------------
   const handleApplyFilter = () => {
     onClose();
   };
 
-  // Closes filter panel when clicking outside the smart filter
-  const modalRef = useRef(null);
-
+  // -----------------------------
+  // Close when clicking outside
+  // -----------------------------
   useEffect(() => {
     function handleClickOutside(event) {
-      // If click is outside modal, close it
-      if (modalRef.current && !modalRef.current.contains(event.target)) {
+      if (
+        modalRef.current &&
+        !modalRef.current.contains(event.target)
+      ) {
         onClose();
       }
     }
 
     if (isOpen) {
       document.addEventListener("mousedown", handleClickOutside);
-    } else {
-      document.removeEventListener("mousedown", handleClickOutside);
     }
 
-    // Cleanup
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
@@ -161,153 +164,276 @@ const SmartFilter = ({
 
   if (!isOpen) return null;
 
+  // -----------------------------
+  // Reusable Toggle Switch
+  // -----------------------------
+  const ToggleSwitch = ({ checked, onChange, label }) => {
+    return (
+      <Button
+        type="button"
+        variant="unstyled"
+        role="switch"
+        aria-checked={checked}
+        aria-label={label}
+        onClick={onChange}
+        className={twMerge(clsx(
+          'relative h-7 w-12 shrink-0 rounded-full border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:ring-offset-1',
+          checked
+            ? "border-emerald-500 bg-emerald-500"
+            : "border-surface-300 bg-surface-300"
+        ))}
+      >
+        {/* Toggle knob */}
+        <span
+          className={`absolute left-1 top-1 h-5 w-5 rounded-full bg-background shadow-md transition-transform duration-200 ${
+            checked ? "translate-x-5" : "translate-x-0"
+          }`}
+        />
+      </Button>
+    );
+  };
+
   return (
-    <div className="filter-overlay">
-      <div className="filter-container" ref={modalRef}>
-        <div className='sticky-top'>
-          {/* Header */}
-          <div className="filter-header">
-            <h4>Filters</h4>
-            <button className="btn btn-danger filter-btn-close" onClick={onClose}>
-              <X size={20} />
-            </button>
+    <div className="fixed inset-0 z-100 flex items-center justify-center bg-foreground/5 p-4 backdrop-blur-xs">
+      <div
+        ref={modalRef}
+        className="relative flex max-h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-foreground/25 bg-background shadow-2xl"
+      >
+        {/* =========================
+            HEADER
+        ========================== */}
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-foreground/20 bg-background px-5 py-4">
+          <div>
+            <h4 className="text-lg font-bold text-foreground">
+              Filters
+            </h4>
+
+            <p className="mt-0.5 text-xs text-surface-500">
+              Refine charging stations
+            </p>
           </div>
+
+
+          <button
+            className="
+              flex items-center justify-center size-6
+              rounded-md
+              cursor-pointer
+              outline-1 outline-primary/25
+              hover:bg-primary/25
+            "
+            variant="unstyled"
+            onClick={onClose}
+            aria-label="Close filters"
+          >
+            <X className="size-4" />
+          </button>
         </div>
 
-        <div>
-          {/* Charger Type Filter Section */}
-          <div className="filter-section">
-            <h5 className='text-center'>Charger Type</h5>
-            <div className="filter-options">
-              {connectorTypes.map(type => (
-                <button
+        {/* =========================
+            SCROLLABLE CONTENT
+        ========================== */}
+        <div className="flex-1 overflow-y-auto px-5 py-4">
+          {/* =========================
+              CHARGER TYPE
+          ========================== */}
+          <section className="py-2">
+            <h5 className="mb-3 text-center text-sm font-semibold text-surface-800">
+              Charger Type
+            </h5>
+
+            <div className="flex flex-wrap justify-center gap-2">
+              {connectorTypes.map((type) => (
+                <Button
                   key={type}
-                  className={`btn btn-options btn-tiny ${filters.chargerType.includes(type) ? 'selected' : ''}`}
+                  type="button"
+                  variant="options"
+                  size="tiny"
                   onClick={() => handleChargerTypeToggle(type)}
+                  className={`px-3 py-2 hover:translate-y-0 hover:shadow-none ${
+                    filters.chargerType.includes(type) ? 'selected hover:shadow-sm' : ''
+                  }`}
                 >
                   {type}
-                </button>
+                </Button>
               ))}
             </div>
-          </div>
+          </section>
 
-          <div className='sidebar-linebreak' />
-          {/* Charging Speed Filter Section */}
-          <div className="filter-section">
-            <h5 className='text-center'>Charging Speed</h5>
-            <div className="filter-options">
-              {chargingSpeeds.map(speed => (
-                <button
+          <div className="my-4 border-t border-foreground/20" />
+
+          {/* =========================
+              CHARGING SPEED
+          ========================== */}
+          <section className="py-2">
+            <h5 className="mb-3 text-center text-sm font-semibold text-surface-800">
+              Charging Speed
+            </h5>
+
+            <div className="flex flex-wrap justify-center gap-2">
+              {chargingSpeeds.map((speed) => (
+                <Button
                   key={speed}
-                  className={`btn btn-options btn-tiny ${filters.chargingSpeed.includes(speed) ? 'selected' : ''}`}
+                  type="button"
+                  variant="options"
+                  size="tiny"
                   onClick={() => handleChargingSpeedToggle(speed)}
+                  className={`px-3 py-2 hover:translate-y-0 hover:shadow-none ${
+                    filters.chargingSpeed.includes(speed) ? 'selected hover:shadow-sm' : ''
+                  }`}
                 >
                   {speed}
-                </button>
+                </Button>
               ))}
             </div>
-          </div>
+          </section>
 
-          <div className='sidebar-linebreak' />
-          {/* Price Range Filter Section */}
-          <div className="filter-section">
-            <h5 className='text-center'>Price Range (¢ per kWh)</h5>
-              <div className="price-slider-container">
-                {/* two range inputs */}
+          <div className="my-4 border-t border-foreground/20" />
+
+          {/* =========================
+              PRICE RANGE
+          ========================== */}
+          <section className="py-2">
+            <h5 className="mb-4 text-center text-sm font-semibold text-surface-800">
+              Price Range (¢ per kWh)
+            </h5>
+
+            <div className="px-2">
+              <div className="relative">
                 <input
-                  className="price-slider"
+                  className="h-1.5 w-full cursor-pointer appearance-none rounded-lg bg-surface-200 accent-emerald-500"
                   type="range"
                   min={priceMin}
                   max={priceMax}
                   value={filters.priceRange[0]}
                   onChange={handleMinChange}
                 />
+
                 <input
-                  className="price-slider"
+                  className="-mt-1.5 h-1.5 w-full cursor-pointer appearance-none rounded-lg bg-transparent accent-emerald-600"
                   type="range"
                   min={priceMin}
                   max={priceMax}
                   value={filters.priceRange[1]}
                   onChange={handleMaxChange}
                 />
-
-                {/* labels */}
-                <div className="price-slider-labels text-small">
-                  <span>{priceMin}</span>
-                  <span className="font-bold text-large">
-                    {filters.priceRange[0]} - {filters.priceRange[1]}
-                  </span>
-                  <span>{priceMax}</span>
-                </div>
               </div>
-          </div>
 
-          <div className='sidebar-linebreak' />
-          {/* Charger Operator Filter Section */}
-          <div className="filter-section">
-            <h5 className='text-center'>Charger Operator</h5>
-            <div className="filter-options">
-              {operatorTypes.map(type => (
-                <button
+              <div className="mt-3 flex items-center justify-between text-xs text-surface-500">
+                <span>{priceMin}</span>
+
+                <span className="rounded-full bg-emerald-50 px-3 py-1 font-semibold text-emerald-700">
+                  {filters.priceRange[0]} - {filters.priceRange[1]}
+                </span>
+
+                <span>{priceMax}</span>
+              </div>
+            </div>
+          </section>
+
+          <div className="my-4 border-t border-foreground/20" />
+
+          {/* =========================
+              CHARGER OPERATOR
+          ========================== */}
+          <section className="py-2">
+            <h5 className="mb-3 text-center text-sm font-semibold text-surface-800">
+              Charger Operator
+            </h5>
+
+            <div className="flex flex-wrap justify-center gap-2">
+              {operatorTypes.map((type) => (
+                <Button
                   key={type}
-                  className={`btn btn-options btn-tiny ${filters.operatorType.includes(type) ? 'selected' : ''}`}
+                  type="button"
+                  variant="options"
+                  size="tiny"
                   onClick={() => handleOperatorToggle(type)}
+                  className={`px-3 py-2 hover:translate-y-0 hover:shadow-none ${
+                    filters.operatorType.includes(type) ? 'selected hover:shadow-sm' : ''
+                  }`}
                 >
                   {type}
-                </button>
+                </Button>
               ))}
             </div>
-          </div>
+          </section>
 
-          <div className='sidebar-linebreak' />
-          {/* Availability Filter Section */}
-          <div className="filter-section">
-            <h5 className='text-center'>Availability</h5>
-            <div className="toggle-holder">
-              <label className='form-label '>Show only available stations?</label>
-              <label className="toggle-switch">
-                <input
-                  type="checkbox"
-                  checked={filters.showOnlyAvailable}
-                  onChange={handleAvailabilityToggle}
-                />
-                <span className="toggle-slider"></span>
-              </label>
-            </div>
-          </div>
+          <div className="my-4 border-t border-foreground/20" />
 
-          <div className='sidebar-linebreak' />
-          {/* Congestion Toggle Section */}
-          <div className="filter-section">
-            <h5 className='text-center'>Congestion Icons</h5>
-            <div className="toggle-holder">
-              <label className='form-label '>Colors icons showing predicted congestion</label>
-              <label className="toggle-switch">
-                <input
-                  type="checkbox"
-                  checked={filters.showCongestion}
-                  onChange={handleCongestionToggle}
-                />
-                <span className="toggle-slider"></span>
-              </label>
+          {/* =========================
+              AVAILABILITY
+          ========================== */}
+          <section className="py-2">
+            <h5 className="mb-3 text-center text-sm font-semibold text-surface-800">
+              Availability
+            </h5>
+
+            <div className="flex items-center justify-between gap-4 rounded-xl bg-surface-50 px-4 py-3">
+              <span className="text-sm leading-5 text-surface-600">
+                Show only available stations?
+              </span>
+
+              <ToggleSwitch
+                checked={filters.showOnlyAvailable}
+                onChange={handleAvailabilityToggle}
+                label="Show only available stations"
+              />
             </div>
-          </div>
+          </section>
+
+          <div className="my-4 border-t border-foreground/20" />
+
+          {/* =========================
+              CONGESTION
+          ========================== */}
+          <section className="py-2">
+            <h5 className="mb-3 text-center text-sm font-semibold text-surface-800">
+              Congestion Icons
+            </h5>
+
+            <div className="flex items-center justify-between gap-4 rounded-xl bg-surface-50 px-4 py-3">
+              <span className="text-sm leading-5 text-surface-600">
+                Show predicted congestion icons?
+              </span>
+
+              <ToggleSwitch
+                checked={filters.showCongestion}
+                onChange={handleCongestionToggle}
+                label="Show predicted congestion icons"
+              />
+            </div>
+          </section>
         </div>
 
-        <div className="sticky-bottom filter-footer">
-          <div className='sidebar-linebreak' />
-          {/* Results Counter */}
-          <h5 className='text-center'>
-            {filteredCount} Station{filteredCount !== 1 ? 's' : ''} found
+        {/* =========================
+            FOOTER
+        ========================== */}
+        <div className="sticky bottom-0 border-t border-foreground/20 bg-background px-5 py-4">
+          <h5 className="mb-4 text-center text-sm font-semibold text-surface-700">
+            {filteredCount} Station
+            {filteredCount !== 1 ? "s" : ""} found
           </h5>
-          {/* Action Buttons */}
-          <div className="action-buttons">
-            <button className="btn btn-transparent btn-force-flex btn-small" onClick={handleReset}>
+
+          <div className="flex gap-3">
+            {/* Reset */}
+            <Button
+              type="button"
+              variant="transparent"
+              onClick={handleReset}
+              className="flex-1 hover:translate-y-0 hover:shadow-none"
+            >
               Reset
-            </button>
-            <button className="btn btn-primary btn-force-flex btn-small" onClick={handleApplyFilter}>
+            </Button>
+
+            {/* Apply */}
+            <Button
+              type="button"
+              onClick={handleApplyFilter}
+              className="flex-1 hover:translate-y-0"
+            >
               Apply Filter
-            </button>
+            </Button>
           </div>
         </div>
       </div>

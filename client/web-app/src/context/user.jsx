@@ -11,13 +11,13 @@ export const UserProvider = ({ children }) => {
 
   // Load user from localStorage when app starts
   useEffect(() => {
-     const storedUser = localStorage.getItem('currentUser');
+    const storedUser = localStorage.getItem('currentUser');
     if (storedUser) {
       try {
         setUser(JSON.parse(storedUser));
       } catch (e) {
-       console.error('Failed to parse stored currentUser', e);
-       localStorage.removeItem('currentUser'); // remove corrupted entry
+        console.error('Failed to parse stored currentUser', e);
+        localStorage.removeItem('currentUser'); // remove corrupted entry
       }
     }
   }, []);
