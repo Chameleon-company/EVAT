@@ -4,11 +4,16 @@ __pycache__/
 .env
 *.env
 .DS_Store
+server/python-services/chatbot/rasa/.rasa/
+server/python-services/chatbot/rasa/.cache/
+server/python-services/chatbot/rasa/.config/
+server/python-services/chatbot/rasa/models/
+
+# Ignore legacy generated folders if they remain after moving tracked Rasa files.
 rasa/.rasa/
 rasa/.cache/
 rasa/.config/
 rasa/models/
-.rasa/cache/
 apps/EVAT_Flask/
 cloudbuild.yaml
 .claude/

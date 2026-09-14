@@ -32,48 +32,42 @@ The EVAT Chatbot is now deployed online and accessible via Netlify: https://t2-r
 ---
 
 ## 📁 Project Structure
-EVAT/
-├── backend/                    # Core business logic
-│   ├── llm/                    # Qwen/Ollama LLM API, service, providers, prompts and tools
-│   │   ├── api.py               # Flask app exposing /health and /api/chat
-│   │   ├── service.py            # LLM service (chat + tool calling)
-│   │   ├── tools.py              # EV charging/routing tools used by the LLM
-│   │   ├── prompts.py, models.py, config.py, providers/
-│   ├── utils/                   # Backend utilities
-│   ├── real_time_apis.py         # TomTom client
-│   ├── openchargeapi.py          # Open Charge Map client
-│   └── ...                       # Other station/route/availability services
-├── frontend/                    # Chatbot web UI
-│   ├── chat.html                 # Main chat interface
-│   ├── js/
-│   │   ├── chatbot-api.js         # Qwen-first API connection with Rasa fallback
-│   │   └── app.js                 # Frontend app logic
-│   ├── cards/                    # Station, directions and traffic response cards
-│   ├── chat/, ui/, location/     # Chat history, input/typing UI, geolocation helpers
-├── rasa/                        # Existing Rasa chatbot (now used as fallback)
-│   ├── domain.yml, config.yml, endpoints.yml, credentials.yml
-│   ├── actions/                  # Custom action implementations
-│   └── data/                     # Training data (intents, stories, rules)
-├── data/                        # Datasets
-│   └── raw/                      # CSV files (charging stations, coordinates)
-├── .env.example                 # Example environment configuration
-├── requirements.txt             # Python dependencies
-└── README.md                    # Project overview
+
+```text
+client/web-app/
+├── index.html
+├── chat.html
+└── src/features/chatbot/
+    ├── components/
+    ├── cards/
+    ├── api/
+    └── location/
+
+server/python-services/chatbot/
+├── api.py
+├── config.py
+├── llm/
+│   └── providers/
+├── services/
+├── data/
+├── tests/
+└── rasa/                 # Isolated fallback
+```
 
 ---
 
 ## 🧩 How to Use the Chatbot (Local Setup)
 
 ### 1. Install dependencies
-From the repo root:
+From `server/python-services`:
 ```
-pip install -r requirements.txt
+pip install -r chatbot/requirements.txt
 ```
 
 ### 2. Environment variables
 Copy the example file:
 ```
-cp .env.example .env
+cp chatbot/.env.example chatbot/.env
 ```
 API keys and config values are read from `.env`. Key variables include:
 - `TOMTOM_API_KEY` – used for routing/traffic
@@ -90,18 +84,18 @@ ollama pull qwen3:4b-instruct
 By default Ollama is expected at `http://127.0.0.1:11434`.
 
 ### 4. Qwen API
-Run the LLM API from the repo root:
+Run the LLM API from `server/python-services`:
 ```
-python -m backend.llm.api
+python -m chatbot.api
 ```
 This starts the Flask app on `http://localhost:8000`:
 - Health check: `GET http://localhost:8000/health`
 - Chat endpoint: `POST http://localhost:8000/api/chat`
 
 ### 5. Frontend
-Run from the repo root:
+Run from the repository root:
 ```
-python3 -m http.server 8080 --directory frontend
+python -m http.server 8080 --directory client/web-app
 ```
 Open `http://localhost:8080` in your browser and go to `chat.html`. The frontend sends chat messages to the Qwen API first.
 
@@ -110,7 +104,7 @@ Rasa is kept as a fallback chatbot, not the primary one. If the Qwen API is unre
 ```
 http://localhost:5005/webhooks/rest/webhook
 ```
-To use the fallback, the Rasa server (and actions server) must be running separately — see the `rasa/` folder for its configuration. If Rasa isn't running, the fallback attempt will also fail and the chatbot will show a connection error.
+To use the fallback, the Rasa server (and actions server) must be running separately — see `server/python-services/chatbot/rasa/`. If Rasa isn't running, the fallback attempt will also fail and the chatbot will show a connection error.
 
 **Note:**
 - Ensure Python 3.8+ is installed and accessible in your system path.
@@ -149,8 +143,8 @@ Flow:
 ---
 
 ## ⚙️ How It Works
-- Browser/frontend (`frontend/js/chatbot-api.js`) sends the user's message and location metadata to the Qwen Flask API (`backend/llm/api.py`).
-- The Qwen LLM service (`backend/llm/service.py`) processes the message and can call EV charging tools (`backend/llm/tools.py`) for things like nearby stations, availability, and routing.
+- Browser/frontend (`client/web-app/src/features/chatbot/api/chatbot-api.js`) sends the user's message and location metadata to the Qwen Flask API (`server/python-services/chatbot/api.py`).
+- The Qwen LLM service (`server/python-services/chatbot/llm/service.py`) processes the message and can call EV charging tools (`server/python-services/chatbot/llm/tools.py`) for things like nearby stations, availability, and routing.
 - Those tools use TomTom (routing/traffic) and Open Charge Map (station data) where configured.
 - Station resolution: Names/suburbs → coordinates via CSV dataset.
 - If the Qwen API is unavailable, the frontend falls back to the existing Rasa chatbot instead.
@@ -160,7 +154,7 @@ Flow:
 ## 🖥️ Frontend (Current State)
 - Chat UI sends messages to the Qwen API first; Rasa is used as a fallback if Qwen is unavailable.
 - Structured tool results from the chatbot are rendered as response cards.
-- Current response card components: station cards, directions cards, and traffic cards (`frontend/cards/`).
+- Current response card components: station cards, directions cards, and traffic cards (`client/web-app/src/features/chatbot/cards/`).
 - Station cards include a Get Directions button that links to Google Maps where supported.
 
 **Current limitations:**
@@ -169,8 +163,8 @@ Flow:
 ---
 
 ## 📍 Data Sources
-- `data/raw/Co-ordinates.csv` → suburb coordinates  
-- `data/raw/charger_info_mel.csv` → charging station details
+- `server/python-services/chatbot/data/Co-ordinates.csv` → suburb coordinates
+- `server/python-services/chatbot/data/charger_info_mel.csv` → charging station details
   
 ---
 ## Future Development
