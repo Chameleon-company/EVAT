@@ -36,30 +36,42 @@ def safe_float(value) -> Optional[float]:
 def clean_text(value) -> str:
     if value is None:
         return "unknown"
+
     text = str(value).strip().lower()
+
     return "unknown" if text in _MISSING_TEXT_VALUES else text
 
 
 def clean_pay_at_location(value) -> str:
     if value is None:
         return "unknown"
+
     if isinstance(value, bool):
         return "yes" if value else "no"
+
     text = str(value).strip().lower()
+
     if text in _PAY_AT_LOCATION_YES:
         return "yes"
+
     if text in _PAY_AT_LOCATION_NO:
         return "no"
+
     return "unknown"
 
 
 def _load_model():
     if not MODEL_PATH.exists():
         return None
+
     try:
         return joblib.load(MODEL_PATH)
+
     except Exception as error:  # noqa: BLE001
-        print(f"[preference_model] Failed to load {MODEL_PATH}: {error}")
+        print(
+            f"[preference_model] Failed to load "
+            f"{MODEL_PATH}: {error}"
+        )
         return None
 
 
@@ -70,32 +82,66 @@ def is_model_available() -> bool:
     return MODEL is not None
 
 
-def _candidate_to_row(candidate: ChargingStationCandidate) -> dict:
+def _candidate_to_row(
+    candidate: ChargingStationCandidate,
+    user_previous_sessions: int,
+) -> dict:
     row = {
-        feature: safe_float(getattr(candidate, feature, None))
+        feature: safe_float(
+            getattr(candidate, feature, None)
+        )
         for feature in NUMERIC_FEATURES
     }
-    row["payAtLocation"] = clean_pay_at_location(getattr(candidate, "payAtLocation", None))
-    row["roadTrafficCondition"] = clean_text(getattr(candidate, "roadTrafficCondition", None))
-    row["operator"] = clean_text(getattr(candidate, "operator", None))
+
+    # User-context feature used by the trained model.
+    row["userPreviousSessions"] = float(
+        user_previous_sessions
+    )
+
+    row["payAtLocation"] = clean_pay_at_location(
+        getattr(candidate, "payAtLocation", None)
+    )
+
+    row["roadTrafficCondition"] = clean_text(
+        getattr(candidate, "roadTrafficCondition", None)
+    )
+
+    row["operator"] = clean_text(
+        getattr(candidate, "operator", None)
+    )
+
     return row
 
 
 def predict_selection_probability(
     candidates: List[ChargingStationCandidate],
+    user_previous_sessions: int,
 ) -> Optional[List[float]]:
     if MODEL is None or not candidates:
         return None
 
     frame = pd.DataFrame(
-        [_candidate_to_row(candidate) for candidate in candidates],
+        [
+            _candidate_to_row(
+                candidate,
+                user_previous_sessions,
+            )
+            for candidate in candidates
+        ],
         columns=NUMERIC_FEATURES + CATEGORICAL_FEATURES,
     )
 
     try:
         probabilities = MODEL.predict_proba(frame)[:, 1]
+
     except Exception as error:  # noqa: BLE001
-        print(f"[preference_model] Inference failed, falling back to heuristic: {error}")
+        print(
+            "[preference_model] Inference failed, "
+            f"falling back to heuristic: {error}"
+        )
         return None
 
-    return [float(probability) for probability in probabilities]
+    return [
+        float(probability)
+        for probability in probabilities
+    ]

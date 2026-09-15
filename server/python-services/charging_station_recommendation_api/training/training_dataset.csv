@@ -1,387 +1,397 @@
-sessionId,stationId,distanceKm,durationMin,durationInTrafficMin,energyNominalKwh,energyNeededKwh,chargingPoints,temperatureC,windSpeedMs,windDirectionDeg,cost,roadTrafficCondition,congestionLevel,payAtLocation,operator,connectionType,currentType,selected
-6a7345276502511021153496,674f97ff3dc8e5d2ac00868b,1.7,5.0,5.0,0.194,0.271,4.0,6.9,2.29,280.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),1
-6a7345276502511021153496,674f97ff3dc8e5d2ac0083e4,4.9,9.0,9.0,0.51,0.714,1.0,6.9,2.29,280.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a7345276502511021153496,674f97ff3dc8e5d2ac00843c,,,,,,1.0,,,,,unknown,unknown,unknown,unknown,type 2 (socket only),unknown,0
-6a7345276502511021153496,674f97ff3dc8e5d2ac008478,2.6,8.0,6.0,0.148,0.207,1.0,6.9,2.29,280.0,,light,unknown,unknown,unknown,chademo,unknown,0
-6a7345276502511021153496,674f97ff3dc8e5d2ac008533,,,,,,1.0,,,,,unknown,unknown,unknown,evie networks,chademo,unknown,0
-6a7345276502511021153496,674f97ff3dc8e5d2ac008684,5.6,12.0,10.0,0.419,0.587,1.0,6.9,2.29,280.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a7345276502511021153496,674f97ff3dc8e5d2ac008685,5.5,12.0,10.0,0.417,0.584,1.0,6.9,2.29,280.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a7345276502511021153496,674f98013dc8e5d2ac00873b,2.6,8.0,6.0,0.148,0.207,2.0,6.9,2.29,280.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
-6a7345276502511021153496,674f98013dc8e5d2ac0087cf,8.3,15.0,12.0,0.64,0.896,1.0,6.9,2.29,280.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
-6a7345276502511021153496,674f98013dc8e5d2ac008883,7.9,16.0,12.0,0.717,1.003,2.0,6.9,2.29,280.0,,light,unknown,unknown,(unknown operator),type 2 (socket only),ac (single-phase),0
-6a7696f5f17427d6b91a3d33,674f97ff3dc8e5d2ac00868b,1.5,5.0,5.0,0.151,0.211,4.0,15.4,4.18,25.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),1
-6a7696f5f17427d6b91a3d33,674f97ff3dc8e5d2ac0083e4,4.8,9.0,10.0,0.488,0.684,1.0,15.4,4.18,25.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a7696f5f17427d6b91a3d33,674f97ff3dc8e5d2ac00843c,8.0,15.0,16.0,0.714,0.999,1.0,15.4,4.18,25.0,,light,unknown,unknown,unknown,type 2 (socket only),unknown,0
-6a7696f5f17427d6b91a3d33,674f97ff3dc8e5d2ac008478,2.6,8.0,8.0,0.131,0.184,1.0,15.4,4.18,25.0,,light,unknown,unknown,unknown,chademo,unknown,0
-6a7696f5f17427d6b91a3d33,674f97ff3dc8e5d2ac008533,5.8,10.0,10.0,0.828,1.16,1.0,15.4,4.18,25.0,,light,unknown,unknown,evie networks,chademo,unknown,0
-6a7696f5f17427d6b91a3d33,674f97ff3dc8e5d2ac008684,5.6,12.0,13.0,0.357,0.5,1.0,15.4,4.18,25.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a7696f5f17427d6b91a3d33,674f97ff3dc8e5d2ac008685,5.5,12.0,13.0,0.358,0.501,1.0,15.4,4.18,25.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a7696f5f17427d6b91a3d33,674f98013dc8e5d2ac00873b,2.6,8.0,8.0,0.131,0.184,2.0,15.4,4.18,25.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
-6a7696f5f17427d6b91a3d33,674f98013dc8e5d2ac0087cf,9.8,15.0,15.0,0.819,1.147,1.0,15.4,4.18,25.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
-6a7696f5f17427d6b91a3d33,674f98013dc8e5d2ac008883,8.3,14.0,15.0,0.758,1.061,2.0,15.4,4.18,25.0,,light,unknown,unknown,(unknown operator),type 2 (socket only),ac (single-phase),0
-6a76a2f5f17427d6b91f829b,674f97ff3dc8e5d2ac00868b,1.5,5.0,5.0,0.151,0.212,4.0,16.1,4.52,18.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),1
-6a76a2f5f17427d6b91f829b,674f97ff3dc8e5d2ac0083e4,4.9,9.0,9.0,0.492,0.688,1.0,16.1,4.52,18.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76a2f5f17427d6b91f829b,674f97ff3dc8e5d2ac00843c,8.2,16.0,16.0,0.779,1.091,1.0,16.1,4.52,18.0,,light,unknown,unknown,unknown,type 2 (socket only),unknown,0
-6a76a2f5f17427d6b91f829b,674f97ff3dc8e5d2ac008478,2.6,8.0,8.0,0.131,0.184,1.0,16.1,4.52,18.0,,light,unknown,unknown,unknown,chademo,unknown,0
-6a76a2f5f17427d6b91f829b,674f97ff3dc8e5d2ac008533,5.8,10.0,10.0,0.824,1.153,1.0,16.1,4.52,18.0,,light,unknown,unknown,evie networks,chademo,unknown,0
-6a76a2f5f17427d6b91f829b,674f97ff3dc8e5d2ac008684,5.6,12.0,13.0,0.359,0.502,1.0,16.1,4.52,18.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a2f5f17427d6b91f829b,674f97ff3dc8e5d2ac008685,5.6,12.0,12.0,0.359,0.503,1.0,16.1,4.52,18.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a2f5f17427d6b91f829b,674f98013dc8e5d2ac00873b,2.6,8.0,8.0,0.131,0.184,2.0,16.1,4.52,18.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
-6a76a2f5f17427d6b91f829b,674f98013dc8e5d2ac0087cf,8.3,15.0,15.0,0.521,0.729,1.0,16.1,4.52,18.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
-6a76a2f5f17427d6b91f829b,674f98013dc8e5d2ac008883,8.0,15.0,15.0,0.705,0.988,2.0,16.1,4.52,18.0,,light,unknown,unknown,(unknown operator),type 2 (socket only),ac (single-phase),0
-6a76a382f17427d6b91fe043,674f97ff3dc8e5d2ac008355,0.9,4.0,5.0,0.055,0.085,4.0,16.5,4.68,20.0,,moderate,unknown,unknown,unknown,unknown,unknown,1
-6a76a382f17427d6b91fe043,674f97ff3dc8e5d2ac0083c9,3.6,9.0,9.0,0.324,0.453,2.0,20.0,0.0,0.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76a382f17427d6b91fe043,674f97ff3dc8e5d2ac0083e4,11.0,18.0,18.0,1.329,1.86,1.0,16.5,4.68,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76a382f17427d6b91fe043,674f97ff3dc8e5d2ac008478,8.2,13.0,13.0,1.01,1.414,1.0,16.5,4.68,20.0,,light,unknown,unknown,unknown,chademo,unknown,0
-6a76a382f17427d6b91fe043,674f97ff3dc8e5d2ac008533,6.8,13.0,14.0,1.131,1.583,1.0,20.0,0.0,0.0,,light,unknown,unknown,evie networks,chademo,unknown,0
-6a76a382f17427d6b91fe043,674f97ff3dc8e5d2ac008684,7.4,13.0,13.0,0.769,1.077,1.0,16.5,4.68,20.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a382f17427d6b91fe043,674f97ff3dc8e5d2ac008685,7.3,13.0,13.0,0.761,1.066,1.0,16.5,4.68,20.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a382f17427d6b91fe043,674f97ff3dc8e5d2ac00868b,9.9,17.0,18.0,1.284,1.798,4.0,16.5,4.68,20.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a382f17427d6b91fe043,674f98013dc8e5d2ac00873b,8.2,13.0,13.0,0.898,1.258,2.0,20.0,0.0,0.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
-6a76a382f17427d6b91fe043,674f98013dc8e5d2ac0087cf,3.5,7.0,8.0,0.261,0.365,1.0,16.5,4.68,20.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
-6a76a3acf17427d6b91ffb17,674f97ff3dc8e5d2ac008685,4.8,9.0,9.0,0.515,0.722,1.0,16.5,4.68,20.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),1
-6a76a3acf17427d6b91ffb17,674f97ff3dc8e5d2ac008355,3.9,11.0,13.0,0.446,0.624,4.0,16.5,4.68,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76a3acf17427d6b91ffb17,674f97ff3dc8e5d2ac0083c9,7.1,14.0,14.0,0.668,0.935,2.0,16.5,4.68,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76a3acf17427d6b91ffb17,674f97ff3dc8e5d2ac0083e4,8.4,14.0,14.0,1.019,1.426,1.0,16.5,4.68,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76a3acf17427d6b91ffb17,674f97ff3dc8e5d2ac008478,5.7,10.0,9.0,0.684,0.958,1.0,16.5,4.68,20.0,,light,unknown,unknown,unknown,chademo,unknown,0
-6a76a3acf17427d6b91ffb17,674f97ff3dc8e5d2ac008533,5.7,10.0,10.0,1.032,1.444,1.0,16.5,4.68,20.0,,light,unknown,unknown,evie networks,chademo,unknown,0
-6a76a3acf17427d6b91ffb17,674f97ff3dc8e5d2ac008684,4.9,9.0,9.0,0.527,0.737,1.0,16.5,4.68,20.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a3acf17427d6b91ffb17,674f97ff3dc8e5d2ac00868b,7.9,13.0,13.0,1.091,1.528,4.0,16.5,4.68,20.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a3acf17427d6b91ffb17,674f98013dc8e5d2ac00873b,5.7,10.0,9.0,0.684,0.958,2.0,16.5,4.68,20.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
-6a76a3acf17427d6b91ffb17,674f98013dc8e5d2ac0087cf,3.1,6.0,6.0,0.31,0.434,1.0,16.5,4.68,20.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
-6a76a555f17427d6b920bce9,674f98013dc8e5d2ac0087cf,7.3,14.0,15.0,0.587,0.822,1.0,16.5,4.68,20.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),1
-6a76a555f17427d6b920bce9,674f97ff3dc8e5d2ac008355,4.5,9.0,10.0,0.234,0.328,4.0,16.5,4.68,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76a555f17427d6b920bce9,674f97ff3dc8e5d2ac0083c9,2.4,6.0,6.0,0.095,0.133,2.0,16.5,4.68,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76a555f17427d6b920bce9,674f97ff3dc8e5d2ac008478,12.1,16.0,16.0,1.799,2.518,1.0,16.5,4.68,20.0,,light,unknown,unknown,unknown,chademo,unknown,0
-6a76a555f17427d6b920bce9,674f97ff3dc8e5d2ac008533,5.6,11.0,11.0,0.911,1.275,1.0,16.5,4.68,20.0,,light,unknown,unknown,evie networks,chademo,unknown,0
-6a76a555f17427d6b920bce9,674f97ff3dc8e5d2ac008684,10.2,19.0,19.0,0.958,1.341,1.0,16.5,4.68,20.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a555f17427d6b920bce9,674f97ff3dc8e5d2ac008685,10.1,18.0,18.0,0.94,1.316,1.0,16.5,4.68,20.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a555f17427d6b920bce9,674f97ff3dc8e5d2ac00868b,9.8,17.0,17.0,1.25,1.749,4.0,16.5,4.68,20.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a555f17427d6b920bce9,674f98013dc8e5d2ac00873b,12.1,16.0,16.0,1.799,2.518,2.0,16.5,4.68,20.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
-6a76a576f17427d6b920d7bd,674f97ff3dc8e5d2ac008685,6.9,11.0,11.0,0.71,0.994,1.0,15.9,5.08,26.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),1
-6a76a576f17427d6b920d7bd,674f97ff3dc8e5d2ac008355,5.4,11.0,13.0,0.537,0.752,4.0,15.9,5.08,26.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76a576f17427d6b920d7bd,674f97ff3dc8e5d2ac0083c9,8.2,16.0,17.0,0.82,1.148,2.0,15.9,5.08,26.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76a576f17427d6b920d7bd,674f97ff3dc8e5d2ac00843c,10.8,18.0,18.0,1.205,1.687,1.0,15.9,5.08,26.0,,light,unknown,unknown,unknown,type 2 (socket only),unknown,0
-6a76a576f17427d6b920d7bd,674f97ff3dc8e5d2ac008478,7.8,12.0,13.0,0.873,1.223,1.0,15.9,5.08,26.0,,light,unknown,unknown,unknown,chademo,unknown,0
-6a76a576f17427d6b920d7bd,674f97ff3dc8e5d2ac008482,7.5,10.0,10.0,0.779,1.09,2.0,15.9,5.08,26.0,,light,unknown,unknown,chargefox,unknown,unknown,0
-6a76a576f17427d6b920d7bd,674f97ff3dc8e5d2ac008682,10.2,15.0,15.0,1.038,1.453,6.0,15.9,5.08,26.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a576f17427d6b920d7bd,674f97ff3dc8e5d2ac008684,7.0,12.0,12.0,0.722,1.011,1.0,15.9,5.08,26.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a576f17427d6b920d7bd,674f98013dc8e5d2ac00873b,7.8,12.0,13.0,0.874,1.223,2.0,15.9,5.08,26.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
-6a76a576f17427d6b920d7bd,674f98013dc8e5d2ac0087cf,3.4,6.0,6.0,0.302,0.423,1.0,15.9,5.08,26.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
-6a76a5a0f17427d6b920f291,674f97ff3dc8e5d2ac008355,3.6,6.0,7.0,0.281,0.393,4.0,16.5,4.68,20.0,,light,unknown,unknown,unknown,unknown,unknown,1
-6a76a5a0f17427d6b920f291,674f97ff3dc8e5d2ac0083c9,0.9,2.0,1.0,0.131,0.184,2.0,16.5,4.68,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76a5a0f17427d6b920f291,674f97ff3dc8e5d2ac008478,11.0,16.0,18.0,1.23,1.722,1.0,16.5,4.68,20.0,,light,unknown,unknown,unknown,chademo,unknown,0
-6a76a5a0f17427d6b920f291,674f97ff3dc8e5d2ac008533,8.0,14.0,14.0,1.265,1.771,1.0,16.5,4.68,20.0,,light,unknown,unknown,evie networks,chademo,unknown,0
-6a76a5a0f17427d6b920f291,674f97ff3dc8e5d2ac008601,7.6,10.0,11.0,0.583,0.817,6.0,16.5,4.68,20.0,0.78,light,unknown,no,tesla (including non-tesla),ccs (type 2),dc,0
-6a76a5a0f17427d6b920f291,674f97ff3dc8e5d2ac008684,10.2,16.0,18.0,1.071,1.499,1.0,16.5,4.68,20.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a5a0f17427d6b920f291,674f97ff3dc8e5d2ac008685,10.1,16.0,18.0,1.053,1.474,1.0,16.5,4.68,20.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a5a0f17427d6b920f291,674f98013dc8e5d2ac00873b,11.0,16.0,18.0,1.229,1.721,2.0,16.5,4.68,20.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
-6a76a5a0f17427d6b920f291,674f98013dc8e5d2ac0087cf,7.3,12.0,14.0,0.658,0.921,1.0,16.5,4.68,20.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
-6a76a5e2f17427d6b9212174,674f98013dc8e5d2ac0087cf,5.8,10.0,10.0,0.545,0.763,1.0,15.9,5.08,26.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),1
-6a76a5e2f17427d6b9212174,674f97ff3dc8e5d2ac008355,4.9,11.0,12.0,0.532,0.745,4.0,15.9,5.08,26.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76a5e2f17427d6b9212174,674f97ff3dc8e5d2ac0083c9,7.7,18.0,17.0,0.73,1.022,2.0,15.9,5.08,26.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76a5e2f17427d6b9212174,674f97ff3dc8e5d2ac008478,10.8,18.0,18.0,1.165,1.631,1.0,15.9,5.08,26.0,,light,unknown,unknown,unknown,chademo,unknown,0
-6a76a5e2f17427d6b9212174,674f97ff3dc8e5d2ac008482,8.8,10.0,10.0,0.989,1.384,2.0,15.9,5.08,26.0,,light,unknown,unknown,chargefox,unknown,unknown,0
-6a76a5e2f17427d6b9212174,674f97ff3dc8e5d2ac008533,12.2,21.0,21.0,1.58,2.212,1.0,15.9,5.08,26.0,,light,unknown,unknown,evie networks,chademo,unknown,0
-6a76a5e2f17427d6b9212174,674f97ff3dc8e5d2ac008682,13.2,21.0,20.0,1.321,1.85,6.0,15.9,5.08,26.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a5e2f17427d6b9212174,674f97ff3dc8e5d2ac008684,9.9,18.0,17.0,0.997,1.396,1.0,15.9,5.08,26.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a5e2f17427d6b9212174,674f97ff3dc8e5d2ac008685,9.8,17.0,17.0,0.984,1.377,1.0,15.9,5.08,26.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a5e2f17427d6b9212174,674f98013dc8e5d2ac00873b,10.8,18.0,18.0,1.165,1.631,2.0,15.9,5.08,26.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
-6a76a61cf17427d6b92149a4,674f97ff3dc8e5d2ac008685,3.1,6.0,6.0,0.334,0.468,1.0,15.9,5.08,26.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),1
-6a76a61cf17427d6b92149a4,674f97ff3dc8e5d2ac008355,9.3,19.0,20.0,0.931,1.303,4.0,15.9,5.08,26.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76a61cf17427d6b92149a4,674f97ff3dc8e5d2ac0083e4,7.0,11.0,11.0,0.875,1.225,1.0,15.9,5.08,26.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76a61cf17427d6b92149a4,674f97ff3dc8e5d2ac00843c,7.1,13.0,12.0,0.848,1.187,1.0,15.9,5.08,26.0,,light,unknown,unknown,unknown,type 2 (socket only),unknown,0
-6a76a61cf17427d6b92149a4,674f97ff3dc8e5d2ac008478,6.9,12.0,11.0,0.812,1.137,1.0,15.9,5.08,26.0,,light,unknown,unknown,unknown,chademo,unknown,0
-6a76a61cf17427d6b92149a4,674f97ff3dc8e5d2ac008682,5.4,9.0,9.0,0.58,0.812,6.0,15.9,5.08,26.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a61cf17427d6b92149a4,674f97ff3dc8e5d2ac008684,3.2,7.0,6.0,0.342,0.479,1.0,15.9,5.08,26.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a61cf17427d6b92149a4,674f98013dc8e5d2ac00873b,6.9,12.0,11.0,0.812,1.137,2.0,15.9,5.08,26.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
-6a76a61cf17427d6b92149a4,674f98013dc8e5d2ac0087cf,6.1,10.0,10.0,0.514,0.72,1.0,15.9,5.08,26.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
-6a76a61cf17427d6b92149a4,674f98013dc8e5d2ac008883,6.9,11.0,11.0,0.813,1.138,2.0,15.9,5.08,26.0,,light,unknown,unknown,(unknown operator),type 2 (socket only),ac (single-phase),0
-6a76a638f17427d6b9215dca,674f98013dc8e5d2ac0087cf,4.7,8.0,9.0,0.472,0.661,1.0,16.5,4.68,20.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),1
-6a76a638f17427d6b9215dca,674f97ff3dc8e5d2ac008355,2.3,5.0,6.0,0.236,0.331,4.0,16.5,4.68,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76a638f17427d6b9215dca,674f97ff3dc8e5d2ac0083c9,5.0,12.0,11.0,0.517,0.723,2.0,16.5,4.68,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76a638f17427d6b9215dca,674f97ff3dc8e5d2ac008478,9.8,17.0,17.0,1.058,1.481,1.0,16.5,4.68,20.0,,light,unknown,unknown,unknown,chademo,unknown,0
-6a76a638f17427d6b9215dca,674f97ff3dc8e5d2ac008482,10.6,12.0,12.0,1.168,1.635,2.0,16.5,4.68,20.0,,light,unknown,unknown,chargefox,unknown,unknown,0
-6a76a638f17427d6b9215dca,674f97ff3dc8e5d2ac008533,10.2,18.0,18.0,1.467,2.054,1.0,16.5,4.68,20.0,,light,unknown,unknown,evie networks,chademo,unknown,0
-6a76a638f17427d6b9215dca,674f97ff3dc8e5d2ac008601,12.5,19.0,21.0,1.056,1.479,6.0,16.5,4.68,20.0,0.78,light,unknown,no,tesla (including non-tesla),ccs (type 2),dc,0
-6a76a638f17427d6b9215dca,674f97ff3dc8e5d2ac008684,8.9,16.0,16.0,0.906,1.269,1.0,16.5,4.68,20.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a638f17427d6b9215dca,674f97ff3dc8e5d2ac008685,8.9,16.0,15.0,0.898,1.257,1.0,16.5,4.68,20.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a638f17427d6b9215dca,674f98013dc8e5d2ac00873b,9.8,17.0,17.0,1.058,1.481,2.0,16.5,4.68,20.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
-6a76a65ff17427d6b921789e,674f97ff3dc8e5d2ac008685,1.6,4.0,4.0,0.077,0.108,1.0,16.4,4.67,17.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),1
-6a76a65ff17427d6b921789e,674f97ff3dc8e5d2ac0083e4,4.2,7.0,7.0,0.492,0.688,1.0,16.4,4.67,17.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76a65ff17427d6b921789e,674f97ff3dc8e5d2ac00843c,3.7,8.0,8.0,0.408,0.571,1.0,16.4,4.67,17.0,,light,unknown,unknown,unknown,type 2 (socket only),unknown,0
-6a76a65ff17427d6b921789e,674f97ff3dc8e5d2ac008478,3.7,7.0,7.0,0.385,0.539,1.0,16.4,4.67,17.0,,light,unknown,unknown,unknown,chademo,unknown,0
-6a76a65ff17427d6b921789e,674f97ff3dc8e5d2ac008682,6.3,11.0,10.0,0.539,0.755,6.0,16.4,4.67,17.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a65ff17427d6b921789e,674f97ff3dc8e5d2ac008684,1.7,5.0,5.0,0.09,0.125,1.0,16.4,4.67,17.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a65ff17427d6b921789e,674f97ff3dc8e5d2ac00868b,4.9,9.0,9.0,0.531,0.744,4.0,16.4,4.67,17.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a65ff17427d6b921789e,674f98013dc8e5d2ac00873b,3.7,7.0,7.0,0.385,0.539,2.0,16.4,4.67,17.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
-6a76a65ff17427d6b921789e,674f98013dc8e5d2ac0087cf,6.5,10.0,10.0,0.448,0.628,1.0,16.4,4.67,17.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
-6a76a65ff17427d6b921789e,674f98013dc8e5d2ac008883,4.0,7.0,7.0,0.437,0.612,2.0,16.4,4.67,17.0,,light,unknown,unknown,(unknown operator),type 2 (socket only),ac (single-phase),0
-6a76a686f17427d6b9219370,674f98013dc8e5d2ac0087cf,13.1,25.0,27.0,1.221,1.71,1.0,20.0,0.0,0.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),1
-6a76a686f17427d6b9219370,674f97ff3dc8e5d2ac008355,9.5,20.0,20.0,0.985,1.378,4.0,16.9,5.38,18.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76a686f17427d6b9219370,674f97ff3dc8e5d2ac0083c9,8.9,20.0,19.0,0.941,1.317,2.0,16.9,5.38,18.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76a686f17427d6b9219370,674f97ff3dc8e5d2ac008533,15.4,29.0,30.0,1.993,2.79,1.0,16.9,5.38,18.0,,light,unknown,unknown,evie networks,chademo,unknown,0
-6a76a686f17427d6b9219370,674f97ff3dc8e5d2ac008601,10.4,22.0,22.0,0.962,1.347,6.0,16.9,5.38,18.0,0.78,light,unknown,no,tesla (including non-tesla),ccs (type 2),dc,0
-6a76a686f17427d6b9219370,674f97ff3dc8e5d2ac008684,16.4,30.0,31.0,1.682,2.355,1.0,16.9,5.38,18.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a686f17427d6b9219370,674f97ff3dc8e5d2ac008685,16.4,30.0,31.0,1.699,2.378,1.0,16.9,5.38,18.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a6b9f17427d6b921b4f2,674f98013dc8e5d2ac0087cf,4.8,7.0,7.0,0.426,0.597,1.0,16.0,5.1,26.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),1
-6a76a6b9f17427d6b921b4f2,674f97ff3dc8e5d2ac008355,8.3,14.0,14.0,0.813,1.139,4.0,16.0,5.1,26.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76a6b9f17427d6b921b4f2,674f97ff3dc8e5d2ac00843c,12.1,19.0,19.0,1.332,1.865,1.0,16.0,5.1,26.0,,light,unknown,unknown,unknown,type 2 (socket only),unknown,0
-6a76a6b9f17427d6b921b4f2,674f97ff3dc8e5d2ac008478,9.2,14.0,14.0,0.989,1.385,1.0,16.0,5.1,26.0,,light,unknown,unknown,unknown,chademo,unknown,0
-6a76a6b9f17427d6b921b4f2,674f97ff3dc8e5d2ac008482,5.6,7.0,7.0,0.607,0.849,2.0,16.0,5.1,26.0,,light,unknown,unknown,chargefox,unknown,unknown,0
-6a76a6b9f17427d6b921b4f2,674f97ff3dc8e5d2ac008682,11.6,16.0,16.0,1.178,1.65,6.0,16.0,5.1,26.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a6b9f17427d6b921b4f2,674f97ff3dc8e5d2ac008684,8.3,13.0,13.0,0.826,1.156,1.0,16.0,5.1,26.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a6b9f17427d6b921b4f2,674f97ff3dc8e5d2ac008685,8.2,13.0,12.0,0.815,1.141,1.0,16.0,5.1,26.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a6b9f17427d6b921b4f2,674f98013dc8e5d2ac00873b,9.2,14.0,14.0,0.989,1.385,2.0,16.0,5.1,26.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
-6a76a6b9f17427d6b921b4f2,674f98013dc8e5d2ac008883,11.9,18.0,18.0,1.325,1.854,2.0,16.0,5.1,26.0,,light,unknown,unknown,(unknown operator),type 2 (socket only),ac (single-phase),0
-6a76a6e3f17427d6b921cfc3,674f97ff3dc8e5d2ac008685,12.0,18.0,20.0,1.214,1.7,1.0,16.7,4.78,20.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),1
-6a76a6e3f17427d6b921cfc3,674f97ff3dc8e5d2ac008355,5.2,8.0,9.0,0.51,0.715,4.0,16.7,4.78,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76a6e3f17427d6b921cfc3,674f97ff3dc8e5d2ac0083c9,4.0,7.0,7.0,0.423,0.592,2.0,16.7,4.78,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76a6e3f17427d6b921cfc3,674f97ff3dc8e5d2ac008533,11.0,17.0,18.0,1.61,2.254,1.0,16.7,4.78,20.0,,light,unknown,unknown,evie networks,chademo,unknown,0
-6a76a6e3f17427d6b921cfc3,674f97ff3dc8e5d2ac008601,6.8,10.0,11.0,0.575,0.805,6.0,16.7,4.78,20.0,0.78,light,unknown,no,tesla (including non-tesla),ccs (type 2),dc,0
-6a76a6e3f17427d6b921cfc3,674f97ff3dc8e5d2ac008684,12.1,18.0,20.0,1.249,1.749,1.0,16.7,4.78,20.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a6e3f17427d6b921cfc3,674f98013dc8e5d2ac0087cf,8.8,13.0,15.0,0.912,1.277,1.0,16.7,4.78,20.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
-6a76a720f17427d6b921f147,674f97ff3dc8e5d2ac00868b,5.2,9.0,9.0,0.75,1.051,4.0,16.7,4.78,20.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),1
-6a76a720f17427d6b921f147,674f97ff3dc8e5d2ac008355,6.7,14.0,16.0,0.616,0.862,4.0,16.7,4.78,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76a720f17427d6b921f147,674f97ff3dc8e5d2ac0083c9,6.9,13.0,14.0,0.705,0.987,2.0,16.7,4.78,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76a720f17427d6b921f147,674f97ff3dc8e5d2ac0083e4,12.8,13.0,13.0,1.833,2.566,1.0,16.7,4.78,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76a720f17427d6b921f147,674f97ff3dc8e5d2ac008478,4.3,8.0,8.0,0.492,0.689,1.0,16.7,4.78,20.0,,light,unknown,unknown,unknown,chademo,unknown,0
-6a76a720f17427d6b921f147,674f97ff3dc8e5d2ac008533,2.0,4.0,4.0,0.493,0.69,1.0,16.7,4.78,20.0,,light,unknown,unknown,evie networks,chademo,unknown,0
-6a76a720f17427d6b921f147,674f97ff3dc8e5d2ac008684,6.4,13.0,13.0,0.541,0.757,1.0,16.7,4.78,20.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a720f17427d6b921f147,674f97ff3dc8e5d2ac008685,6.3,12.0,13.0,0.531,0.744,1.0,16.7,4.78,20.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a720f17427d6b921f147,674f98013dc8e5d2ac00873b,4.3,8.0,8.0,0.492,0.689,2.0,16.7,4.78,20.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
-6a76a720f17427d6b921f147,674f98013dc8e5d2ac0087cf,5.9,9.0,9.0,0.478,0.669,1.0,16.7,4.78,20.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
-6a76a74ef17427d6b92212c9,674f97ff3dc8e5d2ac008685,3.9,7.0,7.0,0.387,0.542,1.0,16.0,5.1,26.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),1
-6a76a74ef17427d6b92212c9,674f97ff3dc8e5d2ac0083e4,7.9,12.0,12.0,0.937,1.312,1.0,16.0,5.1,26.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76a74ef17427d6b92212c9,674f97ff3dc8e5d2ac00843c,7.4,13.0,13.0,0.836,1.171,1.0,16.0,5.1,26.0,,light,unknown,unknown,unknown,type 2 (socket only),unknown,0
-6a76a74ef17427d6b92212c9,674f97ff3dc8e5d2ac008478,8.0,12.0,12.0,0.858,1.201,1.0,16.0,5.1,26.0,,light,unknown,unknown,unknown,chademo,unknown,0
-6a76a74ef17427d6b92212c9,674f97ff3dc8e5d2ac008482,15.0,20.0,20.0,1.364,1.91,2.0,16.0,5.1,26.0,,light,unknown,unknown,chargefox,unknown,unknown,0
-6a76a74ef17427d6b92212c9,674f97ff3dc8e5d2ac008682,6.2,10.0,9.0,0.625,0.874,6.0,16.0,5.1,26.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a74ef17427d6b92212c9,674f97ff3dc8e5d2ac008684,4.0,7.0,7.0,0.398,0.558,1.0,16.0,5.1,26.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a74ef17427d6b92212c9,674f98013dc8e5d2ac00873b,8.0,12.0,12.0,0.858,1.201,2.0,16.0,5.1,26.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
-6a76a74ef17427d6b92212c9,674f98013dc8e5d2ac0087cf,6.2,9.0,9.0,0.508,0.711,1.0,16.0,5.1,26.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
-6a76a74ef17427d6b92212c9,674f98013dc8e5d2ac008883,7.7,12.0,12.0,0.88,1.233,2.0,16.0,5.1,26.0,,light,unknown,unknown,(unknown operator),type 2 (socket only),ac (single-phase),0
-6a76a768f17427d6b92226ec,674f97ff3dc8e5d2ac008685,15.3,22.0,22.0,1.593,2.23,1.0,16.1,5.1,26.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),1
-6a76a768f17427d6b92226ec,674f97ff3dc8e5d2ac008355,10.7,16.0,16.0,1.176,1.646,4.0,16.1,5.1,26.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76a768f17427d6b92226ec,674f97ff3dc8e5d2ac0083c9,13.5,22.0,21.0,1.426,1.996,2.0,16.1,5.1,26.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76a768f17427d6b92226ec,674f97ff3dc8e5d2ac008482,9.6,10.0,10.0,1.17,1.638,2.0,16.1,5.1,26.0,,light,unknown,unknown,chargefox,unknown,unknown,0
-6a76a768f17427d6b92226ec,674f97ff3dc8e5d2ac008601,21.0,29.0,30.0,1.955,2.737,6.0,16.1,5.1,26.0,0.78,light,unknown,no,tesla (including non-tesla),ccs (type 2),dc,0
-6a76a768f17427d6b92226ec,674f97ff3dc8e5d2ac008684,15.4,22.0,22.0,1.612,2.256,1.0,16.1,5.1,26.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a768f17427d6b92226ec,674f98013dc8e5d2ac0087cf,11.7,15.0,15.0,1.184,1.657,1.0,16.1,5.1,26.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
-6a76a7baf17427d6b9227df7,674f98013dc8e5d2ac0087cf,3.8,8.0,8.0,0.33,0.463,1.0,16.7,4.78,20.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),1
-6a76a7baf17427d6b9227df7,674f97ff3dc8e5d2ac008355,4.4,12.0,13.0,0.479,0.671,4.0,16.7,4.78,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76a7baf17427d6b9227df7,674f97ff3dc8e5d2ac0083c9,4.6,11.0,12.0,0.505,0.707,2.0,16.7,4.78,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76a7baf17427d6b9227df7,674f97ff3dc8e5d2ac0083e4,10.2,17.0,17.0,1.224,1.714,1.0,16.7,4.78,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76a7baf17427d6b9227df7,674f97ff3dc8e5d2ac008478,6.3,12.0,12.0,0.902,1.262,1.0,16.7,4.78,20.0,,light,unknown,unknown,unknown,chademo,unknown,0
-6a76a7baf17427d6b9227df7,674f97ff3dc8e5d2ac008533,5.0,8.0,8.0,1.041,1.458,1.0,16.7,4.78,20.0,,light,unknown,unknown,evie networks,chademo,unknown,0
-6a76a7baf17427d6b9227df7,674f97ff3dc8e5d2ac008684,6.7,12.0,12.0,0.749,1.049,1.0,16.7,4.78,20.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a7baf17427d6b9227df7,674f97ff3dc8e5d2ac008685,6.6,11.0,12.0,0.737,1.032,1.0,16.7,4.78,20.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a7baf17427d6b9227df7,674f97ff3dc8e5d2ac00868b,7.3,12.0,12.0,1.122,1.57,4.0,16.7,4.78,20.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a7baf17427d6b9227df7,674f98013dc8e5d2ac00873b,6.3,12.0,12.0,0.902,1.262,2.0,16.7,4.78,20.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
-6a76a7fbf17427d6b922a627,674f97ff3dc8e5d2ac008685,5.1,9.0,9.0,0.526,0.736,1.0,16.7,4.78,20.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),1
-6a76a7fbf17427d6b922a627,674f97ff3dc8e5d2ac008355,4.1,10.0,11.0,0.371,0.519,4.0,16.7,4.78,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76a7fbf17427d6b922a627,674f97ff3dc8e5d2ac0083c9,7.1,15.0,14.0,0.648,0.908,2.0,16.7,4.78,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76a7fbf17427d6b922a627,674f97ff3dc8e5d2ac0083e4,9.0,14.0,14.0,1.042,1.459,1.0,16.7,4.78,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76a7fbf17427d6b922a627,674f97ff3dc8e5d2ac008478,6.1,10.0,10.0,0.734,1.028,1.0,16.7,4.78,20.0,,light,unknown,unknown,unknown,chademo,unknown,0
-6a76a7fbf17427d6b922a627,674f97ff3dc8e5d2ac008533,8.5,13.0,13.0,1.293,1.81,1.0,16.7,4.78,20.0,,light,unknown,unknown,evie networks,chademo,unknown,0
-6a76a7fbf17427d6b922a627,674f97ff3dc8e5d2ac008682,8.4,13.0,12.0,0.915,1.28,6.0,16.7,4.78,20.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a7fbf17427d6b922a627,674f97ff3dc8e5d2ac008684,5.2,9.0,9.0,0.532,0.744,1.0,16.7,4.78,20.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a7fbf17427d6b922a627,674f98013dc8e5d2ac00873b,6.1,10.0,10.0,0.734,1.028,2.0,16.7,4.78,20.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
-6a76a7fbf17427d6b922a627,674f98013dc8e5d2ac0087cf,1.0,2.0,2.0,0.062,0.087,1.0,16.7,4.78,20.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
-6a76a83ef17427d6b922d50d,674f97ff3dc8e5d2ac00868b,4.6,8.0,8.0,0.605,0.847,4.0,16.7,4.78,20.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),1
-6a76a83ef17427d6b922d50d,674f97ff3dc8e5d2ac008355,6.6,14.0,16.0,0.448,0.627,4.0,16.7,4.78,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76a83ef17427d6b922d50d,674f97ff3dc8e5d2ac0083c9,6.8,13.0,14.0,0.667,0.934,2.0,16.7,4.78,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76a83ef17427d6b922d50d,674f97ff3dc8e5d2ac0083e4,11.5,11.0,11.0,1.667,2.334,1.0,16.7,4.78,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76a83ef17427d6b922d50d,674f97ff3dc8e5d2ac008478,3.7,8.0,7.0,0.426,0.597,1.0,16.7,4.78,20.0,,light,unknown,unknown,unknown,chademo,unknown,0
-6a76a83ef17427d6b922d50d,674f97ff3dc8e5d2ac008533,2.2,4.0,4.0,0.539,0.755,1.0,16.7,4.78,20.0,,light,unknown,unknown,evie networks,chademo,unknown,0
-6a76a83ef17427d6b922d50d,674f97ff3dc8e5d2ac008684,5.8,12.0,12.0,0.451,0.631,1.0,16.7,4.78,20.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a83ef17427d6b922d50d,674f97ff3dc8e5d2ac008685,5.7,11.0,12.0,0.447,0.626,1.0,16.7,4.78,20.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a83ef17427d6b922d50d,674f98013dc8e5d2ac00873b,3.7,8.0,7.0,0.426,0.597,2.0,16.7,4.78,20.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
-6a76a83ef17427d6b922d50d,674f98013dc8e5d2ac0087cf,5.8,9.0,9.0,0.444,0.622,1.0,16.7,4.78,20.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
-6a76a87af17427d6b922f68f,674f97ff3dc8e5d2ac008685,3.3,8.0,8.0,0.304,0.425,1.0,16.7,4.78,20.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),1
-6a76a87af17427d6b922f68f,674f97ff3dc8e5d2ac008355,4.4,13.0,15.0,0.423,0.593,4.0,16.7,4.78,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76a87af17427d6b922f68f,674f97ff3dc8e5d2ac0083c9,7.5,16.0,15.0,0.66,0.925,2.0,16.7,4.78,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76a87af17427d6b922f68f,674f97ff3dc8e5d2ac0083e4,6.9,14.0,13.0,0.809,1.133,1.0,16.7,4.78,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76a87af17427d6b922f68f,674f97ff3dc8e5d2ac008478,3.4,7.0,7.0,0.365,0.511,1.0,16.7,4.78,20.0,,light,unknown,unknown,unknown,chademo,unknown,0
-6a76a87af17427d6b922f68f,674f97ff3dc8e5d2ac008533,4.8,9.0,9.0,0.773,1.083,1.0,16.7,4.78,20.0,,light,unknown,unknown,evie networks,chademo,unknown,0
-6a76a87af17427d6b922f68f,674f97ff3dc8e5d2ac008684,3.4,9.0,8.0,0.308,0.431,1.0,16.7,4.78,20.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a87af17427d6b922f68f,674f97ff3dc8e5d2ac00868b,6.3,11.0,11.0,0.888,1.244,4.0,16.7,4.78,20.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a87af17427d6b922f68f,674f98013dc8e5d2ac00873b,3.4,7.0,7.0,0.364,0.51,2.0,16.7,4.78,20.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
-6a76a87af17427d6b922f68f,674f98013dc8e5d2ac0087cf,3.6,8.0,8.0,0.278,0.39,1.0,16.7,4.78,20.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
-6a76a8a1f17427d6b9231163,674f97ff3dc8e5d2ac00868b,1.5,3.0,3.0,0.173,0.242,4.0,16.4,4.67,17.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),1
-6a76a8a1f17427d6b9231163,674f97ff3dc8e5d2ac0083e4,4.7,7.0,8.0,0.479,0.67,1.0,16.4,4.67,17.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76a8a1f17427d6b9231163,674f97ff3dc8e5d2ac00843c,8.3,14.0,14.0,0.757,1.06,1.0,16.4,4.67,17.0,,light,unknown,unknown,unknown,type 2 (socket only),unknown,0
-6a76a8a1f17427d6b9231163,674f97ff3dc8e5d2ac008478,2.4,6.0,7.0,0.112,0.157,1.0,16.4,4.67,17.0,,light,unknown,unknown,unknown,chademo,unknown,0
-6a76a8a1f17427d6b9231163,674f97ff3dc8e5d2ac008533,5.7,8.0,8.0,0.762,1.067,1.0,16.4,4.67,17.0,,light,unknown,unknown,evie networks,chademo,unknown,0
-6a76a8a1f17427d6b9231163,674f97ff3dc8e5d2ac008684,5.4,11.0,12.0,0.345,0.483,1.0,16.4,4.67,17.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a8a1f17427d6b9231163,674f97ff3dc8e5d2ac008685,5.4,11.0,11.0,0.34,0.476,1.0,16.4,4.67,17.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a8a1f17427d6b9231163,674f98013dc8e5d2ac00873b,2.4,6.0,7.0,0.112,0.157,2.0,16.4,4.67,17.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
-6a76a8a1f17427d6b9231163,674f98013dc8e5d2ac0087cf,8.1,13.0,14.0,0.49,0.686,1.0,16.4,4.67,17.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
-6a76a8a1f17427d6b9231163,674f98013dc8e5d2ac008883,8.2,12.0,13.0,0.743,1.04,2.0,16.4,4.67,17.0,,light,unknown,unknown,(unknown operator),type 2 (socket only),ac (single-phase),0
-6a76a9b3f17427d6b923bf26,674f98013dc8e5d2ac0087cf,9.8,13.0,16.0,1.071,1.65,1.0,16.9,5.38,18.0,,moderate,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),1
-6a76a9b3f17427d6b923bf26,674f97ff3dc8e5d2ac008355,6.2,8.0,10.0,0.662,0.927,4.0,16.9,5.38,18.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76a9b3f17427d6b923bf26,674f97ff3dc8e5d2ac0083c9,4.5,6.0,7.0,0.497,0.696,2.0,16.9,5.38,18.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76a9b3f17427d6b923bf26,674f97ff3dc8e5d2ac008601,4.5,7.0,8.0,0.327,0.458,6.0,16.9,5.38,18.0,0.78,light,unknown,no,tesla (including non-tesla),ccs (type 2),dc,0
-6a76a9eef17427d6b923e756,674f98013dc8e5d2ac0087cf,7.2,11.0,13.0,0.675,0.944,1.0,16.8,4.87,19.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),1
-6a76a9eef17427d6b923e756,674f97ff3dc8e5d2ac008355,3.1,6.0,7.0,0.235,0.329,4.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76a9eef17427d6b923e756,674f97ff3dc8e5d2ac0083c9,1.1,2.0,2.0,0.14,0.196,2.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76a9eef17427d6b923e756,674f97ff3dc8e5d2ac008478,10.9,16.0,18.0,1.193,1.67,1.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,chademo,unknown,0
-6a76a9eef17427d6b923e756,674f97ff3dc8e5d2ac008533,8.2,14.0,14.0,1.321,1.849,1.0,16.8,4.87,19.0,,light,unknown,unknown,evie networks,chademo,unknown,0
-6a76a9eef17427d6b923e756,674f97ff3dc8e5d2ac008601,7.9,11.0,12.0,0.618,0.866,6.0,16.8,4.87,19.0,0.78,light,unknown,no,tesla (including non-tesla),ccs (type 2),dc,0
-6a76a9eef17427d6b923e756,674f97ff3dc8e5d2ac008684,10.5,16.0,18.0,1.068,1.495,1.0,16.8,4.87,19.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a9eef17427d6b923e756,674f97ff3dc8e5d2ac008685,10.4,16.0,18.0,1.037,1.452,1.0,16.8,4.87,19.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76a9eef17427d6b923e756,674f98013dc8e5d2ac00873b,10.9,16.0,17.0,1.193,1.671,2.0,16.8,4.87,19.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
-6a76aa2ff17427d6b9240f80,674f98013dc8e5d2ac0087cf,12.9,19.0,21.0,1.412,1.977,1.0,17.0,5.42,18.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),1
-6a76aa2ff17427d6b9240f80,674f97ff3dc8e5d2ac008355,9.3,14.0,15.0,1.018,1.426,4.0,17.0,5.42,18.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76aa2ff17427d6b9240f80,674f97ff3dc8e5d2ac0083c9,8.4,12.0,13.0,0.966,1.352,2.0,17.0,5.42,18.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76aa2ff17427d6b9240f80,674f97ff3dc8e5d2ac008601,3.4,6.0,7.0,0.335,0.469,6.0,17.0,5.42,18.0,0.78,light,unknown,no,tesla (including non-tesla),ccs (type 2),dc,0
-6a76aa77f17427d6b9244524,674f98013dc8e5d2ac0087cf,3.2,6.0,6.0,0.222,0.311,1.0,16.8,4.87,19.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),1
-6a76aa77f17427d6b9244524,674f97ff3dc8e5d2ac008355,2.4,8.0,8.0,0.208,0.292,4.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76aa77f17427d6b9244524,674f97ff3dc8e5d2ac0083c9,3.9,9.0,8.0,0.278,0.389,2.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76aa77f17427d6b9244524,674f97ff3dc8e5d2ac0083e4,9.7,15.0,15.0,1.058,1.481,1.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76aa77f17427d6b9244524,674f97ff3dc8e5d2ac008478,6.9,10.0,11.0,0.743,1.04,1.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,chademo,unknown,0
-6a76aa77f17427d6b9244524,674f97ff3dc8e5d2ac008533,5.5,9.0,9.0,0.978,1.37,1.0,16.8,4.87,19.0,,light,unknown,unknown,evie networks,chademo,unknown,0
-6a76aa77f17427d6b9244524,674f97ff3dc8e5d2ac008684,6.1,10.0,11.0,0.586,0.82,1.0,16.8,4.87,19.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76aa77f17427d6b9244524,674f97ff3dc8e5d2ac008685,6.0,10.0,10.0,0.581,0.813,1.0,16.8,4.87,19.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76aa77f17427d6b9244524,674f97ff3dc8e5d2ac00868b,8.5,13.0,14.0,1.249,1.748,4.0,16.8,4.87,19.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76aa77f17427d6b9244524,674f98013dc8e5d2ac00873b,6.9,10.0,11.0,0.743,1.04,2.0,16.8,4.87,19.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
-6a76aa91f17427d6b924594a,674f98013dc8e5d2ac0087cf,1.6,4.0,4.0,0.128,0.179,1.0,16.8,4.87,19.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),1
-6a76aa91f17427d6b924594a,674f97ff3dc8e5d2ac008355,3.0,9.0,10.0,0.294,0.412,4.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76aa91f17427d6b924594a,674f97ff3dc8e5d2ac0083c9,5.7,13.0,13.0,0.52,0.727,2.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76aa91f17427d6b924594a,674f97ff3dc8e5d2ac0083e4,10.1,17.0,17.0,1.202,1.683,1.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76aa91f17427d6b924594a,674f97ff3dc8e5d2ac008478,7.4,12.0,12.0,0.862,1.206,1.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,chademo,unknown,0
-6a76aa91f17427d6b924594a,674f97ff3dc8e5d2ac008533,7.2,12.0,13.0,1.206,1.688,1.0,16.8,4.87,19.0,,light,unknown,unknown,evie networks,chademo,unknown,0
-6a76aa91f17427d6b924594a,674f97ff3dc8e5d2ac008684,7.0,12.0,12.0,0.687,0.961,1.0,16.8,4.87,19.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76aa91f17427d6b924594a,674f97ff3dc8e5d2ac008685,6.9,12.0,12.0,0.676,0.947,1.0,16.8,4.87,19.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76aa91f17427d6b924594a,674f97ff3dc8e5d2ac00868b,9.4,16.0,16.0,1.167,1.634,4.0,16.8,4.87,19.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76aa91f17427d6b924594a,674f98013dc8e5d2ac00873b,7.4,12.0,12.0,0.86,1.204,2.0,16.8,4.87,19.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
-6a76aab0f17427d6b9246d70,674f97ff3dc8e5d2ac008685,2.8,5.0,5.0,0.29,0.406,1.0,16.8,4.87,19.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),1
-6a76aab0f17427d6b9246d70,674f97ff3dc8e5d2ac008355,5.2,12.0,13.0,0.526,0.737,4.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76aab0f17427d6b9246d70,674f97ff3dc8e5d2ac0083e4,6.5,10.0,10.0,0.81,1.134,1.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76aab0f17427d6b9246d70,674f97ff3dc8e5d2ac00843c,6.0,11.0,11.0,0.702,0.983,1.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,type 2 (socket only),unknown,0
-6a76aab0f17427d6b9246d70,674f97ff3dc8e5d2ac008478,3.7,6.0,6.0,0.467,0.654,1.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,chademo,unknown,0
-6a76aab0f17427d6b9246d70,674f97ff3dc8e5d2ac008533,6.2,10.0,10.0,1.102,1.543,1.0,16.8,4.87,19.0,,light,unknown,unknown,evie networks,chademo,unknown,0
-6a76aab0f17427d6b9246d70,674f97ff3dc8e5d2ac008684,2.9,5.0,6.0,0.296,0.414,1.0,16.8,4.87,19.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76aab0f17427d6b9246d70,674f97ff3dc8e5d2ac00868b,6.5,10.0,10.0,0.855,1.197,4.0,16.8,4.87,19.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76aab0f17427d6b9246d70,674f98013dc8e5d2ac00873b,3.7,6.0,6.0,0.467,0.654,2.0,16.8,4.87,19.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
-6a76aab0f17427d6b9246d70,674f98013dc8e5d2ac0087cf,3.5,6.0,6.0,0.261,0.366,1.0,16.8,4.87,19.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
-6a76aad7f17427d6b9248844,674f98013dc8e5d2ac0087cf,3.9,10.0,11.0,0.415,0.581,1.0,16.8,4.87,19.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),1
-6a76aad7f17427d6b9248844,674f97ff3dc8e5d2ac008355,1.0,4.0,4.0,0.112,0.157,4.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76aad7f17427d6b9248844,674f97ff3dc8e5d2ac0083c9,3.7,10.0,10.0,0.408,0.572,2.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76aad7f17427d6b9248844,674f97ff3dc8e5d2ac008478,9.6,19.0,18.0,1.148,1.607,1.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,chademo,unknown,0
-6a76aad7f17427d6b9248844,674f97ff3dc8e5d2ac008533,8.2,17.0,19.0,1.436,2.01,1.0,16.8,4.87,19.0,,light,unknown,unknown,evie networks,chademo,unknown,0
-6a76aad7f17427d6b9248844,674f97ff3dc8e5d2ac008601,11.3,17.0,19.0,0.971,1.36,6.0,16.8,4.87,19.0,0.78,light,unknown,no,tesla (including non-tesla),ccs (type 2),dc,0
-6a76aad7f17427d6b9248844,674f97ff3dc8e5d2ac008684,9.1,18.0,18.0,0.937,1.311,1.0,16.8,4.87,19.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76aad7f17427d6b9248844,674f97ff3dc8e5d2ac008685,9.0,17.0,17.0,0.933,1.306,1.0,16.8,4.87,19.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76aad7f17427d6b9248844,674f97ff3dc8e5d2ac00868b,11.6,22.0,23.0,1.471,2.06,4.0,16.8,4.87,19.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76aad7f17427d6b9248844,674f98013dc8e5d2ac00873b,9.6,19.0,18.0,1.147,1.606,2.0,16.8,4.87,19.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
-6a76ab08f17427d6b924a318,674f98013dc8e5d2ac0087cf,3.9,6.0,6.0,0.371,0.52,1.0,16.8,4.87,19.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),1
-6a76ab08f17427d6b924a318,674f97ff3dc8e5d2ac008355,4.0,8.0,9.0,0.417,0.584,4.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76ab08f17427d6b924a318,674f97ff3dc8e5d2ac0083c9,7.2,15.0,15.0,0.74,1.036,2.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76ab08f17427d6b924a318,674f97ff3dc8e5d2ac008478,9.3,14.0,15.0,1.023,1.432,1.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,chademo,unknown,0
-6a76ab08f17427d6b924a318,674f97ff3dc8e5d2ac008482,8.9,9.0,9.0,1.02,1.428,2.0,16.8,4.87,19.0,,light,unknown,unknown,chargefox,unknown,unknown,0
-6a76ab08f17427d6b924a318,674f97ff3dc8e5d2ac008533,10.7,17.0,17.0,1.467,2.054,1.0,16.8,4.87,19.0,,light,unknown,unknown,evie networks,chademo,unknown,0
-6a76ab08f17427d6b924a318,674f97ff3dc8e5d2ac008682,11.7,17.0,17.0,1.185,1.659,6.0,16.8,4.87,19.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76ab08f17427d6b924a318,674f97ff3dc8e5d2ac008684,8.4,14.0,13.0,0.851,1.192,1.0,16.8,4.87,19.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76ab08f17427d6b924a318,674f97ff3dc8e5d2ac008685,8.4,13.0,13.0,0.84,1.176,1.0,16.8,4.87,19.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76ab08f17427d6b924a318,674f98013dc8e5d2ac00873b,9.3,14.0,15.0,1.023,1.432,2.0,16.8,4.87,19.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
-6a76ab28f17427d6b924bdec,674f98013dc8e5d2ac0087cf,1.5,2.0,2.0,0.086,0.12,1.0,16.8,4.87,19.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),1
-6a76ab28f17427d6b924bdec,674f97ff3dc8e5d2ac008355,4.0,9.0,10.0,0.344,0.482,4.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76ab28f17427d6b924bdec,674f97ff3dc8e5d2ac0083c9,6.8,14.0,13.0,0.593,0.83,2.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76ab28f17427d6b924bdec,674f97ff3dc8e5d2ac00843c,9.9,16.0,16.0,1.071,1.5,1.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,type 2 (socket only),unknown,0
-6a76ab28f17427d6b924bdec,674f97ff3dc8e5d2ac008478,7.0,11.0,11.0,0.775,1.085,1.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,chademo,unknown,0
-6a76ab28f17427d6b924bdec,674f97ff3dc8e5d2ac008533,8.3,13.0,13.0,1.199,1.678,1.0,16.8,4.87,19.0,,light,unknown,unknown,evie networks,chademo,unknown,0
-6a76ab28f17427d6b924bdec,674f97ff3dc8e5d2ac008682,9.4,13.0,13.0,0.936,1.311,6.0,16.8,4.87,19.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76ab28f17427d6b924bdec,674f97ff3dc8e5d2ac008684,6.1,10.0,10.0,0.583,0.816,1.0,16.8,4.87,19.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76ab28f17427d6b924bdec,674f97ff3dc8e5d2ac008685,6.0,10.0,9.0,0.573,0.802,1.0,16.8,4.87,19.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76ab28f17427d6b924bdec,674f98013dc8e5d2ac00873b,7.0,11.0,11.0,0.775,1.085,2.0,16.8,4.87,19.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
-6a76ab46f17427d6b924d212,674f98013dc8e5d2ac0087cf,4.5,9.0,10.0,0.282,0.394,1.0,16.8,4.87,19.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),1
-6a76ab46f17427d6b924d212,674f97ff3dc8e5d2ac008355,2.9,10.0,9.0,0.152,0.212,4.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76ab46f17427d6b924d212,674f97ff3dc8e5d2ac0083c9,3.1,9.0,9.0,0.168,0.235,2.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76ab46f17427d6b924d212,674f97ff3dc8e5d2ac0083e4,11.0,18.0,19.0,1.203,1.685,1.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76ab46f17427d6b924d212,674f97ff3dc8e5d2ac008478,8.2,13.0,14.0,0.874,1.223,1.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,chademo,unknown,0
-6a76ab46f17427d6b924d212,674f97ff3dc8e5d2ac008533,4.7,8.0,9.0,0.959,1.342,1.0,16.8,4.87,19.0,,light,unknown,unknown,evie networks,chademo,unknown,0
-6a76ab46f17427d6b924d212,674f97ff3dc8e5d2ac008684,7.4,13.0,14.0,0.653,0.915,1.0,16.8,4.87,19.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76ab46f17427d6b924d212,674f97ff3dc8e5d2ac008685,7.3,13.0,14.0,0.641,0.897,1.0,16.8,4.87,19.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76ab46f17427d6b924d212,674f97ff3dc8e5d2ac00868b,8.4,14.0,14.0,1.056,1.478,4.0,16.8,4.87,19.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76ab46f17427d6b924d212,674f98013dc8e5d2ac00873b,8.2,13.0,14.0,0.874,1.223,2.0,16.8,4.87,19.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
-6a76ab64f17427d6b924e638,674f97ff3dc8e5d2ac008685,1.7,4.0,4.0,0.184,0.257,1.0,16.8,4.87,19.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),1
-6a76ab64f17427d6b924e638,674f97ff3dc8e5d2ac0083e4,5.4,9.0,9.0,0.693,0.97,1.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76ab64f17427d6b924e638,674f97ff3dc8e5d2ac00843c,4.9,10.0,10.0,0.585,0.819,1.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,type 2 (socket only),unknown,0
-6a76ab64f17427d6b924e638,674f97ff3dc8e5d2ac008478,3.6,6.0,6.0,0.463,0.649,1.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,chademo,unknown,0
-6a76ab64f17427d6b924e638,674f97ff3dc8e5d2ac008533,7.1,12.0,12.0,1.207,1.689,1.0,16.8,4.87,19.0,,light,unknown,unknown,evie networks,chademo,unknown,0
-6a76ab64f17427d6b924e638,674f97ff3dc8e5d2ac008684,1.8,4.0,4.0,0.192,0.269,1.0,16.8,4.87,19.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76ab64f17427d6b924e638,674f97ff3dc8e5d2ac00868b,6.3,11.0,11.0,0.832,1.165,4.0,16.8,4.87,19.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76ab64f17427d6b924e638,674f98013dc8e5d2ac00873b,3.6,6.0,6.0,0.463,0.648,2.0,16.8,4.87,19.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
-6a76ab64f17427d6b924e638,674f98013dc8e5d2ac0087cf,3.9,7.0,7.0,0.285,0.398,1.0,16.8,4.87,19.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
-6a76ab64f17427d6b924e638,674f98013dc8e5d2ac008883,5.2,9.0,9.0,0.624,0.874,2.0,16.8,4.87,19.0,,light,unknown,unknown,(unknown operator),type 2 (socket only),ac (single-phase),0
-6a76abb8f17427d6b9251516,674f98013dc8e5d2ac0087cf,2.2,4.0,4.0,0.188,0.263,1.0,16.8,4.87,19.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),1
-6a76abb8f17427d6b9251516,674f97ff3dc8e5d2ac008355,1.9,7.0,9.0,0.244,0.376,4.0,16.8,4.87,19.0,,moderate,unknown,unknown,unknown,unknown,unknown,0
-6a76abb8f17427d6b9251516,674f97ff3dc8e5d2ac0083c9,4.5,10.0,11.0,0.447,0.625,2.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76abb8f17427d6b9251516,674f97ff3dc8e5d2ac0083e4,9.5,15.0,15.0,1.109,1.552,1.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a76abb8f17427d6b9251516,674f97ff3dc8e5d2ac008478,6.7,10.0,10.0,0.748,1.047,1.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,chademo,unknown,0
-6a76abb8f17427d6b9251516,674f97ff3dc8e5d2ac008533,6.5,10.0,11.0,1.102,1.543,1.0,16.8,4.87,19.0,,light,unknown,unknown,evie networks,chademo,unknown,0
-6a76abb8f17427d6b9251516,674f97ff3dc8e5d2ac008684,5.9,10.0,10.0,0.597,0.836,1.0,16.8,4.87,19.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76abb8f17427d6b9251516,674f97ff3dc8e5d2ac008685,5.8,10.0,10.0,0.59,0.825,1.0,16.8,4.87,19.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76abb8f17427d6b9251516,674f97ff3dc8e5d2ac00868b,8.8,14.0,14.0,1.119,1.566,4.0,16.8,4.87,19.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a76abb8f17427d6b9251516,674f98013dc8e5d2ac00873b,6.7,10.0,10.0,0.748,1.048,2.0,16.8,4.87,19.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
-6a7bc2e4a9939a619a8108d4,674f97ff3dc8e5d2ac008478,2.6,8.0,8.0,0.155,0.217,1.0,12.0,5.75,263.0,,light,unknown,unknown,unknown,chademo,unknown,1
-6a7bc2e4a9939a619a8108d4,674f97ff3dc8e5d2ac0083e4,4.9,9.0,10.0,0.516,0.723,1.0,12.0,5.75,263.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a7bc2e4a9939a619a8108d4,674f97ff3dc8e5d2ac00843c,8.2,16.0,16.0,0.817,1.144,1.0,12.0,5.75,263.0,,light,unknown,unknown,unknown,type 2 (socket only),unknown,0
-6a7bc2e4a9939a619a8108d4,674f97ff3dc8e5d2ac008533,5.8,10.0,10.0,0.895,1.253,1.0,12.0,5.75,263.0,,light,unknown,unknown,evie networks,chademo,unknown,0
-6a7bc2e4a9939a619a8108d4,674f97ff3dc8e5d2ac008684,5.6,12.0,13.0,0.448,0.627,1.0,12.0,5.75,263.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a7bc2e4a9939a619a8108d4,674f97ff3dc8e5d2ac008685,5.5,12.0,12.0,0.445,0.624,1.0,12.0,5.75,263.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a7bc2e4a9939a619a8108d4,674f97ff3dc8e5d2ac00868b,1.5,5.0,5.0,0.155,0.217,4.0,12.0,5.75,263.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a7bc2e4a9939a619a8108d4,674f98013dc8e5d2ac00873b,2.6,8.0,8.0,0.155,0.217,2.0,12.0,5.75,263.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
-6a7bc2e4a9939a619a8108d4,674f98013dc8e5d2ac0087cf,8.3,15.0,15.0,0.695,0.972,1.0,12.0,5.75,263.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
-6a7bc2e4a9939a619a8108d4,674f98013dc8e5d2ac008883,8.0,15.0,14.0,0.743,1.04,2.0,12.0,5.75,263.0,,light,unknown,unknown,(unknown operator),type 2 (socket only),ac (single-phase),0
-6a85c0f01833f361cb657a66,674f98013dc8e5d2ac00873b,2.6,8.0,7.0,0.145,0.203,2.0,11.5,3.79,329.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,1
-6a85c0f01833f361cb657a66,674f97ff3dc8e5d2ac0083e4,4.9,9.0,9.0,0.511,0.715,1.0,11.5,3.79,329.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a85c0f01833f361cb657a66,674f97ff3dc8e5d2ac00843c,8.1,18.0,14.0,0.76,1.064,1.0,11.5,3.79,329.0,,light,unknown,unknown,unknown,type 2 (socket only),unknown,0
-6a85c0f01833f361cb657a66,674f97ff3dc8e5d2ac008478,2.6,8.0,7.0,0.145,0.203,1.0,11.5,3.79,329.0,,light,unknown,unknown,unknown,chademo,unknown,0
-6a85c0f01833f361cb657a66,674f97ff3dc8e5d2ac008533,5.8,10.0,9.0,0.843,1.18,1.0,11.5,3.79,329.0,,light,unknown,unknown,evie networks,chademo,unknown,0
-6a85c0f01833f361cb657a66,674f97ff3dc8e5d2ac008684,5.6,12.0,10.0,0.401,0.561,1.0,11.5,3.79,329.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a85c0f01833f361cb657a66,674f97ff3dc8e5d2ac008685,5.5,12.0,10.0,0.4,0.56,1.0,11.5,3.79,329.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a85c0f01833f361cb657a66,674f97ff3dc8e5d2ac00868b,1.7,5.0,5.0,0.189,0.265,4.0,11.5,3.79,329.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a85c0f01833f361cb657a66,674f98013dc8e5d2ac0087cf,8.3,15.0,12.0,0.59,0.825,1.0,11.5,3.79,329.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
-6a85c0f01833f361cb657a66,674f98013dc8e5d2ac008883,7.9,16.0,12.0,0.724,1.013,2.0,11.5,3.79,329.0,,light,unknown,unknown,(unknown operator),type 2 (socket only),ac (single-phase),0
-6a8e62e8204c0d3d71a859d1,674f97ff3dc8e5d2ac00868b,1.7,5.0,5.0,0.18,0.253,4.0,13.8,3.73,187.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),1
-6a8e62e8204c0d3d71a859d1,674f97ff3dc8e5d2ac0083e4,5.4,9.0,10.0,0.467,0.654,1.0,13.8,3.73,187.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a8e62e8204c0d3d71a859d1,674f97ff3dc8e5d2ac00843c,8.3,16.0,16.0,0.651,0.911,1.0,13.8,3.73,187.0,,light,unknown,unknown,unknown,type 2 (socket only),unknown,0
-6a8e62e8204c0d3d71a859d1,674f97ff3dc8e5d2ac008478,3.1,8.0,8.0,0.178,0.25,1.0,13.8,3.73,187.0,,light,unknown,unknown,unknown,chademo,unknown,0
-6a8e62e8204c0d3d71a859d1,674f97ff3dc8e5d2ac008533,6.4,10.0,10.0,0.859,1.202,1.0,13.8,3.73,187.0,,light,unknown,unknown,evie networks,chademo,unknown,0
-6a8e62e8204c0d3d71a859d1,674f97ff3dc8e5d2ac008684,6.2,13.0,13.0,0.392,0.548,1.0,13.8,3.73,187.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a8e62e8204c0d3d71a859d1,674f97ff3dc8e5d2ac008685,6.1,12.0,12.0,0.385,0.539,1.0,13.8,3.73,187.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a8e62e8204c0d3d71a859d1,674f98013dc8e5d2ac00873b,3.1,8.0,8.0,0.178,0.25,2.0,13.8,3.73,187.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
-6a8e62e8204c0d3d71a859d1,674f98013dc8e5d2ac0087cf,8.9,15.0,15.0,0.614,0.86,1.0,13.8,3.73,187.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
-6a8e62e8204c0d3d71a859d1,674f98013dc8e5d2ac008883,8.3,15.0,15.0,0.647,0.906,2.0,13.8,3.73,187.0,,light,unknown,unknown,(unknown operator),type 2 (socket only),ac (single-phase),0
-6a8e6bbc204c0d3d71ab0a0a,674f97ff3dc8e5d2ac00868b,1.6,5.0,5.0,0.159,0.222,4.0,13.6,3.61,184.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),1
-6a8e6bbc204c0d3d71ab0a0a,674f97ff3dc8e5d2ac0083e4,5.3,9.0,10.0,0.451,0.632,1.0,13.6,3.61,184.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6a8e6bbc204c0d3d71ab0a0a,674f97ff3dc8e5d2ac00843c,8.2,16.0,16.0,0.653,0.914,1.0,13.6,3.61,184.0,,light,unknown,unknown,unknown,type 2 (socket only),unknown,0
-6a8e6bbc204c0d3d71ab0a0a,674f97ff3dc8e5d2ac008478,3.0,8.0,8.0,0.139,0.194,1.0,13.6,3.61,184.0,,light,unknown,unknown,unknown,chademo,unknown,0
-6a8e6bbc204c0d3d71ab0a0a,674f97ff3dc8e5d2ac008533,6.3,10.0,10.0,0.864,1.209,1.0,13.6,3.61,184.0,,light,unknown,unknown,evie networks,chademo,unknown,0
-6a8e6bbc204c0d3d71ab0a0a,674f97ff3dc8e5d2ac008684,6.1,13.0,13.0,0.374,0.524,1.0,13.6,3.61,184.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a8e6bbc204c0d3d71ab0a0a,674f97ff3dc8e5d2ac008685,6.0,12.0,12.0,0.368,0.515,1.0,13.6,3.61,184.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6a8e6bbc204c0d3d71ab0a0a,674f98013dc8e5d2ac00873b,3.0,8.0,8.0,0.139,0.194,2.0,13.6,3.61,184.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
-6a8e6bbc204c0d3d71ab0a0a,674f98013dc8e5d2ac0087cf,8.8,15.0,15.0,0.609,0.853,1.0,13.6,3.61,184.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
-6a8e6bbc204c0d3d71ab0a0a,674f98013dc8e5d2ac008883,8.2,15.0,15.0,0.648,0.907,2.0,13.6,3.61,184.0,,light,unknown,unknown,(unknown operator),type 2 (socket only),ac (single-phase),0
-6aa60dfea35ccb7d5b6e330a,674f97ff3dc8e5d2ac00868b,1.7,5.0,5.0,0.198,0.277,4.0,22.7,5.15,8.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),1
-6aa60dfea35ccb7d5b6e330a,674f97ff3dc8e5d2ac0083e4,4.9,9.0,9.0,0.528,0.739,1.0,22.7,5.15,8.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6aa60dfea35ccb7d5b6e330a,674f97ff3dc8e5d2ac00843c,7.8,16.0,16.0,0.687,0.961,1.0,22.7,5.15,8.0,,light,unknown,unknown,unknown,type 2 (socket only),unknown,0
-6aa60dfea35ccb7d5b6e330a,674f97ff3dc8e5d2ac008478,2.6,8.0,8.0,0.14,0.196,1.0,22.7,5.15,8.0,,light,unknown,unknown,unknown,chademo,unknown,0
-6aa60dfea35ccb7d5b6e330a,674f97ff3dc8e5d2ac008533,5.9,10.0,10.0,0.866,1.212,1.0,22.7,5.15,8.0,,light,unknown,unknown,evie networks,chademo,unknown,0
-6aa60dfea35ccb7d5b6e330a,674f97ff3dc8e5d2ac008684,5.7,13.0,13.0,0.369,0.517,1.0,22.7,5.15,8.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6aa60dfea35ccb7d5b6e330a,674f97ff3dc8e5d2ac008685,5.6,12.0,12.0,0.365,0.511,1.0,22.7,5.15,8.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6aa60dfea35ccb7d5b6e330a,674f98013dc8e5d2ac00873b,2.6,8.0,8.0,0.14,0.196,2.0,22.7,5.15,8.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
-6aa60dfea35ccb7d5b6e330a,674f98013dc8e5d2ac0087cf,8.4,15.0,14.0,0.575,0.806,1.0,22.7,5.15,8.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
-6aa60dfea35ccb7d5b6e330a,674f98013dc8e5d2ac008883,7.8,15.0,15.0,0.685,0.96,2.0,22.7,5.15,8.0,,light,unknown,unknown,(unknown operator),type 2 (socket only),ac (single-phase),0
-6aa6111735f06c2782da647c,674f98013dc8e5d2ac00873b,2.6,8.0,8.0,0.14,0.196,2.0,22.6,5.28,7.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,1
-6aa6111735f06c2782da647c,674f97ff3dc8e5d2ac0083e4,4.9,9.0,9.0,0.529,0.741,1.0,22.6,5.28,7.0,,light,unknown,unknown,unknown,unknown,unknown,0
-6aa6111735f06c2782da647c,674f97ff3dc8e5d2ac00843c,7.8,16.0,16.0,0.689,0.964,1.0,22.6,5.28,7.0,,light,unknown,unknown,unknown,type 2 (socket only),unknown,0
-6aa6111735f06c2782da647c,674f97ff3dc8e5d2ac008478,2.6,8.0,8.0,0.14,0.196,1.0,22.6,5.28,7.0,,light,unknown,unknown,unknown,chademo,unknown,0
-6aa6111735f06c2782da647c,674f97ff3dc8e5d2ac008533,5.9,10.0,10.0,0.865,1.211,1.0,22.6,5.28,7.0,,light,unknown,unknown,evie networks,chademo,unknown,0
-6aa6111735f06c2782da647c,674f97ff3dc8e5d2ac008684,5.7,13.0,13.0,0.37,0.517,1.0,22.6,5.28,7.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6aa6111735f06c2782da647c,674f97ff3dc8e5d2ac008685,5.6,12.0,12.0,0.366,0.512,1.0,22.6,5.28,7.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6aa6111735f06c2782da647c,674f97ff3dc8e5d2ac00868b,1.7,5.0,5.0,0.198,0.277,4.0,22.6,5.28,7.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
-6aa6111735f06c2782da647c,674f98013dc8e5d2ac0087cf,8.4,15.0,14.0,0.575,0.806,1.0,22.6,5.28,7.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
-6aa6111735f06c2782da647c,674f98013dc8e5d2ac008883,7.8,15.0,15.0,0.688,0.963,2.0,22.6,5.28,7.0,,light,unknown,unknown,(unknown operator),type 2 (socket only),ac (single-phase),0
+sessionId,stationId,userPreviousSessions,distanceKm,durationMin,durationInTrafficMin,energyNominalKwh,energyNeededKwh,chargingPoints,temperatureC,windSpeedMs,windDirectionDeg,cost,roadTrafficCondition,congestionLevel,payAtLocation,operator,connectionType,currentType,selected
+6a7345276502511021153496,674f97ff3dc8e5d2ac00868b,1,1.7,5.0,5.0,0.194,0.271,4.0,6.9,2.29,280.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),1
+6a7345276502511021153496,674f97ff3dc8e5d2ac0083e4,1,4.9,9.0,9.0,0.51,0.714,1.0,6.9,2.29,280.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a7345276502511021153496,674f97ff3dc8e5d2ac00843c,1,,,,,,1.0,,,,,unknown,unknown,unknown,unknown,type 2 (socket only),unknown,0
+6a7345276502511021153496,674f97ff3dc8e5d2ac008478,1,2.6,8.0,6.0,0.148,0.207,1.0,6.9,2.29,280.0,,light,unknown,unknown,unknown,chademo,unknown,0
+6a7345276502511021153496,674f97ff3dc8e5d2ac008533,1,,,,,,1.0,,,,,unknown,unknown,unknown,evie networks,chademo,unknown,0
+6a7345276502511021153496,674f97ff3dc8e5d2ac008684,1,5.6,12.0,10.0,0.419,0.587,1.0,6.9,2.29,280.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a7345276502511021153496,674f97ff3dc8e5d2ac008685,1,5.5,12.0,10.0,0.417,0.584,1.0,6.9,2.29,280.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a7345276502511021153496,674f98013dc8e5d2ac00873b,1,2.6,8.0,6.0,0.148,0.207,2.0,6.9,2.29,280.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
+6a7345276502511021153496,674f98013dc8e5d2ac0087cf,1,8.3,15.0,12.0,0.64,0.896,1.0,6.9,2.29,280.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
+6a7345276502511021153496,674f98013dc8e5d2ac008883,1,7.9,16.0,12.0,0.717,1.003,2.0,6.9,2.29,280.0,,light,unknown,unknown,(unknown operator),type 2 (socket only),ac (single-phase),0
+6a7696f5f17427d6b91a3d33,674f97ff3dc8e5d2ac00868b,2,1.5,5.0,5.0,0.151,0.211,4.0,15.4,4.18,25.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),1
+6a7696f5f17427d6b91a3d33,674f97ff3dc8e5d2ac0083e4,2,4.8,9.0,10.0,0.488,0.684,1.0,15.4,4.18,25.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a7696f5f17427d6b91a3d33,674f97ff3dc8e5d2ac00843c,2,8.0,15.0,16.0,0.714,0.999,1.0,15.4,4.18,25.0,,light,unknown,unknown,unknown,type 2 (socket only),unknown,0
+6a7696f5f17427d6b91a3d33,674f97ff3dc8e5d2ac008478,2,2.6,8.0,8.0,0.131,0.184,1.0,15.4,4.18,25.0,,light,unknown,unknown,unknown,chademo,unknown,0
+6a7696f5f17427d6b91a3d33,674f97ff3dc8e5d2ac008533,2,5.8,10.0,10.0,0.828,1.16,1.0,15.4,4.18,25.0,,light,unknown,unknown,evie networks,chademo,unknown,0
+6a7696f5f17427d6b91a3d33,674f97ff3dc8e5d2ac008684,2,5.6,12.0,13.0,0.357,0.5,1.0,15.4,4.18,25.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a7696f5f17427d6b91a3d33,674f97ff3dc8e5d2ac008685,2,5.5,12.0,13.0,0.358,0.501,1.0,15.4,4.18,25.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a7696f5f17427d6b91a3d33,674f98013dc8e5d2ac00873b,2,2.6,8.0,8.0,0.131,0.184,2.0,15.4,4.18,25.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
+6a7696f5f17427d6b91a3d33,674f98013dc8e5d2ac0087cf,2,9.8,15.0,15.0,0.819,1.147,1.0,15.4,4.18,25.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
+6a7696f5f17427d6b91a3d33,674f98013dc8e5d2ac008883,2,8.3,14.0,15.0,0.758,1.061,2.0,15.4,4.18,25.0,,light,unknown,unknown,(unknown operator),type 2 (socket only),ac (single-phase),0
+6a76a2f5f17427d6b91f829b,674f97ff3dc8e5d2ac00868b,3,1.5,5.0,5.0,0.151,0.212,4.0,16.1,4.52,18.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),1
+6a76a2f5f17427d6b91f829b,674f97ff3dc8e5d2ac0083e4,3,4.9,9.0,9.0,0.492,0.688,1.0,16.1,4.52,18.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76a2f5f17427d6b91f829b,674f97ff3dc8e5d2ac00843c,3,8.2,16.0,16.0,0.779,1.091,1.0,16.1,4.52,18.0,,light,unknown,unknown,unknown,type 2 (socket only),unknown,0
+6a76a2f5f17427d6b91f829b,674f97ff3dc8e5d2ac008478,3,2.6,8.0,8.0,0.131,0.184,1.0,16.1,4.52,18.0,,light,unknown,unknown,unknown,chademo,unknown,0
+6a76a2f5f17427d6b91f829b,674f97ff3dc8e5d2ac008533,3,5.8,10.0,10.0,0.824,1.153,1.0,16.1,4.52,18.0,,light,unknown,unknown,evie networks,chademo,unknown,0
+6a76a2f5f17427d6b91f829b,674f97ff3dc8e5d2ac008684,3,5.6,12.0,13.0,0.359,0.502,1.0,16.1,4.52,18.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a2f5f17427d6b91f829b,674f97ff3dc8e5d2ac008685,3,5.6,12.0,12.0,0.359,0.503,1.0,16.1,4.52,18.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a2f5f17427d6b91f829b,674f98013dc8e5d2ac00873b,3,2.6,8.0,8.0,0.131,0.184,2.0,16.1,4.52,18.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
+6a76a2f5f17427d6b91f829b,674f98013dc8e5d2ac0087cf,3,8.3,15.0,15.0,0.521,0.729,1.0,16.1,4.52,18.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
+6a76a2f5f17427d6b91f829b,674f98013dc8e5d2ac008883,3,8.0,15.0,15.0,0.705,0.988,2.0,16.1,4.52,18.0,,light,unknown,unknown,(unknown operator),type 2 (socket only),ac (single-phase),0
+6a76a382f17427d6b91fe043,674f97ff3dc8e5d2ac008355,4,0.9,4.0,5.0,0.055,0.085,4.0,16.5,4.68,20.0,,moderate,unknown,unknown,unknown,unknown,unknown,1
+6a76a382f17427d6b91fe043,674f97ff3dc8e5d2ac0083c9,4,3.6,9.0,9.0,0.324,0.453,2.0,20.0,0.0,0.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76a382f17427d6b91fe043,674f97ff3dc8e5d2ac0083e4,4,11.0,18.0,18.0,1.329,1.86,1.0,16.5,4.68,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76a382f17427d6b91fe043,674f97ff3dc8e5d2ac008478,4,8.2,13.0,13.0,1.01,1.414,1.0,16.5,4.68,20.0,,light,unknown,unknown,unknown,chademo,unknown,0
+6a76a382f17427d6b91fe043,674f97ff3dc8e5d2ac008533,4,6.8,13.0,14.0,1.131,1.583,1.0,20.0,0.0,0.0,,light,unknown,unknown,evie networks,chademo,unknown,0
+6a76a382f17427d6b91fe043,674f97ff3dc8e5d2ac008684,4,7.4,13.0,13.0,0.769,1.077,1.0,16.5,4.68,20.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a382f17427d6b91fe043,674f97ff3dc8e5d2ac008685,4,7.3,13.0,13.0,0.761,1.066,1.0,16.5,4.68,20.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a382f17427d6b91fe043,674f97ff3dc8e5d2ac00868b,4,9.9,17.0,18.0,1.284,1.798,4.0,16.5,4.68,20.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a382f17427d6b91fe043,674f98013dc8e5d2ac00873b,4,8.2,13.0,13.0,0.898,1.258,2.0,20.0,0.0,0.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
+6a76a382f17427d6b91fe043,674f98013dc8e5d2ac0087cf,4,3.5,7.0,8.0,0.261,0.365,1.0,16.5,4.68,20.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
+6a76a3acf17427d6b91ffb17,674f97ff3dc8e5d2ac008685,5,4.8,9.0,9.0,0.515,0.722,1.0,16.5,4.68,20.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),1
+6a76a3acf17427d6b91ffb17,674f97ff3dc8e5d2ac008355,5,3.9,11.0,13.0,0.446,0.624,4.0,16.5,4.68,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76a3acf17427d6b91ffb17,674f97ff3dc8e5d2ac0083c9,5,7.1,14.0,14.0,0.668,0.935,2.0,16.5,4.68,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76a3acf17427d6b91ffb17,674f97ff3dc8e5d2ac0083e4,5,8.4,14.0,14.0,1.019,1.426,1.0,16.5,4.68,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76a3acf17427d6b91ffb17,674f97ff3dc8e5d2ac008478,5,5.7,10.0,9.0,0.684,0.958,1.0,16.5,4.68,20.0,,light,unknown,unknown,unknown,chademo,unknown,0
+6a76a3acf17427d6b91ffb17,674f97ff3dc8e5d2ac008533,5,5.7,10.0,10.0,1.032,1.444,1.0,16.5,4.68,20.0,,light,unknown,unknown,evie networks,chademo,unknown,0
+6a76a3acf17427d6b91ffb17,674f97ff3dc8e5d2ac008684,5,4.9,9.0,9.0,0.527,0.737,1.0,16.5,4.68,20.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a3acf17427d6b91ffb17,674f97ff3dc8e5d2ac00868b,5,7.9,13.0,13.0,1.091,1.528,4.0,16.5,4.68,20.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a3acf17427d6b91ffb17,674f98013dc8e5d2ac00873b,5,5.7,10.0,9.0,0.684,0.958,2.0,16.5,4.68,20.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
+6a76a3acf17427d6b91ffb17,674f98013dc8e5d2ac0087cf,5,3.1,6.0,6.0,0.31,0.434,1.0,16.5,4.68,20.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
+6a76a555f17427d6b920bce9,674f98013dc8e5d2ac0087cf,6,7.3,14.0,15.0,0.587,0.822,1.0,16.5,4.68,20.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),1
+6a76a555f17427d6b920bce9,674f97ff3dc8e5d2ac008355,6,4.5,9.0,10.0,0.234,0.328,4.0,16.5,4.68,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76a555f17427d6b920bce9,674f97ff3dc8e5d2ac0083c9,6,2.4,6.0,6.0,0.095,0.133,2.0,16.5,4.68,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76a555f17427d6b920bce9,674f97ff3dc8e5d2ac008478,6,12.1,16.0,16.0,1.799,2.518,1.0,16.5,4.68,20.0,,light,unknown,unknown,unknown,chademo,unknown,0
+6a76a555f17427d6b920bce9,674f97ff3dc8e5d2ac008533,6,5.6,11.0,11.0,0.911,1.275,1.0,16.5,4.68,20.0,,light,unknown,unknown,evie networks,chademo,unknown,0
+6a76a555f17427d6b920bce9,674f97ff3dc8e5d2ac008684,6,10.2,19.0,19.0,0.958,1.341,1.0,16.5,4.68,20.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a555f17427d6b920bce9,674f97ff3dc8e5d2ac008685,6,10.1,18.0,18.0,0.94,1.316,1.0,16.5,4.68,20.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a555f17427d6b920bce9,674f97ff3dc8e5d2ac00868b,6,9.8,17.0,17.0,1.25,1.749,4.0,16.5,4.68,20.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a555f17427d6b920bce9,674f98013dc8e5d2ac00873b,6,12.1,16.0,16.0,1.799,2.518,2.0,16.5,4.68,20.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
+6a76a576f17427d6b920d7bd,674f97ff3dc8e5d2ac008685,7,6.9,11.0,11.0,0.71,0.994,1.0,15.9,5.08,26.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),1
+6a76a576f17427d6b920d7bd,674f97ff3dc8e5d2ac008355,7,5.4,11.0,13.0,0.537,0.752,4.0,15.9,5.08,26.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76a576f17427d6b920d7bd,674f97ff3dc8e5d2ac0083c9,7,8.2,16.0,17.0,0.82,1.148,2.0,15.9,5.08,26.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76a576f17427d6b920d7bd,674f97ff3dc8e5d2ac00843c,7,10.8,18.0,18.0,1.205,1.687,1.0,15.9,5.08,26.0,,light,unknown,unknown,unknown,type 2 (socket only),unknown,0
+6a76a576f17427d6b920d7bd,674f97ff3dc8e5d2ac008478,7,7.8,12.0,13.0,0.873,1.223,1.0,15.9,5.08,26.0,,light,unknown,unknown,unknown,chademo,unknown,0
+6a76a576f17427d6b920d7bd,674f97ff3dc8e5d2ac008482,7,7.5,10.0,10.0,0.779,1.09,2.0,15.9,5.08,26.0,,light,unknown,unknown,chargefox,unknown,unknown,0
+6a76a576f17427d6b920d7bd,674f97ff3dc8e5d2ac008682,7,10.2,15.0,15.0,1.038,1.453,6.0,15.9,5.08,26.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a576f17427d6b920d7bd,674f97ff3dc8e5d2ac008684,7,7.0,12.0,12.0,0.722,1.011,1.0,15.9,5.08,26.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a576f17427d6b920d7bd,674f98013dc8e5d2ac00873b,7,7.8,12.0,13.0,0.874,1.223,2.0,15.9,5.08,26.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
+6a76a576f17427d6b920d7bd,674f98013dc8e5d2ac0087cf,7,3.4,6.0,6.0,0.302,0.423,1.0,15.9,5.08,26.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
+6a76a5a0f17427d6b920f291,674f97ff3dc8e5d2ac008355,8,3.6,6.0,7.0,0.281,0.393,4.0,16.5,4.68,20.0,,light,unknown,unknown,unknown,unknown,unknown,1
+6a76a5a0f17427d6b920f291,674f97ff3dc8e5d2ac0083c9,8,0.9,2.0,1.0,0.131,0.184,2.0,16.5,4.68,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76a5a0f17427d6b920f291,674f97ff3dc8e5d2ac008478,8,11.0,16.0,18.0,1.23,1.722,1.0,16.5,4.68,20.0,,light,unknown,unknown,unknown,chademo,unknown,0
+6a76a5a0f17427d6b920f291,674f97ff3dc8e5d2ac008533,8,8.0,14.0,14.0,1.265,1.771,1.0,16.5,4.68,20.0,,light,unknown,unknown,evie networks,chademo,unknown,0
+6a76a5a0f17427d6b920f291,674f97ff3dc8e5d2ac008601,8,7.6,10.0,11.0,0.583,0.817,6.0,16.5,4.68,20.0,0.78,light,unknown,no,tesla (including non-tesla),ccs (type 2),dc,0
+6a76a5a0f17427d6b920f291,674f97ff3dc8e5d2ac008684,8,10.2,16.0,18.0,1.071,1.499,1.0,16.5,4.68,20.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a5a0f17427d6b920f291,674f97ff3dc8e5d2ac008685,8,10.1,16.0,18.0,1.053,1.474,1.0,16.5,4.68,20.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a5a0f17427d6b920f291,674f98013dc8e5d2ac00873b,8,11.0,16.0,18.0,1.229,1.721,2.0,16.5,4.68,20.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
+6a76a5a0f17427d6b920f291,674f98013dc8e5d2ac0087cf,8,7.3,12.0,14.0,0.658,0.921,1.0,16.5,4.68,20.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
+6a76a5e2f17427d6b9212174,674f98013dc8e5d2ac0087cf,9,5.8,10.0,10.0,0.545,0.763,1.0,15.9,5.08,26.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),1
+6a76a5e2f17427d6b9212174,674f97ff3dc8e5d2ac008355,9,4.9,11.0,12.0,0.532,0.745,4.0,15.9,5.08,26.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76a5e2f17427d6b9212174,674f97ff3dc8e5d2ac0083c9,9,7.7,18.0,17.0,0.73,1.022,2.0,15.9,5.08,26.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76a5e2f17427d6b9212174,674f97ff3dc8e5d2ac008478,9,10.8,18.0,18.0,1.165,1.631,1.0,15.9,5.08,26.0,,light,unknown,unknown,unknown,chademo,unknown,0
+6a76a5e2f17427d6b9212174,674f97ff3dc8e5d2ac008482,9,8.8,10.0,10.0,0.989,1.384,2.0,15.9,5.08,26.0,,light,unknown,unknown,chargefox,unknown,unknown,0
+6a76a5e2f17427d6b9212174,674f97ff3dc8e5d2ac008533,9,12.2,21.0,21.0,1.58,2.212,1.0,15.9,5.08,26.0,,light,unknown,unknown,evie networks,chademo,unknown,0
+6a76a5e2f17427d6b9212174,674f97ff3dc8e5d2ac008682,9,13.2,21.0,20.0,1.321,1.85,6.0,15.9,5.08,26.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a5e2f17427d6b9212174,674f97ff3dc8e5d2ac008684,9,9.9,18.0,17.0,0.997,1.396,1.0,15.9,5.08,26.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a5e2f17427d6b9212174,674f97ff3dc8e5d2ac008685,9,9.8,17.0,17.0,0.984,1.377,1.0,15.9,5.08,26.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a5e2f17427d6b9212174,674f98013dc8e5d2ac00873b,9,10.8,18.0,18.0,1.165,1.631,2.0,15.9,5.08,26.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
+6a76a61cf17427d6b92149a4,674f97ff3dc8e5d2ac008685,10,3.1,6.0,6.0,0.334,0.468,1.0,15.9,5.08,26.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),1
+6a76a61cf17427d6b92149a4,674f97ff3dc8e5d2ac008355,10,9.3,19.0,20.0,0.931,1.303,4.0,15.9,5.08,26.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76a61cf17427d6b92149a4,674f97ff3dc8e5d2ac0083e4,10,7.0,11.0,11.0,0.875,1.225,1.0,15.9,5.08,26.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76a61cf17427d6b92149a4,674f97ff3dc8e5d2ac00843c,10,7.1,13.0,12.0,0.848,1.187,1.0,15.9,5.08,26.0,,light,unknown,unknown,unknown,type 2 (socket only),unknown,0
+6a76a61cf17427d6b92149a4,674f97ff3dc8e5d2ac008478,10,6.9,12.0,11.0,0.812,1.137,1.0,15.9,5.08,26.0,,light,unknown,unknown,unknown,chademo,unknown,0
+6a76a61cf17427d6b92149a4,674f97ff3dc8e5d2ac008682,10,5.4,9.0,9.0,0.58,0.812,6.0,15.9,5.08,26.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a61cf17427d6b92149a4,674f97ff3dc8e5d2ac008684,10,3.2,7.0,6.0,0.342,0.479,1.0,15.9,5.08,26.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a61cf17427d6b92149a4,674f98013dc8e5d2ac00873b,10,6.9,12.0,11.0,0.812,1.137,2.0,15.9,5.08,26.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
+6a76a61cf17427d6b92149a4,674f98013dc8e5d2ac0087cf,10,6.1,10.0,10.0,0.514,0.72,1.0,15.9,5.08,26.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
+6a76a61cf17427d6b92149a4,674f98013dc8e5d2ac008883,10,6.9,11.0,11.0,0.813,1.138,2.0,15.9,5.08,26.0,,light,unknown,unknown,(unknown operator),type 2 (socket only),ac (single-phase),0
+6a76a638f17427d6b9215dca,674f98013dc8e5d2ac0087cf,11,4.7,8.0,9.0,0.472,0.661,1.0,16.5,4.68,20.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),1
+6a76a638f17427d6b9215dca,674f97ff3dc8e5d2ac008355,11,2.3,5.0,6.0,0.236,0.331,4.0,16.5,4.68,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76a638f17427d6b9215dca,674f97ff3dc8e5d2ac0083c9,11,5.0,12.0,11.0,0.517,0.723,2.0,16.5,4.68,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76a638f17427d6b9215dca,674f97ff3dc8e5d2ac008478,11,9.8,17.0,17.0,1.058,1.481,1.0,16.5,4.68,20.0,,light,unknown,unknown,unknown,chademo,unknown,0
+6a76a638f17427d6b9215dca,674f97ff3dc8e5d2ac008482,11,10.6,12.0,12.0,1.168,1.635,2.0,16.5,4.68,20.0,,light,unknown,unknown,chargefox,unknown,unknown,0
+6a76a638f17427d6b9215dca,674f97ff3dc8e5d2ac008533,11,10.2,18.0,18.0,1.467,2.054,1.0,16.5,4.68,20.0,,light,unknown,unknown,evie networks,chademo,unknown,0
+6a76a638f17427d6b9215dca,674f97ff3dc8e5d2ac008601,11,12.5,19.0,21.0,1.056,1.479,6.0,16.5,4.68,20.0,0.78,light,unknown,no,tesla (including non-tesla),ccs (type 2),dc,0
+6a76a638f17427d6b9215dca,674f97ff3dc8e5d2ac008684,11,8.9,16.0,16.0,0.906,1.269,1.0,16.5,4.68,20.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a638f17427d6b9215dca,674f97ff3dc8e5d2ac008685,11,8.9,16.0,15.0,0.898,1.257,1.0,16.5,4.68,20.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a638f17427d6b9215dca,674f98013dc8e5d2ac00873b,11,9.8,17.0,17.0,1.058,1.481,2.0,16.5,4.68,20.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
+6a76a65ff17427d6b921789e,674f97ff3dc8e5d2ac008685,12,1.6,4.0,4.0,0.077,0.108,1.0,16.4,4.67,17.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),1
+6a76a65ff17427d6b921789e,674f97ff3dc8e5d2ac0083e4,12,4.2,7.0,7.0,0.492,0.688,1.0,16.4,4.67,17.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76a65ff17427d6b921789e,674f97ff3dc8e5d2ac00843c,12,3.7,8.0,8.0,0.408,0.571,1.0,16.4,4.67,17.0,,light,unknown,unknown,unknown,type 2 (socket only),unknown,0
+6a76a65ff17427d6b921789e,674f97ff3dc8e5d2ac008478,12,3.7,7.0,7.0,0.385,0.539,1.0,16.4,4.67,17.0,,light,unknown,unknown,unknown,chademo,unknown,0
+6a76a65ff17427d6b921789e,674f97ff3dc8e5d2ac008682,12,6.3,11.0,10.0,0.539,0.755,6.0,16.4,4.67,17.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a65ff17427d6b921789e,674f97ff3dc8e5d2ac008684,12,1.7,5.0,5.0,0.09,0.125,1.0,16.4,4.67,17.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a65ff17427d6b921789e,674f97ff3dc8e5d2ac00868b,12,4.9,9.0,9.0,0.531,0.744,4.0,16.4,4.67,17.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a65ff17427d6b921789e,674f98013dc8e5d2ac00873b,12,3.7,7.0,7.0,0.385,0.539,2.0,16.4,4.67,17.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
+6a76a65ff17427d6b921789e,674f98013dc8e5d2ac0087cf,12,6.5,10.0,10.0,0.448,0.628,1.0,16.4,4.67,17.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
+6a76a65ff17427d6b921789e,674f98013dc8e5d2ac008883,12,4.0,7.0,7.0,0.437,0.612,2.0,16.4,4.67,17.0,,light,unknown,unknown,(unknown operator),type 2 (socket only),ac (single-phase),0
+6a76a686f17427d6b9219370,674f98013dc8e5d2ac0087cf,13,13.1,25.0,27.0,1.221,1.71,1.0,20.0,0.0,0.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),1
+6a76a686f17427d6b9219370,674f97ff3dc8e5d2ac008355,13,9.5,20.0,20.0,0.985,1.378,4.0,16.9,5.38,18.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76a686f17427d6b9219370,674f97ff3dc8e5d2ac0083c9,13,8.9,20.0,19.0,0.941,1.317,2.0,16.9,5.38,18.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76a686f17427d6b9219370,674f97ff3dc8e5d2ac008533,13,15.4,29.0,30.0,1.993,2.79,1.0,16.9,5.38,18.0,,light,unknown,unknown,evie networks,chademo,unknown,0
+6a76a686f17427d6b9219370,674f97ff3dc8e5d2ac008601,13,10.4,22.0,22.0,0.962,1.347,6.0,16.9,5.38,18.0,0.78,light,unknown,no,tesla (including non-tesla),ccs (type 2),dc,0
+6a76a686f17427d6b9219370,674f97ff3dc8e5d2ac008684,13,16.4,30.0,31.0,1.682,2.355,1.0,16.9,5.38,18.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a686f17427d6b9219370,674f97ff3dc8e5d2ac008685,13,16.4,30.0,31.0,1.699,2.378,1.0,16.9,5.38,18.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a6b9f17427d6b921b4f2,674f98013dc8e5d2ac0087cf,14,4.8,7.0,7.0,0.426,0.597,1.0,16.0,5.1,26.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),1
+6a76a6b9f17427d6b921b4f2,674f97ff3dc8e5d2ac008355,14,8.3,14.0,14.0,0.813,1.139,4.0,16.0,5.1,26.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76a6b9f17427d6b921b4f2,674f97ff3dc8e5d2ac00843c,14,12.1,19.0,19.0,1.332,1.865,1.0,16.0,5.1,26.0,,light,unknown,unknown,unknown,type 2 (socket only),unknown,0
+6a76a6b9f17427d6b921b4f2,674f97ff3dc8e5d2ac008478,14,9.2,14.0,14.0,0.989,1.385,1.0,16.0,5.1,26.0,,light,unknown,unknown,unknown,chademo,unknown,0
+6a76a6b9f17427d6b921b4f2,674f97ff3dc8e5d2ac008482,14,5.6,7.0,7.0,0.607,0.849,2.0,16.0,5.1,26.0,,light,unknown,unknown,chargefox,unknown,unknown,0
+6a76a6b9f17427d6b921b4f2,674f97ff3dc8e5d2ac008682,14,11.6,16.0,16.0,1.178,1.65,6.0,16.0,5.1,26.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a6b9f17427d6b921b4f2,674f97ff3dc8e5d2ac008684,14,8.3,13.0,13.0,0.826,1.156,1.0,16.0,5.1,26.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a6b9f17427d6b921b4f2,674f97ff3dc8e5d2ac008685,14,8.2,13.0,12.0,0.815,1.141,1.0,16.0,5.1,26.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a6b9f17427d6b921b4f2,674f98013dc8e5d2ac00873b,14,9.2,14.0,14.0,0.989,1.385,2.0,16.0,5.1,26.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
+6a76a6b9f17427d6b921b4f2,674f98013dc8e5d2ac008883,14,11.9,18.0,18.0,1.325,1.854,2.0,16.0,5.1,26.0,,light,unknown,unknown,(unknown operator),type 2 (socket only),ac (single-phase),0
+6a76a6e3f17427d6b921cfc3,674f97ff3dc8e5d2ac008685,15,12.0,18.0,20.0,1.214,1.7,1.0,16.7,4.78,20.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),1
+6a76a6e3f17427d6b921cfc3,674f97ff3dc8e5d2ac008355,15,5.2,8.0,9.0,0.51,0.715,4.0,16.7,4.78,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76a6e3f17427d6b921cfc3,674f97ff3dc8e5d2ac0083c9,15,4.0,7.0,7.0,0.423,0.592,2.0,16.7,4.78,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76a6e3f17427d6b921cfc3,674f97ff3dc8e5d2ac008533,15,11.0,17.0,18.0,1.61,2.254,1.0,16.7,4.78,20.0,,light,unknown,unknown,evie networks,chademo,unknown,0
+6a76a6e3f17427d6b921cfc3,674f97ff3dc8e5d2ac008601,15,6.8,10.0,11.0,0.575,0.805,6.0,16.7,4.78,20.0,0.78,light,unknown,no,tesla (including non-tesla),ccs (type 2),dc,0
+6a76a6e3f17427d6b921cfc3,674f97ff3dc8e5d2ac008684,15,12.1,18.0,20.0,1.249,1.749,1.0,16.7,4.78,20.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a6e3f17427d6b921cfc3,674f98013dc8e5d2ac0087cf,15,8.8,13.0,15.0,0.912,1.277,1.0,16.7,4.78,20.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
+6a76a720f17427d6b921f147,674f97ff3dc8e5d2ac00868b,16,5.2,9.0,9.0,0.75,1.051,4.0,16.7,4.78,20.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),1
+6a76a720f17427d6b921f147,674f97ff3dc8e5d2ac008355,16,6.7,14.0,16.0,0.616,0.862,4.0,16.7,4.78,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76a720f17427d6b921f147,674f97ff3dc8e5d2ac0083c9,16,6.9,13.0,14.0,0.705,0.987,2.0,16.7,4.78,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76a720f17427d6b921f147,674f97ff3dc8e5d2ac0083e4,16,12.8,13.0,13.0,1.833,2.566,1.0,16.7,4.78,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76a720f17427d6b921f147,674f97ff3dc8e5d2ac008478,16,4.3,8.0,8.0,0.492,0.689,1.0,16.7,4.78,20.0,,light,unknown,unknown,unknown,chademo,unknown,0
+6a76a720f17427d6b921f147,674f97ff3dc8e5d2ac008533,16,2.0,4.0,4.0,0.493,0.69,1.0,16.7,4.78,20.0,,light,unknown,unknown,evie networks,chademo,unknown,0
+6a76a720f17427d6b921f147,674f97ff3dc8e5d2ac008684,16,6.4,13.0,13.0,0.541,0.757,1.0,16.7,4.78,20.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a720f17427d6b921f147,674f97ff3dc8e5d2ac008685,16,6.3,12.0,13.0,0.531,0.744,1.0,16.7,4.78,20.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a720f17427d6b921f147,674f98013dc8e5d2ac00873b,16,4.3,8.0,8.0,0.492,0.689,2.0,16.7,4.78,20.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
+6a76a720f17427d6b921f147,674f98013dc8e5d2ac0087cf,16,5.9,9.0,9.0,0.478,0.669,1.0,16.7,4.78,20.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
+6a76a74ef17427d6b92212c9,674f97ff3dc8e5d2ac008685,17,3.9,7.0,7.0,0.387,0.542,1.0,16.0,5.1,26.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),1
+6a76a74ef17427d6b92212c9,674f97ff3dc8e5d2ac0083e4,17,7.9,12.0,12.0,0.937,1.312,1.0,16.0,5.1,26.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76a74ef17427d6b92212c9,674f97ff3dc8e5d2ac00843c,17,7.4,13.0,13.0,0.836,1.171,1.0,16.0,5.1,26.0,,light,unknown,unknown,unknown,type 2 (socket only),unknown,0
+6a76a74ef17427d6b92212c9,674f97ff3dc8e5d2ac008478,17,8.0,12.0,12.0,0.858,1.201,1.0,16.0,5.1,26.0,,light,unknown,unknown,unknown,chademo,unknown,0
+6a76a74ef17427d6b92212c9,674f97ff3dc8e5d2ac008482,17,15.0,20.0,20.0,1.364,1.91,2.0,16.0,5.1,26.0,,light,unknown,unknown,chargefox,unknown,unknown,0
+6a76a74ef17427d6b92212c9,674f97ff3dc8e5d2ac008682,17,6.2,10.0,9.0,0.625,0.874,6.0,16.0,5.1,26.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a74ef17427d6b92212c9,674f97ff3dc8e5d2ac008684,17,4.0,7.0,7.0,0.398,0.558,1.0,16.0,5.1,26.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a74ef17427d6b92212c9,674f98013dc8e5d2ac00873b,17,8.0,12.0,12.0,0.858,1.201,2.0,16.0,5.1,26.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
+6a76a74ef17427d6b92212c9,674f98013dc8e5d2ac0087cf,17,6.2,9.0,9.0,0.508,0.711,1.0,16.0,5.1,26.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
+6a76a74ef17427d6b92212c9,674f98013dc8e5d2ac008883,17,7.7,12.0,12.0,0.88,1.233,2.0,16.0,5.1,26.0,,light,unknown,unknown,(unknown operator),type 2 (socket only),ac (single-phase),0
+6a76a768f17427d6b92226ec,674f97ff3dc8e5d2ac008685,18,15.3,22.0,22.0,1.593,2.23,1.0,16.1,5.1,26.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),1
+6a76a768f17427d6b92226ec,674f97ff3dc8e5d2ac008355,18,10.7,16.0,16.0,1.176,1.646,4.0,16.1,5.1,26.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76a768f17427d6b92226ec,674f97ff3dc8e5d2ac0083c9,18,13.5,22.0,21.0,1.426,1.996,2.0,16.1,5.1,26.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76a768f17427d6b92226ec,674f97ff3dc8e5d2ac008482,18,9.6,10.0,10.0,1.17,1.638,2.0,16.1,5.1,26.0,,light,unknown,unknown,chargefox,unknown,unknown,0
+6a76a768f17427d6b92226ec,674f97ff3dc8e5d2ac008601,18,21.0,29.0,30.0,1.955,2.737,6.0,16.1,5.1,26.0,0.78,light,unknown,no,tesla (including non-tesla),ccs (type 2),dc,0
+6a76a768f17427d6b92226ec,674f97ff3dc8e5d2ac008684,18,15.4,22.0,22.0,1.612,2.256,1.0,16.1,5.1,26.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a768f17427d6b92226ec,674f98013dc8e5d2ac0087cf,18,11.7,15.0,15.0,1.184,1.657,1.0,16.1,5.1,26.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
+6a76a7baf17427d6b9227df7,674f98013dc8e5d2ac0087cf,19,3.8,8.0,8.0,0.33,0.463,1.0,16.7,4.78,20.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),1
+6a76a7baf17427d6b9227df7,674f97ff3dc8e5d2ac008355,19,4.4,12.0,13.0,0.479,0.671,4.0,16.7,4.78,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76a7baf17427d6b9227df7,674f97ff3dc8e5d2ac0083c9,19,4.6,11.0,12.0,0.505,0.707,2.0,16.7,4.78,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76a7baf17427d6b9227df7,674f97ff3dc8e5d2ac0083e4,19,10.2,17.0,17.0,1.224,1.714,1.0,16.7,4.78,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76a7baf17427d6b9227df7,674f97ff3dc8e5d2ac008478,19,6.3,12.0,12.0,0.902,1.262,1.0,16.7,4.78,20.0,,light,unknown,unknown,unknown,chademo,unknown,0
+6a76a7baf17427d6b9227df7,674f97ff3dc8e5d2ac008533,19,5.0,8.0,8.0,1.041,1.458,1.0,16.7,4.78,20.0,,light,unknown,unknown,evie networks,chademo,unknown,0
+6a76a7baf17427d6b9227df7,674f97ff3dc8e5d2ac008684,19,6.7,12.0,12.0,0.749,1.049,1.0,16.7,4.78,20.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a7baf17427d6b9227df7,674f97ff3dc8e5d2ac008685,19,6.6,11.0,12.0,0.737,1.032,1.0,16.7,4.78,20.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a7baf17427d6b9227df7,674f97ff3dc8e5d2ac00868b,19,7.3,12.0,12.0,1.122,1.57,4.0,16.7,4.78,20.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a7baf17427d6b9227df7,674f98013dc8e5d2ac00873b,19,6.3,12.0,12.0,0.902,1.262,2.0,16.7,4.78,20.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
+6a76a7fbf17427d6b922a627,674f97ff3dc8e5d2ac008685,20,5.1,9.0,9.0,0.526,0.736,1.0,16.7,4.78,20.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),1
+6a76a7fbf17427d6b922a627,674f97ff3dc8e5d2ac008355,20,4.1,10.0,11.0,0.371,0.519,4.0,16.7,4.78,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76a7fbf17427d6b922a627,674f97ff3dc8e5d2ac0083c9,20,7.1,15.0,14.0,0.648,0.908,2.0,16.7,4.78,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76a7fbf17427d6b922a627,674f97ff3dc8e5d2ac0083e4,20,9.0,14.0,14.0,1.042,1.459,1.0,16.7,4.78,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76a7fbf17427d6b922a627,674f97ff3dc8e5d2ac008478,20,6.1,10.0,10.0,0.734,1.028,1.0,16.7,4.78,20.0,,light,unknown,unknown,unknown,chademo,unknown,0
+6a76a7fbf17427d6b922a627,674f97ff3dc8e5d2ac008533,20,8.5,13.0,13.0,1.293,1.81,1.0,16.7,4.78,20.0,,light,unknown,unknown,evie networks,chademo,unknown,0
+6a76a7fbf17427d6b922a627,674f97ff3dc8e5d2ac008682,20,8.4,13.0,12.0,0.915,1.28,6.0,16.7,4.78,20.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a7fbf17427d6b922a627,674f97ff3dc8e5d2ac008684,20,5.2,9.0,9.0,0.532,0.744,1.0,16.7,4.78,20.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a7fbf17427d6b922a627,674f98013dc8e5d2ac00873b,20,6.1,10.0,10.0,0.734,1.028,2.0,16.7,4.78,20.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
+6a76a7fbf17427d6b922a627,674f98013dc8e5d2ac0087cf,20,1.0,2.0,2.0,0.062,0.087,1.0,16.7,4.78,20.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
+6a76a83ef17427d6b922d50d,674f97ff3dc8e5d2ac00868b,21,4.6,8.0,8.0,0.605,0.847,4.0,16.7,4.78,20.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),1
+6a76a83ef17427d6b922d50d,674f97ff3dc8e5d2ac008355,21,6.6,14.0,16.0,0.448,0.627,4.0,16.7,4.78,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76a83ef17427d6b922d50d,674f97ff3dc8e5d2ac0083c9,21,6.8,13.0,14.0,0.667,0.934,2.0,16.7,4.78,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76a83ef17427d6b922d50d,674f97ff3dc8e5d2ac0083e4,21,11.5,11.0,11.0,1.667,2.334,1.0,16.7,4.78,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76a83ef17427d6b922d50d,674f97ff3dc8e5d2ac008478,21,3.7,8.0,7.0,0.426,0.597,1.0,16.7,4.78,20.0,,light,unknown,unknown,unknown,chademo,unknown,0
+6a76a83ef17427d6b922d50d,674f97ff3dc8e5d2ac008533,21,2.2,4.0,4.0,0.539,0.755,1.0,16.7,4.78,20.0,,light,unknown,unknown,evie networks,chademo,unknown,0
+6a76a83ef17427d6b922d50d,674f97ff3dc8e5d2ac008684,21,5.8,12.0,12.0,0.451,0.631,1.0,16.7,4.78,20.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a83ef17427d6b922d50d,674f97ff3dc8e5d2ac008685,21,5.7,11.0,12.0,0.447,0.626,1.0,16.7,4.78,20.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a83ef17427d6b922d50d,674f98013dc8e5d2ac00873b,21,3.7,8.0,7.0,0.426,0.597,2.0,16.7,4.78,20.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
+6a76a83ef17427d6b922d50d,674f98013dc8e5d2ac0087cf,21,5.8,9.0,9.0,0.444,0.622,1.0,16.7,4.78,20.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
+6a76a87af17427d6b922f68f,674f97ff3dc8e5d2ac008685,22,3.3,8.0,8.0,0.304,0.425,1.0,16.7,4.78,20.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),1
+6a76a87af17427d6b922f68f,674f97ff3dc8e5d2ac008355,22,4.4,13.0,15.0,0.423,0.593,4.0,16.7,4.78,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76a87af17427d6b922f68f,674f97ff3dc8e5d2ac0083c9,22,7.5,16.0,15.0,0.66,0.925,2.0,16.7,4.78,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76a87af17427d6b922f68f,674f97ff3dc8e5d2ac0083e4,22,6.9,14.0,13.0,0.809,1.133,1.0,16.7,4.78,20.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76a87af17427d6b922f68f,674f97ff3dc8e5d2ac008478,22,3.4,7.0,7.0,0.365,0.511,1.0,16.7,4.78,20.0,,light,unknown,unknown,unknown,chademo,unknown,0
+6a76a87af17427d6b922f68f,674f97ff3dc8e5d2ac008533,22,4.8,9.0,9.0,0.773,1.083,1.0,16.7,4.78,20.0,,light,unknown,unknown,evie networks,chademo,unknown,0
+6a76a87af17427d6b922f68f,674f97ff3dc8e5d2ac008684,22,3.4,9.0,8.0,0.308,0.431,1.0,16.7,4.78,20.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a87af17427d6b922f68f,674f97ff3dc8e5d2ac00868b,22,6.3,11.0,11.0,0.888,1.244,4.0,16.7,4.78,20.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a87af17427d6b922f68f,674f98013dc8e5d2ac00873b,22,3.4,7.0,7.0,0.364,0.51,2.0,16.7,4.78,20.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
+6a76a87af17427d6b922f68f,674f98013dc8e5d2ac0087cf,22,3.6,8.0,8.0,0.278,0.39,1.0,16.7,4.78,20.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
+6a76a8a1f17427d6b9231163,674f97ff3dc8e5d2ac00868b,23,1.5,3.0,3.0,0.173,0.242,4.0,16.4,4.67,17.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),1
+6a76a8a1f17427d6b9231163,674f97ff3dc8e5d2ac0083e4,23,4.7,7.0,8.0,0.479,0.67,1.0,16.4,4.67,17.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76a8a1f17427d6b9231163,674f97ff3dc8e5d2ac00843c,23,8.3,14.0,14.0,0.757,1.06,1.0,16.4,4.67,17.0,,light,unknown,unknown,unknown,type 2 (socket only),unknown,0
+6a76a8a1f17427d6b9231163,674f97ff3dc8e5d2ac008478,23,2.4,6.0,7.0,0.112,0.157,1.0,16.4,4.67,17.0,,light,unknown,unknown,unknown,chademo,unknown,0
+6a76a8a1f17427d6b9231163,674f97ff3dc8e5d2ac008533,23,5.7,8.0,8.0,0.762,1.067,1.0,16.4,4.67,17.0,,light,unknown,unknown,evie networks,chademo,unknown,0
+6a76a8a1f17427d6b9231163,674f97ff3dc8e5d2ac008684,23,5.4,11.0,12.0,0.345,0.483,1.0,16.4,4.67,17.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a8a1f17427d6b9231163,674f97ff3dc8e5d2ac008685,23,5.4,11.0,11.0,0.34,0.476,1.0,16.4,4.67,17.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a8a1f17427d6b9231163,674f98013dc8e5d2ac00873b,23,2.4,6.0,7.0,0.112,0.157,2.0,16.4,4.67,17.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
+6a76a8a1f17427d6b9231163,674f98013dc8e5d2ac0087cf,23,8.1,13.0,14.0,0.49,0.686,1.0,16.4,4.67,17.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
+6a76a8a1f17427d6b9231163,674f98013dc8e5d2ac008883,23,8.2,12.0,13.0,0.743,1.04,2.0,16.4,4.67,17.0,,light,unknown,unknown,(unknown operator),type 2 (socket only),ac (single-phase),0
+6a76a9b3f17427d6b923bf26,674f98013dc8e5d2ac0087cf,24,9.8,13.0,16.0,1.071,1.65,1.0,16.9,5.38,18.0,,moderate,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),1
+6a76a9b3f17427d6b923bf26,674f97ff3dc8e5d2ac008355,24,6.2,8.0,10.0,0.662,0.927,4.0,16.9,5.38,18.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76a9b3f17427d6b923bf26,674f97ff3dc8e5d2ac0083c9,24,4.5,6.0,7.0,0.497,0.696,2.0,16.9,5.38,18.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76a9b3f17427d6b923bf26,674f97ff3dc8e5d2ac008601,24,4.5,7.0,8.0,0.327,0.458,6.0,16.9,5.38,18.0,0.78,light,unknown,no,tesla (including non-tesla),ccs (type 2),dc,0
+6a76a9eef17427d6b923e756,674f98013dc8e5d2ac0087cf,25,7.2,11.0,13.0,0.675,0.944,1.0,16.8,4.87,19.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),1
+6a76a9eef17427d6b923e756,674f97ff3dc8e5d2ac008355,25,3.1,6.0,7.0,0.235,0.329,4.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76a9eef17427d6b923e756,674f97ff3dc8e5d2ac0083c9,25,1.1,2.0,2.0,0.14,0.196,2.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76a9eef17427d6b923e756,674f97ff3dc8e5d2ac008478,25,10.9,16.0,18.0,1.193,1.67,1.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,chademo,unknown,0
+6a76a9eef17427d6b923e756,674f97ff3dc8e5d2ac008533,25,8.2,14.0,14.0,1.321,1.849,1.0,16.8,4.87,19.0,,light,unknown,unknown,evie networks,chademo,unknown,0
+6a76a9eef17427d6b923e756,674f97ff3dc8e5d2ac008601,25,7.9,11.0,12.0,0.618,0.866,6.0,16.8,4.87,19.0,0.78,light,unknown,no,tesla (including non-tesla),ccs (type 2),dc,0
+6a76a9eef17427d6b923e756,674f97ff3dc8e5d2ac008684,25,10.5,16.0,18.0,1.068,1.495,1.0,16.8,4.87,19.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a9eef17427d6b923e756,674f97ff3dc8e5d2ac008685,25,10.4,16.0,18.0,1.037,1.452,1.0,16.8,4.87,19.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76a9eef17427d6b923e756,674f98013dc8e5d2ac00873b,25,10.9,16.0,17.0,1.193,1.671,2.0,16.8,4.87,19.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
+6a76aa2ff17427d6b9240f80,674f98013dc8e5d2ac0087cf,26,12.9,19.0,21.0,1.412,1.977,1.0,17.0,5.42,18.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),1
+6a76aa2ff17427d6b9240f80,674f97ff3dc8e5d2ac008355,26,9.3,14.0,15.0,1.018,1.426,4.0,17.0,5.42,18.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76aa2ff17427d6b9240f80,674f97ff3dc8e5d2ac0083c9,26,8.4,12.0,13.0,0.966,1.352,2.0,17.0,5.42,18.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76aa2ff17427d6b9240f80,674f97ff3dc8e5d2ac008601,26,3.4,6.0,7.0,0.335,0.469,6.0,17.0,5.42,18.0,0.78,light,unknown,no,tesla (including non-tesla),ccs (type 2),dc,0
+6a76aa77f17427d6b9244524,674f98013dc8e5d2ac0087cf,27,3.2,6.0,6.0,0.222,0.311,1.0,16.8,4.87,19.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),1
+6a76aa77f17427d6b9244524,674f97ff3dc8e5d2ac008355,27,2.4,8.0,8.0,0.208,0.292,4.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76aa77f17427d6b9244524,674f97ff3dc8e5d2ac0083c9,27,3.9,9.0,8.0,0.278,0.389,2.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76aa77f17427d6b9244524,674f97ff3dc8e5d2ac0083e4,27,9.7,15.0,15.0,1.058,1.481,1.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76aa77f17427d6b9244524,674f97ff3dc8e5d2ac008478,27,6.9,10.0,11.0,0.743,1.04,1.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,chademo,unknown,0
+6a76aa77f17427d6b9244524,674f97ff3dc8e5d2ac008533,27,5.5,9.0,9.0,0.978,1.37,1.0,16.8,4.87,19.0,,light,unknown,unknown,evie networks,chademo,unknown,0
+6a76aa77f17427d6b9244524,674f97ff3dc8e5d2ac008684,27,6.1,10.0,11.0,0.586,0.82,1.0,16.8,4.87,19.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76aa77f17427d6b9244524,674f97ff3dc8e5d2ac008685,27,6.0,10.0,10.0,0.581,0.813,1.0,16.8,4.87,19.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76aa77f17427d6b9244524,674f97ff3dc8e5d2ac00868b,27,8.5,13.0,14.0,1.249,1.748,4.0,16.8,4.87,19.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76aa77f17427d6b9244524,674f98013dc8e5d2ac00873b,27,6.9,10.0,11.0,0.743,1.04,2.0,16.8,4.87,19.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
+6a76aa91f17427d6b924594a,674f98013dc8e5d2ac0087cf,28,1.6,4.0,4.0,0.128,0.179,1.0,16.8,4.87,19.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),1
+6a76aa91f17427d6b924594a,674f97ff3dc8e5d2ac008355,28,3.0,9.0,10.0,0.294,0.412,4.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76aa91f17427d6b924594a,674f97ff3dc8e5d2ac0083c9,28,5.7,13.0,13.0,0.52,0.727,2.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76aa91f17427d6b924594a,674f97ff3dc8e5d2ac0083e4,28,10.1,17.0,17.0,1.202,1.683,1.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76aa91f17427d6b924594a,674f97ff3dc8e5d2ac008478,28,7.4,12.0,12.0,0.862,1.206,1.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,chademo,unknown,0
+6a76aa91f17427d6b924594a,674f97ff3dc8e5d2ac008533,28,7.2,12.0,13.0,1.206,1.688,1.0,16.8,4.87,19.0,,light,unknown,unknown,evie networks,chademo,unknown,0
+6a76aa91f17427d6b924594a,674f97ff3dc8e5d2ac008684,28,7.0,12.0,12.0,0.687,0.961,1.0,16.8,4.87,19.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76aa91f17427d6b924594a,674f97ff3dc8e5d2ac008685,28,6.9,12.0,12.0,0.676,0.947,1.0,16.8,4.87,19.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76aa91f17427d6b924594a,674f97ff3dc8e5d2ac00868b,28,9.4,16.0,16.0,1.167,1.634,4.0,16.8,4.87,19.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76aa91f17427d6b924594a,674f98013dc8e5d2ac00873b,28,7.4,12.0,12.0,0.86,1.204,2.0,16.8,4.87,19.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
+6a76aab0f17427d6b9246d70,674f97ff3dc8e5d2ac008685,29,2.8,5.0,5.0,0.29,0.406,1.0,16.8,4.87,19.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),1
+6a76aab0f17427d6b9246d70,674f97ff3dc8e5d2ac008355,29,5.2,12.0,13.0,0.526,0.737,4.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76aab0f17427d6b9246d70,674f97ff3dc8e5d2ac0083e4,29,6.5,10.0,10.0,0.81,1.134,1.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76aab0f17427d6b9246d70,674f97ff3dc8e5d2ac00843c,29,6.0,11.0,11.0,0.702,0.983,1.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,type 2 (socket only),unknown,0
+6a76aab0f17427d6b9246d70,674f97ff3dc8e5d2ac008478,29,3.7,6.0,6.0,0.467,0.654,1.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,chademo,unknown,0
+6a76aab0f17427d6b9246d70,674f97ff3dc8e5d2ac008533,29,6.2,10.0,10.0,1.102,1.543,1.0,16.8,4.87,19.0,,light,unknown,unknown,evie networks,chademo,unknown,0
+6a76aab0f17427d6b9246d70,674f97ff3dc8e5d2ac008684,29,2.9,5.0,6.0,0.296,0.414,1.0,16.8,4.87,19.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76aab0f17427d6b9246d70,674f97ff3dc8e5d2ac00868b,29,6.5,10.0,10.0,0.855,1.197,4.0,16.8,4.87,19.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76aab0f17427d6b9246d70,674f98013dc8e5d2ac00873b,29,3.7,6.0,6.0,0.467,0.654,2.0,16.8,4.87,19.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
+6a76aab0f17427d6b9246d70,674f98013dc8e5d2ac0087cf,29,3.5,6.0,6.0,0.261,0.366,1.0,16.8,4.87,19.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
+6a76aad7f17427d6b9248844,674f98013dc8e5d2ac0087cf,30,3.9,10.0,11.0,0.415,0.581,1.0,16.8,4.87,19.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),1
+6a76aad7f17427d6b9248844,674f97ff3dc8e5d2ac008355,30,1.0,4.0,4.0,0.112,0.157,4.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76aad7f17427d6b9248844,674f97ff3dc8e5d2ac0083c9,30,3.7,10.0,10.0,0.408,0.572,2.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76aad7f17427d6b9248844,674f97ff3dc8e5d2ac008478,30,9.6,19.0,18.0,1.148,1.607,1.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,chademo,unknown,0
+6a76aad7f17427d6b9248844,674f97ff3dc8e5d2ac008533,30,8.2,17.0,19.0,1.436,2.01,1.0,16.8,4.87,19.0,,light,unknown,unknown,evie networks,chademo,unknown,0
+6a76aad7f17427d6b9248844,674f97ff3dc8e5d2ac008601,30,11.3,17.0,19.0,0.971,1.36,6.0,16.8,4.87,19.0,0.78,light,unknown,no,tesla (including non-tesla),ccs (type 2),dc,0
+6a76aad7f17427d6b9248844,674f97ff3dc8e5d2ac008684,30,9.1,18.0,18.0,0.937,1.311,1.0,16.8,4.87,19.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76aad7f17427d6b9248844,674f97ff3dc8e5d2ac008685,30,9.0,17.0,17.0,0.933,1.306,1.0,16.8,4.87,19.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76aad7f17427d6b9248844,674f97ff3dc8e5d2ac00868b,30,11.6,22.0,23.0,1.471,2.06,4.0,16.8,4.87,19.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76aad7f17427d6b9248844,674f98013dc8e5d2ac00873b,30,9.6,19.0,18.0,1.147,1.606,2.0,16.8,4.87,19.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
+6a76ab08f17427d6b924a318,674f98013dc8e5d2ac0087cf,31,3.9,6.0,6.0,0.371,0.52,1.0,16.8,4.87,19.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),1
+6a76ab08f17427d6b924a318,674f97ff3dc8e5d2ac008355,31,4.0,8.0,9.0,0.417,0.584,4.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76ab08f17427d6b924a318,674f97ff3dc8e5d2ac0083c9,31,7.2,15.0,15.0,0.74,1.036,2.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76ab08f17427d6b924a318,674f97ff3dc8e5d2ac008478,31,9.3,14.0,15.0,1.023,1.432,1.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,chademo,unknown,0
+6a76ab08f17427d6b924a318,674f97ff3dc8e5d2ac008482,31,8.9,9.0,9.0,1.02,1.428,2.0,16.8,4.87,19.0,,light,unknown,unknown,chargefox,unknown,unknown,0
+6a76ab08f17427d6b924a318,674f97ff3dc8e5d2ac008533,31,10.7,17.0,17.0,1.467,2.054,1.0,16.8,4.87,19.0,,light,unknown,unknown,evie networks,chademo,unknown,0
+6a76ab08f17427d6b924a318,674f97ff3dc8e5d2ac008682,31,11.7,17.0,17.0,1.185,1.659,6.0,16.8,4.87,19.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76ab08f17427d6b924a318,674f97ff3dc8e5d2ac008684,31,8.4,14.0,13.0,0.851,1.192,1.0,16.8,4.87,19.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76ab08f17427d6b924a318,674f97ff3dc8e5d2ac008685,31,8.4,13.0,13.0,0.84,1.176,1.0,16.8,4.87,19.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76ab08f17427d6b924a318,674f98013dc8e5d2ac00873b,31,9.3,14.0,15.0,1.023,1.432,2.0,16.8,4.87,19.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
+6a76ab28f17427d6b924bdec,674f98013dc8e5d2ac0087cf,32,1.5,2.0,2.0,0.086,0.12,1.0,16.8,4.87,19.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),1
+6a76ab28f17427d6b924bdec,674f97ff3dc8e5d2ac008355,32,4.0,9.0,10.0,0.344,0.482,4.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76ab28f17427d6b924bdec,674f97ff3dc8e5d2ac0083c9,32,6.8,14.0,13.0,0.593,0.83,2.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76ab28f17427d6b924bdec,674f97ff3dc8e5d2ac00843c,32,9.9,16.0,16.0,1.071,1.5,1.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,type 2 (socket only),unknown,0
+6a76ab28f17427d6b924bdec,674f97ff3dc8e5d2ac008478,32,7.0,11.0,11.0,0.775,1.085,1.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,chademo,unknown,0
+6a76ab28f17427d6b924bdec,674f97ff3dc8e5d2ac008533,32,8.3,13.0,13.0,1.199,1.678,1.0,16.8,4.87,19.0,,light,unknown,unknown,evie networks,chademo,unknown,0
+6a76ab28f17427d6b924bdec,674f97ff3dc8e5d2ac008682,32,9.4,13.0,13.0,0.936,1.311,6.0,16.8,4.87,19.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76ab28f17427d6b924bdec,674f97ff3dc8e5d2ac008684,32,6.1,10.0,10.0,0.583,0.816,1.0,16.8,4.87,19.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76ab28f17427d6b924bdec,674f97ff3dc8e5d2ac008685,32,6.0,10.0,9.0,0.573,0.802,1.0,16.8,4.87,19.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76ab28f17427d6b924bdec,674f98013dc8e5d2ac00873b,32,7.0,11.0,11.0,0.775,1.085,2.0,16.8,4.87,19.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
+6a76ab46f17427d6b924d212,674f98013dc8e5d2ac0087cf,33,4.5,9.0,10.0,0.282,0.394,1.0,16.8,4.87,19.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),1
+6a76ab46f17427d6b924d212,674f97ff3dc8e5d2ac008355,33,2.9,10.0,9.0,0.152,0.212,4.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76ab46f17427d6b924d212,674f97ff3dc8e5d2ac0083c9,33,3.1,9.0,9.0,0.168,0.235,2.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76ab46f17427d6b924d212,674f97ff3dc8e5d2ac0083e4,33,11.0,18.0,19.0,1.203,1.685,1.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76ab46f17427d6b924d212,674f97ff3dc8e5d2ac008478,33,8.2,13.0,14.0,0.874,1.223,1.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,chademo,unknown,0
+6a76ab46f17427d6b924d212,674f97ff3dc8e5d2ac008533,33,4.7,8.0,9.0,0.959,1.342,1.0,16.8,4.87,19.0,,light,unknown,unknown,evie networks,chademo,unknown,0
+6a76ab46f17427d6b924d212,674f97ff3dc8e5d2ac008684,33,7.4,13.0,14.0,0.653,0.915,1.0,16.8,4.87,19.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76ab46f17427d6b924d212,674f97ff3dc8e5d2ac008685,33,7.3,13.0,14.0,0.641,0.897,1.0,16.8,4.87,19.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76ab46f17427d6b924d212,674f97ff3dc8e5d2ac00868b,33,8.4,14.0,14.0,1.056,1.478,4.0,16.8,4.87,19.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76ab46f17427d6b924d212,674f98013dc8e5d2ac00873b,33,8.2,13.0,14.0,0.874,1.223,2.0,16.8,4.87,19.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
+6a76ab64f17427d6b924e638,674f97ff3dc8e5d2ac008685,34,1.7,4.0,4.0,0.184,0.257,1.0,16.8,4.87,19.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),1
+6a76ab64f17427d6b924e638,674f97ff3dc8e5d2ac0083e4,34,5.4,9.0,9.0,0.693,0.97,1.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76ab64f17427d6b924e638,674f97ff3dc8e5d2ac00843c,34,4.9,10.0,10.0,0.585,0.819,1.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,type 2 (socket only),unknown,0
+6a76ab64f17427d6b924e638,674f97ff3dc8e5d2ac008478,34,3.6,6.0,6.0,0.463,0.649,1.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,chademo,unknown,0
+6a76ab64f17427d6b924e638,674f97ff3dc8e5d2ac008533,34,7.1,12.0,12.0,1.207,1.689,1.0,16.8,4.87,19.0,,light,unknown,unknown,evie networks,chademo,unknown,0
+6a76ab64f17427d6b924e638,674f97ff3dc8e5d2ac008684,34,1.8,4.0,4.0,0.192,0.269,1.0,16.8,4.87,19.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76ab64f17427d6b924e638,674f97ff3dc8e5d2ac00868b,34,6.3,11.0,11.0,0.832,1.165,4.0,16.8,4.87,19.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76ab64f17427d6b924e638,674f98013dc8e5d2ac00873b,34,3.6,6.0,6.0,0.463,0.648,2.0,16.8,4.87,19.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
+6a76ab64f17427d6b924e638,674f98013dc8e5d2ac0087cf,34,3.9,7.0,7.0,0.285,0.398,1.0,16.8,4.87,19.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
+6a76ab64f17427d6b924e638,674f98013dc8e5d2ac008883,34,5.2,9.0,9.0,0.624,0.874,2.0,16.8,4.87,19.0,,light,unknown,unknown,(unknown operator),type 2 (socket only),ac (single-phase),0
+6a76abb8f17427d6b9251516,674f98013dc8e5d2ac0087cf,35,2.2,4.0,4.0,0.188,0.263,1.0,16.8,4.87,19.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),1
+6a76abb8f17427d6b9251516,674f97ff3dc8e5d2ac008355,35,1.9,7.0,9.0,0.244,0.376,4.0,16.8,4.87,19.0,,moderate,unknown,unknown,unknown,unknown,unknown,0
+6a76abb8f17427d6b9251516,674f97ff3dc8e5d2ac0083c9,35,4.5,10.0,11.0,0.447,0.625,2.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76abb8f17427d6b9251516,674f97ff3dc8e5d2ac0083e4,35,9.5,15.0,15.0,1.109,1.552,1.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a76abb8f17427d6b9251516,674f97ff3dc8e5d2ac008478,35,6.7,10.0,10.0,0.748,1.047,1.0,16.8,4.87,19.0,,light,unknown,unknown,unknown,chademo,unknown,0
+6a76abb8f17427d6b9251516,674f97ff3dc8e5d2ac008533,35,6.5,10.0,11.0,1.102,1.543,1.0,16.8,4.87,19.0,,light,unknown,unknown,evie networks,chademo,unknown,0
+6a76abb8f17427d6b9251516,674f97ff3dc8e5d2ac008684,35,5.9,10.0,10.0,0.597,0.836,1.0,16.8,4.87,19.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76abb8f17427d6b9251516,674f97ff3dc8e5d2ac008685,35,5.8,10.0,10.0,0.59,0.825,1.0,16.8,4.87,19.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76abb8f17427d6b9251516,674f97ff3dc8e5d2ac00868b,35,8.8,14.0,14.0,1.119,1.566,4.0,16.8,4.87,19.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a76abb8f17427d6b9251516,674f98013dc8e5d2ac00873b,35,6.7,10.0,10.0,0.748,1.048,2.0,16.8,4.87,19.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
+6a7bc2e4a9939a619a8108d4,674f97ff3dc8e5d2ac008478,37,2.6,8.0,8.0,0.155,0.217,1.0,12.0,5.75,263.0,,light,unknown,unknown,unknown,chademo,unknown,1
+6a7bc2e4a9939a619a8108d4,674f97ff3dc8e5d2ac0083e4,37,4.9,9.0,10.0,0.516,0.723,1.0,12.0,5.75,263.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a7bc2e4a9939a619a8108d4,674f97ff3dc8e5d2ac00843c,37,8.2,16.0,16.0,0.817,1.144,1.0,12.0,5.75,263.0,,light,unknown,unknown,unknown,type 2 (socket only),unknown,0
+6a7bc2e4a9939a619a8108d4,674f97ff3dc8e5d2ac008533,37,5.8,10.0,10.0,0.895,1.253,1.0,12.0,5.75,263.0,,light,unknown,unknown,evie networks,chademo,unknown,0
+6a7bc2e4a9939a619a8108d4,674f97ff3dc8e5d2ac008684,37,5.6,12.0,13.0,0.448,0.627,1.0,12.0,5.75,263.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a7bc2e4a9939a619a8108d4,674f97ff3dc8e5d2ac008685,37,5.5,12.0,12.0,0.445,0.624,1.0,12.0,5.75,263.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a7bc2e4a9939a619a8108d4,674f97ff3dc8e5d2ac00868b,37,1.5,5.0,5.0,0.155,0.217,4.0,12.0,5.75,263.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a7bc2e4a9939a619a8108d4,674f98013dc8e5d2ac00873b,37,2.6,8.0,8.0,0.155,0.217,2.0,12.0,5.75,263.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
+6a7bc2e4a9939a619a8108d4,674f98013dc8e5d2ac0087cf,37,8.3,15.0,15.0,0.695,0.972,1.0,12.0,5.75,263.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
+6a7bc2e4a9939a619a8108d4,674f98013dc8e5d2ac008883,37,8.0,15.0,14.0,0.743,1.04,2.0,12.0,5.75,263.0,,light,unknown,unknown,(unknown operator),type 2 (socket only),ac (single-phase),0
+6a85c0f01833f361cb657a66,674f98013dc8e5d2ac00873b,38,2.6,8.0,7.0,0.145,0.203,2.0,11.5,3.79,329.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,1
+6a85c0f01833f361cb657a66,674f97ff3dc8e5d2ac0083e4,38,4.9,9.0,9.0,0.511,0.715,1.0,11.5,3.79,329.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a85c0f01833f361cb657a66,674f97ff3dc8e5d2ac00843c,38,8.1,18.0,14.0,0.76,1.064,1.0,11.5,3.79,329.0,,light,unknown,unknown,unknown,type 2 (socket only),unknown,0
+6a85c0f01833f361cb657a66,674f97ff3dc8e5d2ac008478,38,2.6,8.0,7.0,0.145,0.203,1.0,11.5,3.79,329.0,,light,unknown,unknown,unknown,chademo,unknown,0
+6a85c0f01833f361cb657a66,674f97ff3dc8e5d2ac008533,38,5.8,10.0,9.0,0.843,1.18,1.0,11.5,3.79,329.0,,light,unknown,unknown,evie networks,chademo,unknown,0
+6a85c0f01833f361cb657a66,674f97ff3dc8e5d2ac008684,38,5.6,12.0,10.0,0.401,0.561,1.0,11.5,3.79,329.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a85c0f01833f361cb657a66,674f97ff3dc8e5d2ac008685,38,5.5,12.0,10.0,0.4,0.56,1.0,11.5,3.79,329.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a85c0f01833f361cb657a66,674f97ff3dc8e5d2ac00868b,38,1.7,5.0,5.0,0.189,0.265,4.0,11.5,3.79,329.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a85c0f01833f361cb657a66,674f98013dc8e5d2ac0087cf,38,8.3,15.0,12.0,0.59,0.825,1.0,11.5,3.79,329.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
+6a85c0f01833f361cb657a66,674f98013dc8e5d2ac008883,38,7.9,16.0,12.0,0.724,1.013,2.0,11.5,3.79,329.0,,light,unknown,unknown,(unknown operator),type 2 (socket only),ac (single-phase),0
+6a8e62e8204c0d3d71a859d1,674f97ff3dc8e5d2ac00868b,39,1.7,5.0,5.0,0.18,0.253,4.0,13.8,3.73,187.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),1
+6a8e62e8204c0d3d71a859d1,674f97ff3dc8e5d2ac0083e4,39,5.4,9.0,10.0,0.467,0.654,1.0,13.8,3.73,187.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a8e62e8204c0d3d71a859d1,674f97ff3dc8e5d2ac00843c,39,8.3,16.0,16.0,0.651,0.911,1.0,13.8,3.73,187.0,,light,unknown,unknown,unknown,type 2 (socket only),unknown,0
+6a8e62e8204c0d3d71a859d1,674f97ff3dc8e5d2ac008478,39,3.1,8.0,8.0,0.178,0.25,1.0,13.8,3.73,187.0,,light,unknown,unknown,unknown,chademo,unknown,0
+6a8e62e8204c0d3d71a859d1,674f97ff3dc8e5d2ac008533,39,6.4,10.0,10.0,0.859,1.202,1.0,13.8,3.73,187.0,,light,unknown,unknown,evie networks,chademo,unknown,0
+6a8e62e8204c0d3d71a859d1,674f97ff3dc8e5d2ac008684,39,6.2,13.0,13.0,0.392,0.548,1.0,13.8,3.73,187.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a8e62e8204c0d3d71a859d1,674f97ff3dc8e5d2ac008685,39,6.1,12.0,12.0,0.385,0.539,1.0,13.8,3.73,187.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a8e62e8204c0d3d71a859d1,674f98013dc8e5d2ac00873b,39,3.1,8.0,8.0,0.178,0.25,2.0,13.8,3.73,187.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
+6a8e62e8204c0d3d71a859d1,674f98013dc8e5d2ac0087cf,39,8.9,15.0,15.0,0.614,0.86,1.0,13.8,3.73,187.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
+6a8e62e8204c0d3d71a859d1,674f98013dc8e5d2ac008883,39,8.3,15.0,15.0,0.647,0.906,2.0,13.8,3.73,187.0,,light,unknown,unknown,(unknown operator),type 2 (socket only),ac (single-phase),0
+6a8e6bbc204c0d3d71ab0a0a,674f97ff3dc8e5d2ac00868b,40,1.6,5.0,5.0,0.159,0.222,4.0,13.6,3.61,184.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),1
+6a8e6bbc204c0d3d71ab0a0a,674f97ff3dc8e5d2ac0083e4,40,5.3,9.0,10.0,0.451,0.632,1.0,13.6,3.61,184.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6a8e6bbc204c0d3d71ab0a0a,674f97ff3dc8e5d2ac00843c,40,8.2,16.0,16.0,0.653,0.914,1.0,13.6,3.61,184.0,,light,unknown,unknown,unknown,type 2 (socket only),unknown,0
+6a8e6bbc204c0d3d71ab0a0a,674f97ff3dc8e5d2ac008478,40,3.0,8.0,8.0,0.139,0.194,1.0,13.6,3.61,184.0,,light,unknown,unknown,unknown,chademo,unknown,0
+6a8e6bbc204c0d3d71ab0a0a,674f97ff3dc8e5d2ac008533,40,6.3,10.0,10.0,0.864,1.209,1.0,13.6,3.61,184.0,,light,unknown,unknown,evie networks,chademo,unknown,0
+6a8e6bbc204c0d3d71ab0a0a,674f97ff3dc8e5d2ac008684,40,6.1,13.0,13.0,0.374,0.524,1.0,13.6,3.61,184.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a8e6bbc204c0d3d71ab0a0a,674f97ff3dc8e5d2ac008685,40,6.0,12.0,12.0,0.368,0.515,1.0,13.6,3.61,184.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6a8e6bbc204c0d3d71ab0a0a,674f98013dc8e5d2ac00873b,40,3.0,8.0,8.0,0.139,0.194,2.0,13.6,3.61,184.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
+6a8e6bbc204c0d3d71ab0a0a,674f98013dc8e5d2ac0087cf,40,8.8,15.0,15.0,0.609,0.853,1.0,13.6,3.61,184.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
+6a8e6bbc204c0d3d71ab0a0a,674f98013dc8e5d2ac008883,40,8.2,15.0,15.0,0.648,0.907,2.0,13.6,3.61,184.0,,light,unknown,unknown,(unknown operator),type 2 (socket only),ac (single-phase),0
+6aa60dfea35ccb7d5b6e330a,674f97ff3dc8e5d2ac00868b,41,1.7,5.0,5.0,0.198,0.277,4.0,22.7,5.15,8.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),1
+6aa60dfea35ccb7d5b6e330a,674f97ff3dc8e5d2ac0083e4,41,4.9,9.0,9.0,0.528,0.739,1.0,22.7,5.15,8.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6aa60dfea35ccb7d5b6e330a,674f97ff3dc8e5d2ac00843c,41,7.8,16.0,16.0,0.687,0.961,1.0,22.7,5.15,8.0,,light,unknown,unknown,unknown,type 2 (socket only),unknown,0
+6aa60dfea35ccb7d5b6e330a,674f97ff3dc8e5d2ac008478,41,2.6,8.0,8.0,0.14,0.196,1.0,22.7,5.15,8.0,,light,unknown,unknown,unknown,chademo,unknown,0
+6aa60dfea35ccb7d5b6e330a,674f97ff3dc8e5d2ac008533,41,5.9,10.0,10.0,0.866,1.212,1.0,22.7,5.15,8.0,,light,unknown,unknown,evie networks,chademo,unknown,0
+6aa60dfea35ccb7d5b6e330a,674f97ff3dc8e5d2ac008684,41,5.7,13.0,13.0,0.369,0.517,1.0,22.7,5.15,8.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6aa60dfea35ccb7d5b6e330a,674f97ff3dc8e5d2ac008685,41,5.6,12.0,12.0,0.365,0.511,1.0,22.7,5.15,8.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6aa60dfea35ccb7d5b6e330a,674f98013dc8e5d2ac00873b,41,2.6,8.0,8.0,0.14,0.196,2.0,22.7,5.15,8.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,0
+6aa60dfea35ccb7d5b6e330a,674f98013dc8e5d2ac0087cf,41,8.4,15.0,14.0,0.575,0.806,1.0,22.7,5.15,8.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
+6aa60dfea35ccb7d5b6e330a,674f98013dc8e5d2ac008883,41,7.8,15.0,15.0,0.685,0.96,2.0,22.7,5.15,8.0,,light,unknown,unknown,(unknown operator),type 2 (socket only),ac (single-phase),0
+6aa6111735f06c2782da647c,674f98013dc8e5d2ac00873b,42,2.6,8.0,8.0,0.14,0.196,2.0,22.6,5.28,7.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,1
+6aa6111735f06c2782da647c,674f97ff3dc8e5d2ac0083e4,42,4.9,9.0,9.0,0.529,0.741,1.0,22.6,5.28,7.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6aa6111735f06c2782da647c,674f97ff3dc8e5d2ac00843c,42,7.8,16.0,16.0,0.689,0.964,1.0,22.6,5.28,7.0,,light,unknown,unknown,unknown,type 2 (socket only),unknown,0
+6aa6111735f06c2782da647c,674f97ff3dc8e5d2ac008478,42,2.6,8.0,8.0,0.14,0.196,1.0,22.6,5.28,7.0,,light,unknown,unknown,unknown,chademo,unknown,0
+6aa6111735f06c2782da647c,674f97ff3dc8e5d2ac008533,42,5.9,10.0,10.0,0.865,1.211,1.0,22.6,5.28,7.0,,light,unknown,unknown,evie networks,chademo,unknown,0
+6aa6111735f06c2782da647c,674f97ff3dc8e5d2ac008684,42,5.7,13.0,13.0,0.37,0.517,1.0,22.6,5.28,7.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6aa6111735f06c2782da647c,674f97ff3dc8e5d2ac008685,42,5.6,12.0,12.0,0.366,0.512,1.0,22.6,5.28,7.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6aa6111735f06c2782da647c,674f97ff3dc8e5d2ac00868b,42,1.7,5.0,5.0,0.198,0.277,4.0,22.6,5.28,7.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6aa6111735f06c2782da647c,674f98013dc8e5d2ac0087cf,42,8.4,15.0,14.0,0.575,0.806,1.0,22.6,5.28,7.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
+6aa6111735f06c2782da647c,674f98013dc8e5d2ac008883,42,7.8,15.0,15.0,0.688,0.963,2.0,22.6,5.28,7.0,,light,unknown,unknown,(unknown operator),type 2 (socket only),ac (single-phase),0
+6aa61a5bad0875cf26f3a144,674f98013dc8e5d2ac00873b,43,2.6,8.0,8.0,0.141,0.198,2.0,22.6,5.1,1.0,0.45,light,unknown,no,chargefox,ccs (type 2),dc,1
+6aa61a5bad0875cf26f3a144,674f97ff3dc8e5d2ac0083e4,43,4.9,9.0,9.0,0.531,0.743,1.0,22.6,5.1,1.0,,light,unknown,unknown,unknown,unknown,unknown,0
+6aa61a5bad0875cf26f3a144,674f97ff3dc8e5d2ac00843c,43,7.8,16.0,15.0,0.701,0.981,1.0,22.6,5.1,1.0,,light,unknown,unknown,unknown,type 2 (socket only),unknown,0
+6aa61a5bad0875cf26f3a144,674f97ff3dc8e5d2ac008478,43,2.6,8.0,8.0,0.141,0.198,1.0,22.6,5.1,1.0,,light,unknown,unknown,unknown,chademo,unknown,0
+6aa61a5bad0875cf26f3a144,674f97ff3dc8e5d2ac008533,43,5.9,10.0,10.0,0.866,1.212,1.0,22.6,5.1,1.0,,light,unknown,unknown,evie networks,chademo,unknown,0
+6aa61a5bad0875cf26f3a144,674f97ff3dc8e5d2ac008684,43,5.7,13.0,12.0,0.374,0.523,1.0,22.6,5.1,1.0,0.3,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6aa61a5bad0875cf26f3a144,674f97ff3dc8e5d2ac008685,43,5.6,12.0,12.0,0.37,0.518,1.0,22.6,5.1,1.0,0.25,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6aa61a5bad0875cf26f3a144,674f97ff3dc8e5d2ac00868b,43,1.7,5.0,5.0,0.197,0.276,4.0,22.6,5.1,1.0,,light,unknown,no,chargefox,type 2 (socket only),ac (three-phase),0
+6aa61a5bad0875cf26f3a144,674f98013dc8e5d2ac0087cf,43,8.4,15.0,14.0,0.582,0.815,1.0,22.6,5.1,1.0,,light,unknown,no,(unknown operator),type 2 (tethered connector),ac (three-phase),0
+6aa61a5bad0875cf26f3a144,674f98013dc8e5d2ac008883,43,7.8,15.0,15.0,0.69,0.966,2.0,22.6,5.1,1.0,,light,unknown,unknown,(unknown operator),type 2 (socket only),ac (single-phase),0

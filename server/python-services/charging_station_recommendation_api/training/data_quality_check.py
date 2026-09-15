@@ -11,6 +11,7 @@ DATASET_PATH = os.path.join(
 
 
 NUMERIC_COLUMNS = [
+    "userPreviousSessions",
     "distanceKm",
     "durationMin",
     "durationInTrafficMin",
@@ -359,6 +360,26 @@ def main():
             print(
                 unusual_sessions.to_string()
             )
+
+    # ---------------------------------------------------------
+    # USER CONTEXT VALIDATION
+    # ---------------------------------------------------------
+    print("\n---------- USER CONTEXT VALIDATION ----------")
+
+    if "userPreviousSessions" in df.columns:
+        invalid_user_history = (
+            pd.to_numeric(
+                df["userPreviousSessions"],
+                errors="coerce"
+            ) < 0
+        ).sum()
+
+        print(
+            "Negative userPreviousSessions values : "
+            f"{invalid_user_history}"
+        )
+    else:
+        print("userPreviousSessions column not found.")
 
     # ---------------------------------------------------------
     # FEATURE SUMMARY

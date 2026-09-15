@@ -26,6 +26,7 @@ from sklearn.impute import SimpleImputer
 
 
 NUMERIC_FEATURES = [
+    "userPreviousSessions",
     "distanceKm",
     "durationMin",
     "durationInTrafficMin",
