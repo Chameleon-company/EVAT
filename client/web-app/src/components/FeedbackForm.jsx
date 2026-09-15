@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import DOMPurify from 'dompurify';
 import { Mail, User, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { submitFeedback } from '../services/feedbackService';
-import ErrorMessage from '../components/ErrorMessage'
-import SuccessMessage from '../components/SuccessMessage'
+import ErrorMessage from '../components/ErrorMessage';
+import SuccessMessage from '../components/SuccessMessage';
 
 const RECENT_SUCCESS_MESSAGE_LINGER = 5000; // 5 seconds * 1000
 
@@ -68,6 +69,7 @@ function FeedbackForm() {
     setSuccess('');
 
     try {
+      console.log(name + email + suggestion);
       const response = await submitFeedback({
           name: name,
           email: email,
@@ -130,7 +132,8 @@ function FeedbackForm() {
               placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}"
+              // pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}"
+              pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,4}"
             />
           </div>
           <div className="spacer-small">  </div>

@@ -1,5 +1,6 @@
 const API_URL = import.meta.env.VITE_API_URL;
 const baseUrl = `${API_URL}/feedback`;
+import DOMPurify from "dompurify";
 
 /**
  * Submit feedback to the backend
@@ -8,6 +9,11 @@ const baseUrl = `${API_URL}/feedback`;
  */
 export const submitFeedback = async (feedbackData) => {
   try {
+    console.log(feedbackData);
+    feedbackData.suggestion = DOMPurify.sanitize(feedbackData.suggestion);
+    if (feedbackData.suggestion.trim() === "") {
+      throw new Error("Cannot submit feedback with potentially malicious Javascript/HTML.");
+    }
     const response = await fetch(baseUrl, {
       method: 'POST',
       headers: {
