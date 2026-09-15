@@ -339,7 +339,7 @@ export default function Map() {
   useEffect(() => {
     let mounted = true;
 
-    if (!user?.token) {
+    if (!user) {
       setLoading(false);
       setErr('Please log in to search for charging stations');
       return;
@@ -366,7 +366,7 @@ export default function Map() {
     return () => {
       mounted = false;
     };
-  }, [user?.token]);
+  }, [user]);
 
   // Automatically select a station for Congestion Prediction
 useEffect(() => {
@@ -533,7 +533,7 @@ useEffect(() => {
             {err}
           </div>
         )}
-        {!bbox && !loading && user?.token && (
+        {!bbox && !loading && user && (
           <div className="map-status-message map-info" style={{
             position: 'absolute',
             top: 12,
@@ -558,7 +558,7 @@ useEffect(() => {
             </div>
           </div>
         )}
-        {!user?.token && (
+        {!user && (
           <div className="map-status-message map-warning" style={{
             position: 'absolute',
             top: 12,

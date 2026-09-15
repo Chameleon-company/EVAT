@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect } from 'react';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 
 export const UserContext = createContext({
   user: null,
@@ -9,23 +10,40 @@ export const UserContext = createContext({
 export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
-  // Load user from localStorage when app starts
   useEffect(() => {
-     const storedUser = localStorage.getItem('currentUser');
+    // Restore safe UI data immediately for a fast render
+    const storedUser = localStorage.getItem('currentUser');
     if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (e) {
-       console.error('Failed to parse stored currentUser', e);
-       localStorage.removeItem('currentUser'); // remove corrupted entry
-      }
+      try { setUser(JSON.parse(storedUser)); } catch (e) { }
     }
+
+    // Silently verify the secure cookie in the background
+    fetch(`${API_URL}/auth/jwt-login`, {
+        method: "POST",
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+    })
+    .then(res => {
+        if (!res.ok) throw new Error("Session expired");
+        return res.json();
+    })
+    .then(data => {
+        if (data.data?.user) {
+            setUser(prev => ({ ...prev, ...data.data.user }));
+        }
+    })
+    .catch(err => {
+        console.error("Silent auth check failed:", err);
+        setUser(null);
+        localStorage.removeItem("currentUser");
+    });
   }, []);
 
   // Save user to localStorage whenever it changes
   useEffect(() => {
     if (user) {
-      localStorage.setItem('currentUser', JSON.stringify(user));
+      const { token, ...safeUser } = user;
+      localStorage.setItem('currentUser', JSON.stringify(safeUser));
     } else {
       localStorage.removeItem('currentUser');
     }

@@ -56,6 +56,7 @@ function Signin() {
     try {
       const response = await fetch(url, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
       });
@@ -77,10 +78,14 @@ function Signin() {
 
         // Fetch detailed profile
         const profileRes = await fetch(`${API_URL}/profile/user-profile`, {
-          headers: { Authorization: `Bearer ${accessToken}` },
+          method: 'GET',
+          credentials: 'include', 
+          headers: { 'Content-Type': 'application/json' }
         });
+
         if (!profileRes.ok)
           throw new Error("Failed to fetch user profile details");
+          
         const profileData = await profileRes.json();
 
         // Construct user data with token included
@@ -111,47 +116,6 @@ function Signin() {
     }
   };
 
-  useEffect(() => { // useEffect should run on page load
-    console.log("JWT auto-login effect running");
-
-    const userData = localStorage.getItem("currentUser");
-    if (!userData) return; // if no user, do nothing (stay on login page)
-
-    let parsedUser;
-    try {
-        parsedUser = JSON.parse(userData);
-    } catch (e) {
-        console.error("Invalid user JSON", e);
-        return;
-    }
-
-    const token = parsedUser.token; // access the token of user JSON
-    if (!token) return; // if no token, do nothing
-
-    fetch(jwtUrl, {
-        method: "POST",
-        headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ refreshToken: parsedUser.refreshToken }),
-    })
-        .then(res => res.json())
-        .then(data => {
-            console.log("JWT login response:", data);
-            if (data.data?.accessToken) {
-                parsedUser.token = data.data.accessToken;
-                if (data.data?.refreshToken) {
-                    parsedUser.refreshToken = data.data.refreshToken;
-                }
-                // update both rotated tokens if the access token had to be renewed
-                localStorage.setItem("currentUser", JSON.stringify(parsedUser));
-                // redirect to map
-                navigate("/map");
-            }
-        })
-        .catch(err => console.error("JWT login error:", err));
-  }, []);
   
   //UI Rendering
   return (
