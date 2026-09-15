@@ -1,0 +1,11 @@
+rasa_env/
+__pycache__/
+*.pyc
+.env
+.DS_Store
+rasa/.rasa/
+node_modules/
+*.md
+.git/
+.gitignore
+apps/

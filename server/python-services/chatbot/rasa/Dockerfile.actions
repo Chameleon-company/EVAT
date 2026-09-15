@@ -1,0 +1,27 @@
+FROM python:3.10-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install only action server dependencies (not full Rasa)
+COPY rasa/requirements.txt ./rasa-requirements.txt
+RUN pip install --no-cache-dir -r rasa-requirements.txt
+
+# Keep Rasa isolated while exposing the shared chatbot service package.
+COPY __init__.py ./chatbot/__init__.py
+COPY config.py ./chatbot/config.py
+COPY services/ ./chatbot/services/
+COPY utils/ ./chatbot/utils/
+COPY data/ ./chatbot/data/
+COPY rasa/actions/ ./chatbot/rasa/actions/
+
+# Expose action server port
+EXPOSE 5055
+
+# Run from /app/rasa so 'actions' package is importable and relative paths hold
+WORKDIR /app/chatbot/rasa
+CMD ["python", "-m", "rasa_sdk", "--actions", "actions", "--port", "5055"]

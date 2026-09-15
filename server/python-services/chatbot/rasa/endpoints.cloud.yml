@@ -1,0 +1,2 @@
+action_endpoint:
+  url: "https://evat-actions-3cn2oy3gna-ts.a.run.app/webhook"

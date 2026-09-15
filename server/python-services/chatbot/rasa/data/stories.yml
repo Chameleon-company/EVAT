@@ -1,0 +1,117 @@
+version: "3.1"
+
+stories:
+
+# Journey 1: Route Planning
+- story: route_planning_flow
+  steps:
+  - intent: greet
+  - action: action_collect_initial_location
+  - intent: menu_selection
+  - action: action_handle_menu_selection
+  - intent: route_info
+  - action: action_handle_route_info
+  - intent: route_station_selection
+  - action: action_handle_route_station_selection
+  - intent: action_selection
+  - action: action_handle_action_choice
+
+# Journey 2: Emergency Charging
+- story: emergency_charging_flow
+  steps:
+  - intent: greet
+  - action: action_collect_initial_location
+  - intent: emergency_charging
+  - action: action_handle_menu_selection
+  - intent: emergency_location_input
+  - action: action_handle_emergency_location_input
+  - intent: emergency_station_selection
+  - action: action_handle_emergency_station_selection
+  - intent: action_selection
+  - action: action_handle_action_choice
+
+# Journey 3: Charging Preferences
+- story: preference_charging_flow
+  steps:
+  - intent: greet
+  - action: action_collect_initial_location
+  - intent: preference_charging
+  - action: action_handle_menu_selection
+  - intent: preference_selection
+  - action: action_handle_preference_charging
+  - intent: preference_location_input
+  - action: action_handle_preference_charging
+  - intent: preference_station_selection
+  - action: action_handle_preference_station_selection
+  - intent: action_selection
+  - action: action_handle_action_choice
+
+# Direct route planning without greeting - user provides route info
+- story: direct_route_planning
+  steps:
+  - intent: route_planning
+  - action: action_handle_menu_selection
+  - intent: route_info
+  - action: action_handle_route_info
+  - intent: route_station_selection
+  - action: action_handle_route_station_selection
+  - intent: action_selection
+  - action: action_handle_action_choice
+
+# Direct emergency charging without greeting
+- story: direct_emergency_charging
+  steps:
+  - intent: emergency_charging
+  - action: action_handle_menu_selection
+  - intent: emergency_location_input
+  - action: action_handle_emergency_location_input
+  - intent: emergency_station_selection
+  - action: action_handle_emergency_station_selection
+
+# Direct preference charging without greeting
+- story: direct_preference_charging
+  steps:
+  - intent: preference_charging
+  - action: action_handle_menu_selection
+  - intent: preference_selection
+  - action: action_handle_preference_charging
+  - intent: preference_location_input
+  - action: action_handle_preference_charging
+  - intent: preference_station_selection
+  - action: action_handle_preference_station_selection
+
+# Follow-up flow after action choice
+- story: follow_up_flow
+  steps:
+  - intent: follow_up
+  - action: action_handle_follow_up
+
+# Goodbye flow
+- story: goodbye_flow
+  steps:
+  - intent: goodbye
+  - action: utter_goodbye
+
+# Enhanced preference filtering flow
+- story: enhanced_preference_filtering_flow
+  steps:
+  - intent: filter_by_preferences
+  - action: action_enhanced_preference_filtering
+
+# Enhanced charger information flow
+- story: enhanced_charger_info_flow
+  steps:
+  - intent: get_charger_info
+  - action: action_enhanced_charger_info
+
+# Traffic information flow
+- story: traffic_info_flow
+  steps:
+  - intent: get_traffic_info
+  - action: action_traffic_info
+
+# Advanced directions flow
+- story: advanced_directions_flow
+  steps:
+  - intent: get_advanced_directions
+  - action: action_advanced_directions

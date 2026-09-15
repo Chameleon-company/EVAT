@@ -1,0 +1,7 @@
+.gcloudignore
+.git
+rasa_env/
+rasa/models/
+__pycache__/
+*.pyc
+.env
