@@ -152,6 +152,67 @@ export default class PredictController {
         }
     }
 
+    async getTripConfidence(req: Request, res: Response): Promise<Response> {
+        try {
+            const {
+                origin,
+                destination,
+                ac_on,
+                destination_postcode,
+                trip_date,
+                distance_km,
+                electricity_price_per_kwh,
+                petrol_price_per_l,
+                ev_make,
+                ev_model,
+                ev_variant,
+                ice_make,
+                ice_model,
+                ice_variant,
+                charger_id,
+                environmental_impact_input,
+            } = req.body;
+
+            if (
+                !origin ||
+                !destination ||
+                !destination_postcode ||
+                !trip_date ||
+                distance_km === undefined ||
+                electricity_price_per_kwh === undefined ||
+                petrol_price_per_l === undefined
+            ) {
+                return res.status(400).json({
+                    message: "Missing required fields: origin, destination, destination_postcode, trip_date, distance_km, electricity_price_per_kwh, petrol_price_per_l"
+                });
+            }
+
+            const result = await this.predictService.getTripConfidence({
+                origin,
+                destination,
+                ac_on,
+                destination_postcode,
+                trip_date,
+                distance_km,
+                electricity_price_per_kwh,
+                petrol_price_per_l,
+                ev_make,
+                ev_model,
+                ev_variant,
+                ice_make,
+                ice_model,
+                ice_variant,
+                charger_id,
+                environmental_impact_input,
+            });
+
+            return res.status(200).json(result);
+
+        } catch (error: any) {
+            return res.status(500).json({ message: error.message });
+        }
+    }
+
     /**
      * Get cost charts data for comparison
      * POST /api/predict/cost-charts

@@ -62,6 +62,7 @@ function NavBar() {
     { label: 'API Tester', path: '/apitester' },
     { label: 'Voice Query', path: '/voice-query' },
     { label: 'Cost Comparison', path: '/cost-comparison' },
+    { label: 'Trip Confidence Score', path: '/trip-confidence' },
     { label: 'Environmental Impact', path: '/environmental-impact' },
     { label: 'Demand Forecasting', path: '/demand-forecasting' },
     { label: 'Price Prediction', path: '/price-prediction' },

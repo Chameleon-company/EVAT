@@ -304,10 +304,14 @@ router.post("/congestion/batch", isAdminAuthenticated, (req, res) => { // Have t
  */
 router.post("/cost", authGuard(["user", "admin"]), (req, res) => {
     predictController.getCostComparison(req, res);
-});
+})
 
 router.post("/cost/charts", authGuard(["user", "admin"]), (req, res) => {
     predictController.getCostCharts(req, res);
+});
+
+router.post("/trip-confidence", authGuard(["user", "admin"]), (req, res) => {
+    predictController.getTripConfidence(req, res);
 });
 
 router.get("/vehicles/ev", authGuard(["user", "admin"]), (req, res) => {

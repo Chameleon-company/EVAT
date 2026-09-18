@@ -9,6 +9,7 @@ export default class PredictService {
     // Separate Python API backends for cost comparison and demand forecasting
     private readonly COST_API_URL = env.COST_API_URL;
     private readonly DEMAND_API_URL = env.DEMAND_API_URL;
+    private readonly PYTHON_API_URL = process.env.PYTHON_API_URL || "http://127.0.0.1:5000";
     // Increase timeout to 12 seconds (account for potential latency in Python ML service (10 seconds) and external weather API)
     private readonly TIMEOUT_MS = 12000;
 
@@ -341,6 +342,37 @@ export default class PredictService {
         } catch (error: any) {
             // Temp fallback: return Melbourne CBD coordinates if the lookup fails
             return { lat: -37.8136, lon: 144.9631 };
+        }
+    }
+
+    async getTripConfidence(payload: {
+        origin: string;
+        destination: string;
+        ac_on?: boolean;
+        destination_postcode: string;
+        trip_date: string;
+        distance_km: number;
+        electricity_price_per_kwh: number;
+        petrol_price_per_l: number;
+        ev_make?: string;
+        ev_model?: string;
+        ev_variant?: string;
+        ice_make?: string;
+        ice_model?: string;
+        ice_variant?: string;
+        charger_id?: string;
+        environmental_impact_input?: Record<string, unknown>;
+    }): Promise<any> {
+        try {
+            const response = await axios.post(
+                `${this.PYTHON_API_URL}/tripConfidence/predict`,
+                payload,
+                { timeout: this.TIMEOUT_MS }
+            );
+            return response.data;
+        } catch (error: any) {
+            const errorMsg = error.response?.data?.detail || error.message;
+            throw new Error("Error calling Trip Confidence ML service: " + errorMsg);
         }
     }
 }
