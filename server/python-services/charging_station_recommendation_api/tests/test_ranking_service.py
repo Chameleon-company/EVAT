@@ -1,5 +1,11 @@
-from charging_station_recommendation_api.models.request import ChargingStationCandidate
-from charging_station_recommendation_api.services.ranking_service import rank_candidates
+from unittest.mock import patch
+
+from charging_station_recommendation_api.models.request import (
+    ChargingStationCandidate,
+)
+from charging_station_recommendation_api.services.ranking_service import (
+    rank_candidates,
+)
 
 
 def candidate(**overrides):
@@ -30,6 +36,7 @@ def test_ranks_stronger_candidate_first_and_returns_reasons():
         energyNeededKwh=0.5,
         congestionLevel="low",
     )
+
     weakest = candidate(
         stationId="weakest",
         chargingPoints=1,
@@ -40,22 +47,96 @@ def test_ranks_stronger_candidate_first_and_returns_reasons():
         congestionLevel="high",
     )
 
-    result = rank_candidates([weakest, best], favourite_station_ids=["best"])
+    result = rank_candidates(
+        [weakest, best],
+        favourite_station_ids=["best"],
+    )
 
-    assert [station.stationId for station in result] == ["best", "weakest"]
+    assert [station.stationId for station in result] == [
+        "best",
+        "weakest",
+    ]
     assert [station.rank for station in result] == [1, 2]
     assert "Low station congestion" in result[0].reasons
 
 
 def test_returns_empty_list_when_no_candidates_are_eligible():
-    assert rank_candidates([], favourite_station_ids=[]) == []
+    assert rank_candidates(
+        [],
+        favourite_station_ids=[],
+    ) == []
 
 
 def test_missing_optional_values_do_not_stop_ranking():
     result = rank_candidates(
-        [candidate(durationMin=None, durationInTrafficMin=None, energyNeededKwh=None)],
+        [
+            candidate(
+                durationMin=None,
+                durationInTrafficMin=None,
+                energyNeededKwh=None,
+            )
+        ],
         favourite_station_ids=[],
     )
 
     assert result[0].stationId == "station-1"
     assert result[0].score >= 0
+
+
+def test_passes_user_history_count_to_preference_model():
+    history = [
+        type(
+            "History",
+            (),
+            {
+                "selection": type(
+                    "Selection",
+                    (),
+                    {"stationId": "a"},
+                )()
+            },
+        )(),
+        type(
+            "History",
+            (),
+            {
+                "selection": type(
+                    "Selection",
+                    (),
+                    {"stationId": "b"},
+                )()
+            },
+        )(),
+        type(
+            "History",
+            (),
+            {
+                "selection": type(
+                    "Selection",
+                    (),
+                    {"stationId": "c"},
+                )()
+            },
+        )(),
+    ]
+
+    with patch(
+        "charging_station_recommendation_api.services.ranking_service."
+        "predict_selection_probability"
+    ) as mock_predict, patch(
+        "charging_station_recommendation_api.services.ranking_service."
+        "apply_personalization"
+    ):
+        mock_predict.return_value = [0.5]
+
+        rank_candidates(
+            [candidate()],
+            favourite_station_ids=[],
+            user_history=history,
+        )
+
+        mock_predict.assert_called_once()
+
+        args = mock_predict.call_args.args
+
+        assert args[1] == 3

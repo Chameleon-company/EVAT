@@ -1,13 +1,17 @@
 """Orchestrates scoring, sorting, and response creation."""
 
-from typing import List
+from typing import List, Optional
 
 from charging_station_recommendation_api.models.request import (
     ChargingStationCandidate,
     RecommendationHistorySession,
 )
-from charging_station_recommendation_api.models.response import ChargingStationRecommendation
-from charging_station_recommendation_api.services.personalization import apply_personalization
+from charging_station_recommendation_api.models.response import (
+    ChargingStationRecommendation,
+)
+from charging_station_recommendation_api.services.personalization import (
+    apply_personalization,
+)
 from charging_station_recommendation_api.services.preference_model import (
     predict_selection_probability,
 )
@@ -18,47 +22,60 @@ from charging_station_recommendation_api.services.scoring import score_candidate
 def rank_candidates(
     candidates: List[ChargingStationCandidate],
     favourite_station_ids: List[str],
-    user_history: List[RecommendationHistorySession] = None,
+    user_history: Optional[List[RecommendationHistorySession]] = None,
 ) -> List[ChargingStationRecommendation]:
     """Score eligible candidates and return them in descending rank order."""
 
-    # No eligible station means there is nothing to rank.
     if not candidates:
         return []
 
-    # Calculate the fixed-weight heuristic score and factor breakdown for
-    # every candidate. The factor breakdown is always used to build the
-    # human-readable "reasons" below, since the trained model doesn't
-    # produce per-factor explanations on its own.
-    scored_candidates = score_candidates(candidates, favourite_station_ids)
-
-    # If a trained personalised-preference model has been exported (see
-    # training/train_preference_model.py), use its predicted selection
-    # probability as the ranking score instead of the fixed weights. Falls
-    # back to the heuristic score automatically if no model is available.
-    probabilities = predict_selection_probability(candidates)
-    if probabilities is not None:
-        for item, probability in zip(scored_candidates, probabilities):
-            item["score"] = probability * 100
-
-    # Small, per-user in-memory adjustment on top of the global score above,
-    # using this user's own recent selection history (sent by the Node API
-    # on this request -- nothing is trained or persisted here). No-ops
-    # automatically if the user doesn't have enough history yet.
-    apply_personalization(scored_candidates, user_history or [])
-
-    # Put the highest score first. stationId makes ties deterministic.
-    scored_candidates.sort(
-        key=lambda item: (-item["score"], item["candidate"].stationId)
+    scored_candidates = score_candidates(
+        candidates,
+        favourite_station_ids,
     )
 
-    # Turn the sorted scores into the API response with ranks and explanations.
+    user_previous_sessions = sum(
+        1
+        for session in (user_history or [])
+        if session.selection.stationId is not None
+    )
+
+    probabilities = predict_selection_probability(
+        candidates,
+        user_previous_sessions,
+    )
+
+    if probabilities is not None:
+        for item, probability in zip(
+            scored_candidates,
+            probabilities,
+        ):
+            item["score"] = probability * 100
+
+    apply_personalization(
+        scored_candidates,
+        user_history or [],
+    )
+
+    scored_candidates.sort(
+        key=lambda item: (
+            -item["score"],
+            item["candidate"].stationId,
+        )
+    )
+
     return [
         ChargingStationRecommendation(
             stationId=item["candidate"].stationId,
             rank=rank,
             score=round(item["score"], 1),
-            reasons=build_reasons(item["candidate"], item["factor_scores"]),
+            reasons=build_reasons(
+                item["candidate"],
+                item["factor_scores"],
+            ),
         )
-        for rank, item in enumerate(scored_candidates, start=1)
+        for rank, item in enumerate(
+            scored_candidates,
+            start=1,
+        )
     ]

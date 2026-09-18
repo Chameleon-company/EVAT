@@ -1,6 +1,12 @@
 import unittest
+import os
 
-from charging_station_recommendation_api.training.dataset_builder import (
+import joblib
+import pandas as pd
+
+from training.user_context import build_user_context
+
+from training.dataset_builder import (
     is_session_snapshot_invalid,
     clean_text,
     clean_pay_at_location,
@@ -96,6 +102,134 @@ class TestTrainingPipeline(unittest.TestCase):
             clean_cost(None)
         )
 
+    def test_user_without_history(self):
+        current_session = {
+            "_id": "session-1",
+            "userId": "user-1",
+            "createdAt": 100,
+            "selection": {
+                "stationId": "station-a"
+            },
+        }
+
+        context = build_user_context(
+            user_id="user-1",
+            current_session=current_session,
+            all_sessions=[current_session],
+        )
+
+        self.assertEqual(
+            context["userPreviousSessions"],
+            0,
+        )
+
+    def test_user_context_does_not_use_future_sessions(self):
+        current_session = {
+            "_id": "session-2",
+            "userId": "user-1",
+            "createdAt": 200,
+            "selection": {
+                "stationId": "station-b"
+            },
+        }
+
+        previous_session = {
+            "_id": "session-1",
+            "userId": "user-1",
+            "createdAt": 100,
+            "selection": {
+                "stationId": "station-a"
+            },
+        }
+
+        future_session = {
+            "_id": "session-3",
+            "userId": "user-1",
+            "createdAt": 300,
+            "selection": {
+                "stationId": "station-c"
+            },
+        }
+
+        context = build_user_context(
+            user_id="user-1",
+            current_session=current_session,
+            all_sessions=[
+                previous_session,
+                current_session,
+                future_session,
+            ],
+        )
+
+        self.assertEqual(
+            context["userPreviousSessions"],
+            1,
+        )
+
+    def test_user_context_ignores_other_users(self):
+        current_session = {
+            "_id": "session-2",
+            "userId": "user-1",
+            "createdAt": 200,
+            "selection": {
+                "stationId": "station-b"
+            },
+        }
+
+        other_user_session = {
+            "_id": "session-1",
+            "userId": "user-2",
+            "createdAt": 100,
+            "selection": {
+                "stationId": "station-a"
+            },
+        }
+
+        context = build_user_context(
+            user_id="user-1",
+            current_session=current_session,
+            all_sessions=[
+                other_user_session,
+                current_session,
+            ],
+        )
+
+        self.assertEqual(
+            context["userPreviousSessions"],
+            0,
+        )
+
+    def test_saved_model_can_be_reloaded_and_predict(self):
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+
+        model_path = os.path.join(
+            base_dir,
+            "model_output",
+            "preference_model.joblib",
+        )
+
+        dataset_path = os.path.join(
+            base_dir,
+            "training_dataset.csv",
+        )
+
+        model = joblib.load(model_path)
+        df = pd.read_csv(dataset_path)
+
+        X = df.drop(
+            columns=[
+                "sessionId",
+                "stationId",
+                "selected",
+            ]
+        ).head(1)
+
+        probabilities = model.predict_proba(X)
+
+        self.assertEqual(
+            probabilities.shape,
+            (1, 2),
+        )
 
 if __name__ == "__main__":
     unittest.main()

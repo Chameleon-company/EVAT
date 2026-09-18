@@ -2,9 +2,12 @@
 
 ## Overview
 
-This folder contains the training pipeline for the EVAT personalised charging-station preference model.
+This folder contains the training pipeline for the EVAT personalised
+charging-station preference model.
 
-The pipeline uses historical recommendation sessions stored in MongoDB and trains a Logistic Regression model to learn which candidate station characteristics are associated with user selections.
+The pipeline uses historical recommendation sessions stored in MongoDB and
+trains a Logistic Regression model to learn which candidate station
+characteristics are associated with user selections.
 
 The current task treats the recommendation problem as binary classification:
 
@@ -53,15 +56,16 @@ The current workflow is:
 4. Remove duplicate candidate stations
 5. Detect invalid recommendation snapshots
 6. Generate selected / non-selected labels
-7. Clean numerical and categorical values
-8. Save the cleaned dataset to CSV
-9. Run data-quality checks
-10. Preprocess model features
-11. Split the data by recommendation session
-12. Train Logistic Regression
-13. Evaluate the model
-14. Export the trained model
-15. Export learned model coefficients for later FastAPI integration
+7. Build user-context features
+8. Clean numerical and categorical values
+9. Save the cleaned dataset to CSV
+10. Run data-quality checks
+11. Preprocess model features
+12. Split the data by recommendation session
+13. Train Logistic Regression
+14. Evaluate the model
+15. Export the trained model
+16. Export learned model coefficients and training metadata
 
 ---
 
@@ -85,6 +89,36 @@ The builder creates:
 
 ---
 
+## User Context
+
+File:
+
+`user_context.py`
+
+The training pipeline includes the user-context feature:
+
+`userPreviousSessions`
+
+This feature represents the number of previous recommendation sessions in
+which the user actually selected a charging station.
+
+Only sessions belonging to the current user and occurring before the current
+session are counted.
+
+The current session is not counted as a previous session.
+
+Future sessions are not counted.
+
+Sessions belonging to other users are not counted.
+
+This prevents future information and other users' behaviour from leaking into
+the training features.
+
+The same user-context definition is used during live FastAPI inference so that
+the training and prediction feature definitions remain consistent.
+
+---
+
 ## Label Definition
 
 The target label is:
@@ -105,7 +139,8 @@ Otherwise:
 
 `selected = 0`
 
-Every valid recommendation session must contain exactly one positive candidate.
+Every valid recommendation session must contain exactly one positive
+candidate.
 
 ---
 
@@ -115,21 +150,26 @@ The dataset builder performs several cleaning and validation steps.
 
 ### Sessions without a selection
 
-Recommendation sessions without a selected station cannot provide a valid target label.
+Recommendation sessions without a selected station cannot provide a valid
+target label.
 
 These sessions are excluded.
 
 ### Missing station IDs
 
-Candidates without a station ID are excluded because they cannot be compared with the selected station.
+Candidates without a station ID are excluded because they cannot be compared
+with the selected station.
 
 ### Duplicate candidates
 
-Duplicate station candidates inside the same recommendation session are removed.
+Duplicate station candidates inside the same recommendation session are
+removed.
 
 ### Invalid all-zero recommendation snapshots
 
-During data-quality analysis, one recommendation session was identified where all 10 candidate stations had zero or missing values for all key snapshot fields:
+During data-quality analysis, one recommendation session was identified where
+all 10 candidate stations had zero or missing values for all key snapshot
+fields:
 
 - `distanceKm`
 - `durationMin`
@@ -137,7 +177,8 @@ During data-quality analysis, one recommendation session was identified where al
 - `energyNeededKwh`
 - `temperatureC`
 
-This session contained no meaningful candidate information that could explain the user's choice, so the full session was excluded from the training dataset.
+This session contained no meaningful candidate information that could explain
+the user's choice, so the full session was excluded from the training dataset.
 
 Legitimate zero values are not automatically removed.
 
@@ -168,16 +209,17 @@ The data-quality script checks:
 - suspicious all-zero records
 - recommendation-session sizes
 - numeric feature summaries
+- invalid `userPreviousSessions` values
 
-After cleaning, the dataset contained:
+The user-context validation also checks that
+`userPreviousSessions` does not contain negative values.
 
-- 35 valid recommendation sessions
-- 326 candidate rows
-- 35 selected candidates
-- 291 non-selected candidates
-- 0 duplicate session/station rows
-- 0 invalid label sessions
-- 0 suspicious all-zero rows
+The current cleaned dataset contains:
+
+- 42 valid recommendation sessions
+- 396 candidate rows
+- 42 selected candidates
+- 354 non-selected candidates
 
 ---
 
@@ -187,6 +229,7 @@ After cleaning, the dataset contained:
 
 The current Preference Model v1 uses:
 
+- `userPreviousSessions`
 - `distanceKm`
 - `durationMin`
 - `durationInTrafficMin`
@@ -211,23 +254,24 @@ The current model uses:
 
 The `cost` feature was considered for training.
 
-However, approximately 68% of the current candidate records do not contain a cost value.
+However, a large proportion of the current candidate records do not contain a
+cost value.
 
-Using large-scale imputation for this feature could introduce artificial values into most of the training data.
+Using large-scale imputation for this feature could introduce artificial
+values into a substantial portion of the training data.
 
 Therefore, `cost` is excluded from Preference Model v1.
 
-The feature can be reconsidered later when more complete historical records are available.
+The feature can be reconsidered later when more complete historical records are
+available.
 
 ### congestionLevel
 
-The `congestionLevel` feature currently contains:
+The `congestionLevel` feature currently contains `unknown` for the cleaned
+training records.
 
-`unknown`
-
-for 100% of the cleaned dataset.
-
-Because the feature has no variation, the current model cannot learn a meaningful congestion preference from it.
+Because the feature has no useful variation, the current model cannot learn a
+meaningful congestion preference from it.
 
 It is therefore excluded from Preference Model v1.
 
@@ -246,7 +290,8 @@ Numerical preprocessing uses:
 1. Median imputation for missing values
 2. Standard scaling
 
-Median imputation allows a small number of missing numerical values to be handled without deleting otherwise valid recommendation candidates.
+Median imputation allows a small number of missing numerical values to be
+handled without deleting otherwise valid recommendation candidates.
 
 ### Categorical features
 
@@ -259,7 +304,8 @@ The encoder uses:
 
 `handle_unknown="ignore"`
 
-so that a category not seen during training does not cause the prediction pipeline to fail.
+so that a category not seen during training does not cause the prediction
+pipeline to fail.
 
 ---
 
@@ -272,10 +318,10 @@ Each recommendation session normally contains:
 - 1 selected candidate
 - several non-selected candidates
 
-The final cleaned dataset contains:
+The current dataset contains:
 
-- 35 positive examples
-- 291 negative examples
+- 42 positive examples
+- 354 negative examples
 
 To help handle the imbalance, Logistic Regression is configured using:
 
@@ -287,7 +333,8 @@ This gives the minority selected class more importance during model training.
 
 ## Train/Test Split
 
-The dataset is split using complete recommendation sessions rather than individual candidate rows.
+The dataset is split using complete recommendation sessions rather than
+individual candidate rows.
 
 File:
 
@@ -303,14 +350,18 @@ with:
 
 as the grouping variable.
 
-This prevents candidates from the same recommendation session from appearing in both the training and testing sets.
+This prevents candidates from the same recommendation session from appearing
+in both the training and testing sets.
+
+This is important because splitting individual candidate rows could allow
+information from the same recommendation session to appear in both datasets.
 
 The current split contains:
 
-- 26 training sessions
-- 9 testing sessions
-- 240 training candidate rows
-- 86 testing candidate rows
+- 31 training sessions
+- 11 testing sessions
+- 292 training candidate rows
+- 104 testing candidate rows
 
 ---
 
@@ -325,7 +376,16 @@ The model was chosen because:
 - the target is binary
 - the model is simple and reproducible
 - coefficients can be inspected
-- learned coefficients can later be handed to the recommendation FastAPI
+- learned coefficients can be exported
+- the model can be integrated into the recommendation FastAPI service
+
+Current training configuration:
+
+- Split method: `GroupShuffleSplit by sessionId`
+- Test size: `0.25`
+- Random state: `42`
+- Class weight: `balanced`
+- Maximum iterations: `2000`
 
 ---
 
@@ -337,13 +397,14 @@ Current threshold:
 
 `30 completed sessions`
 
-The final cleaned dataset contains:
+The current dataset contains:
 
-`35 completed sessions`
+`42 completed sessions`
 
-so the current dataset meets the minimum threshold for pipeline training.
+so the dataset meets the minimum threshold for pipeline training.
 
-This threshold is an initial engineering safeguard and can be revised as more recommendation history becomes available.
+This threshold is an initial engineering safeguard and can be revised as more
+recommendation history becomes available.
 
 ---
 
@@ -357,27 +418,46 @@ The current model reports:
 - F1 Score
 - ROC-AUC
 
-These metrics are more useful than relying only on accuracy because the dataset is imbalanced.
+These metrics are more useful than relying only on accuracy because the
+dataset is imbalanced.
 
 ---
 
 ## Current Model Results
 
-Using the final cleaned dataset and session-based train/test split:
+Using the current cleaned dataset and session-based train/test split:
 
-- Accuracy: `0.8256`
-- Precision: `0.3636`
-- Recall: `0.8889`
-- F1 Score: `0.5161`
-- ROC-AUC: `0.8456`
+- Completed sessions: `42`
+- Training sessions: `31`
+- Testing sessions: `11`
+- Candidate rows: `396`
+- Training rows: `292`
+- Testing rows: `104`
+- Positive rows: `42`
+- Negative rows: `354`
 
-The selected-station class had high recall, meaning the current model identified most selected candidates in the test data.
+Evaluation metrics:
 
-However, the current dataset contains only 35 positive user selections.
+- Accuracy: `0.8365`
+- Precision: `0.3750`
+- Recall: `0.8182`
+- F1 Score: `0.5143`
+- ROC-AUC: `0.9326`
 
-These results should therefore be treated as initial pipeline-validation results rather than production-level model performance.
+The selected-station class has high recall, meaning the current model identifies
+most selected candidates in the test data.
 
-More completed recommendation sessions should improve the reliability of future models.
+However, the dataset currently contains only 42 positive user selections.
+These results should therefore be treated as initial model-validation results
+rather than production-level model performance.
+
+More completed recommendation sessions should improve the reliability of future
+models.
+
+The complete training metadata, configuration, metrics, intercept, and learned
+coefficients are stored in:
+
+`model_output/preference_weights.json`
 
 ---
 
@@ -390,6 +470,8 @@ The training script exports:
 `model_output/preference_model.joblib`
 
 This contains the fitted preprocessing and Logistic Regression pipeline.
+
+The FastAPI recommendation service loads this artifact during inference.
 
 ### Learned coefficients
 
@@ -408,25 +490,81 @@ The JSON output contains:
 - Logistic Regression intercept
 - learned feature coefficients
 
-The learned coefficients can later be consumed or translated by the recommendation FastAPI.
+The learned coefficients can be inspected to understand how the model uses
+the transformed features.
 
 ---
 
-## Automated Tests
+## FastAPI Integration
 
-File:
+The trained model is used by the recommendation service through:
 
-`test_training_pipeline.py`
+`services/preference_model.py`
 
-The automated tests currently verify:
+The live ranking process receives:
 
-- invalid all-zero recommendation sessions are detected
-- valid recommendation sessions are retained
-- categorical text cleaning works
-- `payAtLocation` normalisation works
-- cost parsing works
+- station candidates
+- favourite station IDs
+- user recommendation history
 
-Run the tests using:
+The ranking service calculates:
 
-```bash
-python -m unittest training.test_training_pipeline
+`userPreviousSessions`
+
+from the user's previous selected sessions and passes the value to the
+preference model.
+
+The preference model then builds the same feature structure used during
+training and generates a selection probability for each candidate.
+
+The resulting probability is used as the model-based ranking score.
+
+The existing personalization layer is then applied on top of the model score.
+
+The final candidates are sorted and returned with:
+
+- station ID
+- rank
+- score
+- human-readable reasons
+
+If the trained model is unavailable or model inference fails, the ranking
+service falls back to the existing heuristic scoring.
+
+---
+
+## Ranking Flow
+
+The current ranking flow is:
+
+```text
+Node API
+   |
+   | candidates + user profile + recommendation history
+   v
+FastAPI recommendation service
+   |
+   v
+Filter eligible candidates
+   |
+   v
+Calculate heuristic scores
+   |
+   v
+Calculate userPreviousSessions
+   |
+   v
+Preference model prediction
+   |
+   +---- model available ----> model selection probability
+   |
+   +---- model unavailable --> heuristic score fallback
+   |
+   v
+Apply existing user personalization
+   |
+   v
+Sort by final score
+   |
+   v
+Return ranked recommendations + reasons
