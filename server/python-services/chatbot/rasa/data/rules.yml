@@ -1,0 +1,403 @@
+version: "3.1"
+
+rules:
+  # ============================
+  # GLOBAL INTERRUPT RULE (ADDED)
+  # ============================
+- rule: GLOBAL override — congestion prediction interrupt
+  condition: []
+  steps:
+  - intent: ask_congestion_prediction
+  - action: action_congestion_prediction
+
+  # Greeting rule
+- rule: Greet user
+  steps:
+  - intent: greet
+  - action: action_collect_initial_location
+
+  # Initial location collection rule - handle when user provides location after greeting
+- rule: Handle initial location collection
+  condition:
+  - slot_was_set:
+    - conversation_context: initial_location_collection
+  steps:
+  - action: action_collect_initial_location
+
+# Route_info often misclassifies bare suburb names (e.g. "Carlton") — redirect during initial collection
+- rule: Handle route_info as location during initial collection
+  condition:
+  - slot_was_set:
+    - conversation_context: initial_location_collection
+  steps:
+  - intent: route_info
+  - action: action_collect_initial_location
+
+# Route_planning intent during initial collection → still collect location
+- rule: Handle route_planning as location during initial collection
+  condition:
+  - slot_was_set:
+    - conversation_context: initial_location_collection
+  steps:
+  - intent: route_planning
+  - action: action_collect_initial_location
+
+# current_location intent during initial collection
+- rule: Handle current_location intent during initial collection
+  condition:
+  - slot_was_set:
+    - conversation_context: initial_location_collection
+  steps:
+  - intent: current_location
+  - action: action_collect_initial_location
+
+# Fallback during initial collection → try to parse as suburb
+- rule: Handle fallback during initial location collection
+  condition:
+  - slot_was_set:
+    - conversation_context: initial_location_collection
+  steps:
+  - intent: nlu_fallback
+  - action: action_collect_initial_location
+
+  # Show initial menu only on fallback when no conversation context
+- rule: Handle initial fallback to menu
+  condition:
+  - slot_was_set:
+    - conversation_context: null
+  steps:
+  - intent: nlu_fallback
+  - action: action_handle_any_input
+
+  # Menu selection rule - handle when user types 1, 2, or 3
+- rule: Handle menu selection
+  condition:
+  - slot_was_set:
+    - conversation_context: null
+  steps:
+  - intent: menu_selection
+  - action: action_handle_menu_selection
+
+  # Route planning rule
+- rule: Handle route planning
+  condition:
+  - slot_was_set:
+    - conversation_context: null
+  steps:
+  - intent: route_planning
+  - action: action_handle_menu_selection
+
+  # Route info rule - handle when user provides route details
+- rule: Handle route info
+  steps:
+  - intent: route_info
+  - action: action_handle_route_info
+
+  # Route input rule - handle when user types route in route planning context
+- rule: Handle route input in route planning context
+  condition:
+  - slot_was_set:
+    - conversation_context: route_planning
+  steps:
+  - action: action_handle_route_input
+
+# If NLU classifies "from X to Y" as route_info during route planning,
+# still route it through the route input handler (which parses and resolves routes).
+- rule: Handle route_info intent in route planning context
+  condition:
+  - slot_was_set:
+    - conversation_context: route_planning
+  steps:
+  - intent: route_info
+  - action: action_handle_route_input
+
+# Emergency charging rule
+- rule: Handle emergency charging
+  condition:
+  - slot_was_set:
+    - conversation_context: null
+  steps:
+  - intent: emergency_charging
+  - action: action_handle_menu_selection
+
+  # Emergency location input rule
+- rule: Handle emergency location input
+  condition:
+  - slot_was_set:
+    - conversation_context: emergency_charging
+  steps:
+  - intent: emergency_location_input
+  - action: action_handle_emergency_location_input
+
+  # Treat it as an emergency location when we're in emergency mode.
+- rule: Handle preference-style location as emergency when in emergency flow
+  condition:
+  - slot_was_set:
+    - conversation_context: emergency_charging
+  steps:
+  - intent: preference_location_input
+  - action: action_handle_emergency_location_input
+
+  # Preference charging rule
+- rule: Handle preference charging
+  condition:
+  - slot_was_set:
+    - conversation_context: null
+  steps:
+  - intent: preference_charging
+  - action: action_handle_menu_selection
+
+  # Preference selection rule - user picks cheapest/fastest/premium
+- rule: Handle preference selection
+  condition:
+  - slot_was_set:
+    - conversation_context: preference_charging
+  steps:
+  - intent: preference_selection
+  - action: action_handle_preference_charging
+
+  # Preference location input rule - user provides location for preference flow
+- rule: Handle preference location input
+  condition:
+  - slot_was_set:
+    - conversation_context: preference_charging
+  steps:
+  - intent: preference_location_input
+  - action: action_handle_preference_location_input
+
+  # Preference location fallback: if user says "in <location>" which might be
+  # classified as emergency_location_input, still handle it as preference location
+- rule: Handle emergency-style location as preference when in preference flow
+  condition:
+  - slot_was_set:
+    - conversation_context: preference_charging
+  steps:
+  - intent: emergency_location_input
+  - action: action_handle_preference_location_input
+
+  # Route station selection rule - only valid in route planning context
+- rule: Handle route station selection
+  condition:
+  - slot_was_set:
+    - conversation_context: route_planning_results
+  steps:
+  - intent: route_station_selection
+  - action: action_handle_route_station_selection
+
+  # Fallback: treat unclassified input as station selection in route results
+- rule: Handle fallback as route station selection
+  condition:
+  - slot_was_set:
+    - conversation_context: route_planning_results
+  steps:
+  - intent: nlu_fallback
+  - action: action_handle_route_station_selection
+
+  # Station selection after comparison (still in station details)
+- rule: Handle route station selection in station details
+  condition:
+  - slot_was_set:
+    - conversation_context: station_details
+  steps:
+  - intent: route_station_selection
+  - action: action_handle_route_station_selection
+
+  # Fallback: treat unclassified input as station selection in station details
+- rule: Handle fallback as route station selection in station details
+  condition:
+  - slot_was_set:
+    - conversation_context: station_details
+  steps:
+  - intent: nlu_fallback
+  - action: action_handle_route_station_selection
+
+  # Emergency station selection rule - only valid in emergency context
+- rule: Handle emergency station selection
+  condition:
+  - slot_was_set:
+    - conversation_context: emergency_results
+  steps:
+  - intent: emergency_station_selection
+  - action: action_handle_emergency_station_selection
+
+  # Preference station selection rule - only valid in preference context
+- rule: Handle preference station selection
+  condition:
+  - slot_was_set:
+    - conversation_context: preference_results
+  steps:
+  - intent: preference_station_selection
+  - action: action_handle_preference_station_selection
+
+  # If user says a station name that gets classified as route station selection while
+  # viewing preference results, still handle with the preference station selector
+- rule: Handle route-style selection in preference results
+  condition:
+  - slot_was_set:
+    - conversation_context: preference_results
+  steps:
+  - intent: route_station_selection
+  - action: action_handle_preference_station_selection
+
+  # If the NLU can't classify the station name, fallback to preference selector
+- rule: Handle fallback selection in preference results
+  condition:
+  - slot_was_set:
+    - conversation_context: preference_results
+  steps:
+  - intent: nlu_fallback
+  - action: action_handle_preference_station_selection
+
+  # Action selection rule
+- rule: Handle action choice
+  condition:
+  - slot_was_set:
+    - conversation_context: station_details
+  steps:
+  - intent: action_selection
+  - action: action_handle_action_choice
+
+  # Follow-up requests rule
+- rule: Handle follow-up requests
+  steps:
+  - intent: follow_up
+  - action: action_handle_follow_up
+
+  # Enhanced preference filtering rule
+- rule: Handle enhanced preference filtering
+  condition:
+  - slot_was_set:
+    - conversation_context: preference_charging
+  steps:
+  - intent: filter_by_preferences
+  - action: action_enhanced_preference_filtering
+
+  # Enhanced charger information rule
+- rule: Handle enhanced charger information
+  steps:
+  - intent: get_charger_info
+  - action: action_enhanced_charger_info
+
+  # Traffic information rule
+- rule: Handle traffic information
+  steps:
+  - intent: get_traffic_info
+  - action: action_traffic_info
+
+# Affirm after traffic prompt → show traffic
+- rule: Affirm triggers traffic info
+  steps:
+  - intent: affirm
+  - action: action_traffic_info
+
+# Deny after traffic prompt → goodbye
+- rule: Deny triggers goodbye
+  steps:
+  - intent: deny
+  - action: utter_goodbye
+
+# Advanced directions rule
+- rule: Handle advanced directions
+  steps:
+  - intent: get_advanced_directions
+  - action: action_advanced_directions
+
+  # Clickable 'Get Directions' from station cards (slash intent with station_id)
+- rule: Handle get directions by station id
+  steps:
+  - intent: get_directions
+  - action: action_get_directions_by_id
+
+# New station availability rule
+- rule: Handle station availability
+  steps:
+  - intent: station_availability
+  - action: utter_station_availability
+
+# New nearby stations rule
+- rule: Handle nearby stations
+  steps:
+  - intent: nearby_stations
+  - action: action_nearby_stations
+
+# Ended conversation: ignore further input
+- rule: Ignore input when ended
+  condition:
+  - slot_was_set:
+    - conversation_context: ended
+  steps:
+  - action: utter_goodbye
+
+  # Goodbye rule
+- rule: Say goodbye
+  steps:
+  - intent: goodbye
+  - action: utter_goodbye
+
+  # Emergency connector/model input handling
+- rule: Handle emergency connector/model input
+  condition:
+  - slot_was_set:
+    - conversation_context: emergency_charging
+  steps:
+  - intent: emergency_connector_input
+  - action: action_handle_emergency_location_input
+
+# Generic fallback in active flows
+- rule: Handle generic fallback with rephrase prompt
+  condition:
+  - slot_was_set:
+    - conversation_context: route_planning
+  steps:
+  - intent: nlu_fallback
+  - action: utter_ask_rephrase
+
+- rule: Handle generic fallback in preference flow
+  condition:
+  - slot_was_set:
+    - conversation_context: preference_charging
+  steps:
+  - intent: nlu_fallback
+  - action: action_handle_preference_location_input
+
+- rule: Handle route-style input as preference location when waiting for location
+  condition:
+  - slot_was_set:
+    - conversation_context: preference_charging
+  steps:
+  - intent: route_station_selection
+  - action: action_handle_preference_location_input
+- rule: Handle yes for traffic after directions
+  condition:
+  - slot_was_set:
+    - conversation_context: getting_directions
+  steps:
+  - intent: affirm
+  - action: action_traffic_info
+
+- rule: Handle no for traffic after directions
+  condition:
+  - slot_was_set:
+    - conversation_context: getting_directions
+  steps:
+  - intent: deny
+  - action: action_handle_follow_up
+- rule: Respond to help request
+  steps:
+    - intent: ask_help
+    - action: action_contextual_help
+
+- rule: Explain route planning
+  steps:
+    - intent: explain_route_planning
+    - action: utter_explain_route_planning
+
+- rule: Restart conversation
+  steps:
+    - intent: restart
+    - action: action_restart
+#Trigger location collection
+- rule: Handle typed suburb location
+  steps:
+    - intent: provide_location
+    - action: action_collect_initial_location

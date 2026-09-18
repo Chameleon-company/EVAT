@@ -1,0 +1,257 @@
+version: "3.1"
+
+intents:
+  - greet
+  - menu_selection
+  - current_location
+  - route_planning
+  - route_info
+  - emergency_charging
+  - emergency_location_input
+  - emergency_connector_input
+  - preference_charging
+  - preference_selection
+  - preference_location_input
+  - preference_station_selection
+  - action_selection
+  - follow_up
+  - goodbye
+  - nlu_fallback
+  - affirm
+  - deny
+  - filter_by_preferences
+  - get_charger_info
+  - get_traffic_info
+  - get_advanced_directions
+  - get_directions
+  - ask_help
+  - explain_route_planning
+  - station_availability
+  - nearby_stations
+  - ask_congestion_prediction
+  - restart
+  - emergency_station_selection
+  - provide_location
+  - route_station_selection
+
+entities:
+  - menu_option
+  - start_location
+  - end_location
+  - current_location
+  - preference_type
+  - action_type
+  - follow_up_type
+  - station_name
+  - charging_speed
+  - connector_type
+  - price
+  - power_level
+  - station_id
+  - location
+
+slots:
+  menu_option:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: from_entity
+        entity: menu_option
+
+  start_location:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: from_entity
+        entity: start_location
+
+  end_location:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: from_entity
+        entity: end_location
+
+  current_location:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: from_entity
+        entity: current_location
+
+  preference_type:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: from_entity
+        entity: preference_type
+
+  charging_preference:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: custom
+
+  action_type:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: from_entity
+        entity: action_type
+
+  selected_station:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: custom
+
+  displayed_stations:
+    type: list
+    influence_conversation: false
+    mappings:
+      - type: custom
+
+  conversation_context:
+    type: categorical
+    influence_conversation: true
+    values:
+      - initial_location_collection
+      - route_planning
+      - emergency_charging
+      - preference_charging
+      - route_planning_results
+      - emergency_results
+      - preference_results
+      - station_details
+      - getting_directions
+      - comparing_stations
+      - checking_availability
+      - ended
+      - route_station_selection
+      - emergency_station_selection
+      - preference_station_selection
+    mappings:
+      - type: custom
+
+  follow_up_type:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: from_entity
+        entity: follow_up_type
+
+  charging_speed:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: from_entity
+        entity: charging_speed
+
+  connector_type:
+    type: list
+    influence_conversation: true
+    mappings:
+      - type: from_entity
+        entity: connector_type
+
+  power_level:
+    type: float
+    influence_conversation: true
+    mappings:
+      - type: from_entity
+        entity: power_level
+
+  price:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: from_entity
+        entity: price
+
+  filter_preferences:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: custom
+
+  user_lat:
+    type: float
+    influence_conversation: false
+    mappings:
+      - type: custom
+
+  user_lng:
+    type: float
+    influence_conversation: false
+    mappings:
+      - type: custom
+
+  # ⭐ NEW: slot để lưu context cũ
+  previous_context:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: custom
+
+  location:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: from_entity
+        entity: location
+
+  station_name:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: from_text
+
+responses:
+  utter_default:
+    - text: "I didn’t quite catch that. Please choose one option:\n1) Route planning\n2) Emergency charging\n3) Charging preferences"
+  utter_ask_rephrase:
+    - text: "Could you rephrase that? For routes, try: 'from Carlton to Geelong'."
+  utter_goodbye:
+    - text: "Goodbye! Have a great journey! 🚗⚡"
+
+  utter_explain_route_planning:
+    - text: "Route planning helps you find suitable EV charging stations for your trip. You can tell me your starting location and destination, and I can help show charging options, traffic information, and directions."
+
+  utter_station_availability:
+    - text: "I can help check station availability, but I need a station name or selected station first."
+
+  utter_nearby_stations:
+    - text: "I can help find nearby charging stations. Please share your location or allow location access."
+
+
+actions:
+  - action_collect_initial_location
+  - action_handle_any_input
+  - action_handle_menu_selection
+  - action_handle_route_input
+  - action_handle_preference_input
+  - action_handle_preference_location_input
+  - action_handle_route_station_selection
+  - action_handle_emergency_station_selection
+  - action_handle_preference_station_selection
+  - action_handle_action_choice
+  - action_handle_follow_up
+  - action_handle_emergency_location_input
+  - action_handle_emergency_charging
+  - action_handle_preference_charging
+  # Enhanced preference filtering action
+  - action_enhanced_preference_filtering
+  - action_enhanced_charger_info
+  - action_traffic_info
+  - action_advanced_directions
+  - action_handle_route_info
+  - action_get_directions_by_id
+  - action_contextual_help
+  - action_nearby_stations
+  - action_congestion_prediction
+  - action_store_previous_context
+  - action_restore_previous_context
+
+session_config:
+  session_expiration_time: 60
+  carry_over_slots_to_new_session: true
