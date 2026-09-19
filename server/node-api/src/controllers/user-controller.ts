@@ -2,12 +2,14 @@ import e, { Request, Response } from "express";
 import UserService from "../services/user-service";
 import { UserItemResponse } from "../dtos/user-item-response";
 import jwt from "jsonwebtoken";
+import { generateAccessToken } from "../utils/generate-token";
 
 interface JwtPayload {
     id: string;
     email?: string;
     role?: string;
     admin?: boolean;
+    type?: string;
 }
 
 export default class UserController {
@@ -43,86 +45,37 @@ export default class UserController {
     async jwtLogin(req: Request, res: Response): Promise<Response> {
 
         try {
-            const authHeader = req.headers.authorization;
-            if (!authHeader || !authHeader.startsWith("Bearer ")) {
-                return res.status(401).json({ message: "No token provided" });
-            }
-
             if (!process.env.JWT_SECRET) {
                 throw new Error("JWT_SECRET is not set in environment variables");
             }
 
-            const token = authHeader.split(" ")[1];
-
-            let decoded: JwtPayload;
-            try {
-              decoded = jwt.verify(token, process.env.JWT_SECRET) as JwtPayload;
-            } catch (error) {
-              const isExpiredToken =
-                error instanceof Error &&
-                (error.name === "TokenExpiredError" || error.message === "TokenExpiredError");
-
-              if (!isExpiredToken) {
-                return res.status(401).json({ message: "Invalid token" });
-              }
-
-                const decoded = jwt.decode(token) as JwtPayload;
-                if (!decoded?.id) {
-                    return res.status(401).json({ message: "Invalid token" });
-                }
-
-                // Actual refresh token to be shown so it can be verified and matched against the stored one
-                const { refreshToken } = req.body;
-                if (!refreshToken) {
-                    return res.status(401).json({ message: "Refresh token is required to renew an expired session" });
-                }
-
-                try {
-                    const {
-                        accessToken: newAccessToken,
-                        refreshToken: newRefreshToken,
-                    } =
-                        await this.userService.refreshAccessToken(refreshToken);
-
-                    const user = await this.userService.getUserById(decoded.id);
-                    if (!user) {
-                        return res.status(404).json({ message: "User not found" });
-                    }
-
-                    await user.save();
-
-                    // OK status with data and a new AccessToken
-                    return res.status(200).json({
-                        message: "Automatic Login Successful",
-                        data: {
-                            user,
-                            accessToken: newAccessToken,
-                            refreshToken: newRefreshToken,
-                        },
-                    });
-
-                } catch (refreshError) {
-                    return res.status(401).json({ message: "Refresh token expired, please log in again" });
-                }
+            const token = req.cookies?.token || req.headers.authorization?.split(" ")[1];
+            
+            if (!token) {
+                return res.status(401).json({ message: "No token provided" });
             }
 
-              const user = await this.userService.getUserById(decoded.id);
-              if (!user) {
+            const decoded = jwt.verify(token, process.env.JWT_SECRET) as JwtPayload;
+            if (decoded.type !== "access") throw new Error("Token is not an access token");
+            const user = await this.userService.getUserById(decoded.id);
+            if (!user) {
                 return res.status(404).json({ message: "User not found" });
-              }
+            }
 
-              await user.save();
+                // Update last login
+                //user.lastLogin = new Date();
+            await user.save();
 
-              return res.status(200).json({
+            return res.status(200).json({
                 message: "Automatic Login Successful",
                 data: {
-                  user,
-                  accessToken: token,
+                    user: new UserItemResponse(user)
                 },
-              });
+            });
+            
         } catch (error: any) {
             console.error("jwtLogin error:", error);
-            return res.status(500).json({ message: "Internal server error", error: error.message });
+            return res.status(401).json({ message: "Invalid or expired token. Please refresh." });
         }
     }
 
@@ -153,16 +106,32 @@ export default class UserController {
         refreshToken: data.refreshToken,
       };
 
+      res.cookie('token', data.accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax' // adjust to strict in deployment (localhost only work with lax)
+      });
+
       return res.status(200).json({
         message: "Login successful",
         data: {
           user: new UserItemResponse(data.data),
-          accessToken: token,
         },
       });
     } catch (error: any) {
       return res.status(401).json({ message: error.message });
     }
+  }
+
+  async logout(req: Request, res: Response): Promise<Response> {
+    // Clear the secure cookie by matching the exact creation flags
+    res.clearCookie('token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax' // adjust to strict in deployment (localhost only work with lax)
+    });
+
+    return res.status(200).json({ message: "Logged out successfully" });
   }
 
   /**
@@ -182,10 +151,16 @@ export default class UserController {
     try {
       const { accessToken, refreshToken: newRefreshToken } =
         await this.userService.refreshAccessToken(refreshToken);
+
+      res.cookie('token', accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax' 
+      });
+
       return res.status(200).json({
         message: "Token refreshed successfully",
         data: {
-          accessToken,
           refreshToken: newRefreshToken,
         },
       });

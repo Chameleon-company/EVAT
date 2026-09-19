@@ -18,17 +18,16 @@ const baseUrl = `${API_URL}/personalised-ev-insights`;
       budget,
       priorities,
       postcode
- * @param {*} token - authorisation token for the API
  * @returns {Promise<Object>} - The response from the API
  */
 
-export const submitInsights = async (EvInsightsData, token) => {
+export const submitInsights = async (EvInsightsData) => {
     try {
         const response = await fetch(baseUrl, {
             method: 'POST',
+            credentials: 'include',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}` 
+                'Content-Type': 'application/json', 
             },
             body: JSON.stringify(EvInsightsData),
         });
@@ -50,16 +49,13 @@ export const submitInsights = async (EvInsightsData, token) => {
 
 /**
  * Get feedback by ID (Admin only)
- * @param {*} token - authorisation token for the API
  * @returns {Promise<Object>} - The response from the API
  */
-export const getMyInsights = async (token) => {
+export const getMyInsights = async () => {
     try {
     const response = await fetch(`${baseUrl}/latest`, {
       method: 'GET',
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
       },
     });
 

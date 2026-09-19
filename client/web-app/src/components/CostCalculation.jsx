@@ -62,15 +62,12 @@ export default function CostCalculation() {
   const [chartData, setChartData] = useState(null);
   const [ticker, setTicker] = useState(0);
 
-  const tokenFull = localStorage.getItem("currentUser");
-  const token = tokenFull ? JSON.parse(tokenFull).token : null;
-
   useEffect(() => {
     const loadVehicles = async () => {
       try {
         const [evData, iceData] = await Promise.all([
-          getEvVehicles(token),
-          getIceVehicles(token),
+          getEvVehicles(),
+          getIceVehicles(),
         ]);
         setEvVehicles(evData);
         setIceVehicles(iceData);
@@ -125,8 +122,8 @@ export default function CostCalculation() {
         ice_make: iceMake, ice_model: iceModel, ice_variant: iceVariant || null,
       };
       const [response, charts] = await Promise.all([
-        getCostComparison(payload, token),
-        getCostCharts(payload, token),
+        getCostComparison(payload),
+        getCostCharts(payload),
       ]);
       setServerResult(response);
       setChartData(charts);

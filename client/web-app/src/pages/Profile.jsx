@@ -52,7 +52,7 @@ const secondaryTextClass = "text-sm text-surface-500 dark:text-gray-400";
 function Profile() {
   const navigate = useNavigate();
   const location = useLocation();
-
+  // Get user from Context
   const {
     user: contextUser,
     setUser: setContextUser,
@@ -121,10 +121,7 @@ function Profile() {
     }
   }, [location, navigate]);
 
-  const token =
-    contextUser?.token ||
-    JSON.parse(localStorage.getItem("currentUser"))?.token;
-
+  // auto-clear the warning after 5 seconds
   useEffect(() => {
     if (isPaymentSuccess) {
       const timer = setTimeout(() => {
@@ -137,7 +134,7 @@ function Profile() {
   }, [isPaymentSuccess]);
 
   useEffect(() => {
-    if (!token) {
+    if (!user) {
       navigate("/signin");
       return;
     }
@@ -145,9 +142,7 @@ function Profile() {
     const fetchUserProfile = async () => {
       try {
         const authRes = await fetch(`${API_URL}/auth/profile`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          credentials: 'include',
         });
 
         if (!authRes.ok) {
@@ -157,9 +152,7 @@ function Profile() {
         const authData = await authRes.json();
 
         const profileRes = await fetch(`${API_URL}/profile/user-profile`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          credentials: 'include',
         });
 
         if (!profileRes.ok) {
@@ -172,9 +165,7 @@ function Profile() {
 
         if (car && typeof car === "string") {
           const vRes = await fetch(`${API_URL}/vehicle/${car}`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            credentials: 'include',
           });
 
           if (vRes.ok) {
@@ -207,7 +198,6 @@ function Profile() {
           car,
           favourites: profileData.data.favourite_stations || [],
           avatarURL: profileData.data.avatarURL,
-          token,
         };
 
         setLocalUser(nextUser);
@@ -219,24 +209,22 @@ function Profile() {
     };
 
     fetchUserProfile();
-  }, [navigate, token, setContextUser]);
+  }, [navigate]);
 
   useEffect(() => {
-    if (token) {
+    if (user) {
       fetchUserStats();
     }
-  }, [token]);
+  }, [user]);
 
   const fetchUserStats = async () => {
-    if (!token) return;
+    if (!user) return;
 
     try {
       setStatsLoading(true);
 
       const res = await fetch(`${API_URL}/user-stats/me`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: 'include',
       });
 
       if (!res.ok) {
@@ -254,26 +242,21 @@ function Profile() {
   };
 
   useEffect(() => {
-    if (token) {
+    if (user) {
       fetchRecentAchievements();
     }
-  }, [token]);
-
+  }, [user]);
+  
+  // Fetch recent achievements
   const fetchRecentAchievements = async () => {
-    if (!token) return;
+    if (!user) return;
 
     try {
       setAchievementsLoading(true);
-
-      const res = await fetch(
-        `${API_URL}/achievements/me-recent?limit=6`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const res = await fetch(`${API_URL}/achievements/me-recent?limit=6`, {
+        credentials: 'include',
+        headers: { "Content-Type": "application/json", },
+      });
 
       if (!res.ok) {
         const errorText = await res.text();
@@ -294,18 +277,16 @@ function Profile() {
     if (editingCar || activeTab === "env-impact") {
       fetchAllVehicles();
     }
-  }, [activeTab, editingCar, localUser?.token]);
+  }, [activeTab, editingCar, localUser]);
 
   const fetchAllVehicles = async () => {
-    if (!localUser?.token || loadingVehicles) return;
+    if (!localUser || loadingVehicles) return;
 
     setLoadingVehicles(true);
 
     try {
       const res = await fetch(`${API_URL}/vehicle`, {
-        headers: {
-          Authorization: `Bearer ${localUser.token}`,
-        },
+        credentials: 'include',
       });
 
       if (!res.ok) {
@@ -363,7 +344,10 @@ function Profile() {
     if (activeTab !== "about") setEditingAbout(false);
   }, [activeTab]);
 
-  const handleSignOut = () => {
+  const handleSignOut = async () => {
+    try {
+        await fetch(`${API_URL}/auth/logout`, { method: 'POST', credentials: 'include' });
+    } catch(err) { console.error(err); }
     localStorage.removeItem("currentUser");
     navigate("/signin");
   };
@@ -461,10 +445,8 @@ function Profile() {
 
       const response = await fetch(`${API_URL}/auth/profile`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localUser.token}`,
-        },
+        credentials: 'include',
+        headers: { "Content-Type": "application/json", },
         body: JSON.stringify(payload),
       });
 
@@ -525,10 +507,9 @@ function Profile() {
 
   const handleSaveCar = async () => {
     try {
-      const token = localUser?.token;
-      const newErrors = {};
+      let newErrors = {};
 
-      if (localUser.car.make === "Select") {
+      if (localUser.car.make == "Select") {
         newErrors.carMake = "Please select a make";
       }
 
@@ -579,10 +560,8 @@ function Profile() {
 
       const response = await fetch(`${API_URL}/profile/vehicle-model`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: 'include',
+        headers: { "Content-Type": "application/json", },
         body: JSON.stringify(payload),
       });
 

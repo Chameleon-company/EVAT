@@ -4,16 +4,15 @@ const baseUrl = `${API_URL}/predict`;
 /**
  * Submit a review for a specific charger
  * @param {Object} stationIDs - An array of one or more station IDs
- * @param {string} token - JWT token for authentication
  * @returns {Promise<Object>} - The response from the API
  */
-export const getChargerCongestion = async (stationIDs, token) => {
+export const getChargerCongestion = async (stationIDs) => {
     try {
         const response = await fetch(`${baseUrl}/congestion`, {
             method: 'POST',
+            credentials: 'include',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({
                 "stationIds": stationIDs

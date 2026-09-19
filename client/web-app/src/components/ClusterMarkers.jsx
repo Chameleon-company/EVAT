@@ -36,13 +36,13 @@ function ClusterMarkers({ showCongestion, stations, selectedStation, onSelectSta
 
   // Fetch congestion
   useEffect(() => {
-    if (!user?.token || stationIDs.length === 0) return;
+    if (!user || stationIDs.length === 0) return;
     
     let cancelled = false;
     
     async function fetchCongestion() {
       try {
-        const response = await getChargerCongestion(stationIDs, user.token);
+        const response = await getChargerCongestion(stationIDs);
         if (!cancelled && response?.data?.congestionLevels) {
           const levelsMap = response.data.congestionLevels.reduce((map, level) => {
             map[level.chargerId] = level;
@@ -60,7 +60,7 @@ function ClusterMarkers({ showCongestion, stations, selectedStation, onSelectSta
     return () => {
       cancelled = true;
     };
-  }, [stationIDs, user?.token]);
+  }, [stationIDs, user]);
 
   // Render markers
   useEffect(() => {

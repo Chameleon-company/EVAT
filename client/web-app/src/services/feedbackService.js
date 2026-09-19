@@ -16,6 +16,7 @@ export const submitFeedback = async (feedbackData) => {
     }
     const response = await fetch(baseUrl, {
       method: 'POST',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       },
@@ -51,10 +52,9 @@ export const getAllFeedbacks = async (options = {}) => {
 
     const response = await fetch(`${baseUrl}?${queryParams}`, {
       method: 'GET',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        // Add authorization header if needed for admin access
-        // 'Authorization': `Bearer ${token}`
       },
     });
 
@@ -80,10 +80,9 @@ export const getFeedbackById = async (feedbackId) => {
   try {
     const response = await fetch(`${baseUrl}/${feedbackId}`, {
       method: 'GET',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        // Add authorization header if needed for admin access
-        // 'Authorization': `Bearer ${token}`
       },
     });
 
@@ -109,10 +108,9 @@ export const getFeedbacksByEmail = async (email) => {
   try {
     const response = await fetch(`${baseUrl}/email?email=${encodeURIComponent(email)}`, {
       method: 'GET',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        // Add authorization header if needed for admin access
-        // 'Authorization': `Bearer ${token}`
       },
     });
 
@@ -139,10 +137,9 @@ export const updateFeedbackStatus = async (feedbackId, status) => {
   try {
     const response = await fetch(`${baseUrl}/${feedbackId}/status`, {
       method: 'PUT',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        // Add authorization header if needed for admin access
-        // 'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({ status }),
     });
@@ -169,10 +166,9 @@ export const deleteFeedback = async (feedbackId) => {
   try {
     const response = await fetch(`${baseUrl}/${feedbackId}`, {
       method: 'DELETE',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        // Add authorization header if needed for admin access
-        // 'Authorization': `Bearer ${token}`
       },
     });
 
@@ -197,10 +193,9 @@ export const getFeedbackStatistics = async () => {
   try {
     const response = await fetch(`${baseUrl}/statistics`, {
       method: 'GET',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        // Add authorization header if needed for admin access
-        // 'Authorization': `Bearer ${token}`
       },
     });
 

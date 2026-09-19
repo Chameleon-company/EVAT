@@ -153,15 +153,15 @@ export default function DemandForecasting() {
     return () => clearInterval(t);
   }, [hasSearched]);
 
-  const getToken = () => JSON.parse(localStorage.getItem("currentUser"))?.token;
   const activePostcodes = postcodes.filter((p) => p.trim() && /^\d{4}$/.test(p.trim()));
 
-  const fetchForPostcode = async (postcode, dates, token) => {
+  const fetchForPostcode = async (postcode, dates) => {
     const results = await Promise.all(
       dates.map((date) =>
         fetch(`${API_URL}/predict/demand`, {
           method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ postcode: postcode.trim(), date }),
         }).then((r) => r.json())
       )
@@ -172,10 +172,10 @@ export default function DemandForecasting() {
     return results;
   };
 
-  const fetchCoords = async (postcode, token) => {
+  const fetchCoords = async (postcode) => {
     try {
       const res = await fetch(`${API_URL}/predict/demand/coords/${postcode}`, {
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: "include",
       });
       if (!res.ok) return null;
       return await res.json();
@@ -185,20 +185,19 @@ export default function DemandForecasting() {
   const handleForecast = async () => {
     if (activePostcodes.length === 0) { setError("Please enter at least one valid 4-digit Australian postcode."); return; }
     setError(""); setLoading(true); setHasSearched(false); setTicker(0);
-    const token = getToken();
     const dates = getNextDates(days);
 
     try {
       const allResults = {};
       await Promise.all(activePostcodes.map(async (pc) => {
-        allResults[pc] = await fetchForPostcode(pc, dates, token);
+        allResults[pc] = await fetchForPostcode(pc, dates);
       }));
 
       let weekComp = null;
       if (activePostcodes[0]) {
         const [thisWeek, nextWeek] = await Promise.all([
-          fetchForPostcode(activePostcodes[0], getNextDates(7), token),
-          fetchForPostcode(activePostcodes[0], getNextDates(7, 7), token),
+          fetchForPostcode(activePostcodes[0], getNextDates(7)),
+          fetchForPostcode(activePostcodes[0], getNextDates(7, 7)),
         ]);
         weekComp = {
           thisWeek: thisWeek.map((r) => ({ date: formatDisplayDate(r.date), demand: r.predictedDemandKwh })),
@@ -208,7 +207,7 @@ export default function DemandForecasting() {
         };
       }
 
-      const coordsResults = await Promise.all(activePostcodes.map((pc) => fetchCoords(pc, token)));
+      const coordsResults = await Promise.all(activePostcodes.map((pc) => fetchCoords(pc)));
 
       const merged = dates.map((date, i) => {
         const row = { date: formatDisplayDate(date), rawDate: date, weekend: isWeekend(date), holiday: isHoliday(date) };

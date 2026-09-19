@@ -1,7 +1,7 @@
 import User from "../models/user-model";
 import UserRepository from "../repositories/user-repository";
 import bcrypt from "bcryptjs";
-import generateToken from "../utils/generate-token";
+import { generateAccessToken, generateRefreshToken } from "../utils/generate-token";
 import jwt from "jsonwebtoken";
 
 export default class UserService {
@@ -59,12 +59,12 @@ export default class UserService {
       if (existingUser) {
         if (bcrypt.compareSync(password, existingUser.password)) {
           // Generate tokens
-          const accessToken = generateToken(existingUser, "1h");
-          const refreshToken = generateToken(existingUser, "1d");
+          const accessToken = generateAccessToken(existingUser);
+          const refreshToken = generateRefreshToken(existingUser);
 
           // Save refresh token to database
           const refreshTokenExpiresAt = new Date(
-            Date.now() + 24 * 60 * 60 * 1000
+            Date.now() + 7 * 24 * 60 * 60 * 1000
           ); // 1 day from now
           await UserRepository.updateRefreshToken(
             existingUser.id,
@@ -109,8 +109,13 @@ export default class UserService {
         id: string;
         email: string;
         role: string;
+        type?: string;
       };
 
+      // Verify is a refresh token before proceeding
+      if (decoded.type !== 'refresh') {
+        throw new Error("Invalid token type: must be a refresh token");
+      }
       // Find user and check if refresh token is valid
       const user = await UserRepository.findById(decoded.id);
 
@@ -127,11 +132,11 @@ export default class UserService {
       }
 
       // Generate new tokens
-      const newAccessToken = generateToken(user, "1h");
-      const newRefreshToken = generateToken(user, "1d");
+      const newAccessToken = generateAccessToken(user);
+      const newRefreshToken = generateRefreshToken(user);
 
       // Update refresh token in database
-      const refreshTokenExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      const refreshTokenExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
       await UserRepository.updateRefreshToken(
         user.id,
         newRefreshToken,

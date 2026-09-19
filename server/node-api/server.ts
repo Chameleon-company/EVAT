@@ -1,4 +1,4 @@
- import express, { Application } from "express";
+import express, { Application } from "express";
 import mongoose from 'mongoose';
 import swaggerUi from "swagger-ui-express";
 import swaggerJSDoc from "swagger-jsdoc";
@@ -8,6 +8,7 @@ import path from "path";
 import { env } from "./src/config/env";
 import connectDB from "./src/config/database-config";
 import { notFound, errorHandler } from "./src/middlewares/error-middleware";
+import cookieParser from "cookie-parser";
 
 // Routes
 import chargerRoutes from './src/routes/charger';
@@ -57,8 +58,12 @@ const createDefaultAdmin = async () => {
   }
 };
 
-app.use(cors());
+app.use(cors({
+  origin: "http://localhost:3000", // Change to URL at deployment
+  credentials: true
+}));
 app.use(express.json());
+app.use(cookieParser());
 
 // Swagger definition
 const options = {
@@ -71,17 +76,16 @@ const options = {
     },
     components: {
       securitySchemes: {
-        bearerAuth: {
-          type: "http",
-          scheme: "bearer",
-          bearerFormat: "JWT",
-          in: "header",
+        cookieAuth: {
+          type: "apiKey",
+          in: "cookie",
+          name: "accessToken"
         },
       },
     },
     security: [
       {
-        bearerAuth: [],
+        cookieAuth: [],
       },
     ],
     // PUBLIC_API_URL wins when set (Docker publishes the API on a different

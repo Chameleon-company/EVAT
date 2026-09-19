@@ -9,31 +9,23 @@ import { Button } from '../components/Button';
 function Game() {
   const navigate = useNavigate();
 
-  const [user, setUser] = useState(() =>
-    JSON.parse(localStorage.getItem("currentUser"))
-  );
-
+  const { user } = useContext(UserContext);
   const [gameProfile, setGameProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [loginMessage, setLoginMessage] = useState("");
 
   useEffect(() => {
-    if (!user || !user.token) {
+    if (!user) {
       navigate("/signin");
       return;
     }
 
     const fetchProfile = async () => {
       try {
-        const res = await fetch(
-          "http://localhost:8080/api/gamification/profile",
-          {
-            headers: {
-              Authorization: `Bearer ${user.token}`,
-            },
-          }
-        );
+        const res = await fetch(`${API_URL}/gamification/profile`, {
+          credentials: "include",
+        });
 
         if (!res.ok) {
           throw new Error("Failed to fetch gamification profile");
@@ -54,19 +46,10 @@ function Game() {
 
   const refreshProfile = async () => {
     try {
-      const res = await fetch(
-        "http://localhost:8080/api/gamification/profile",
-        {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        }
-      );
-
-      if (!res.ok) {
-        throw new Error("Failed to refresh profile");
-      }
-
+      const res = await fetch(`${API_URL}/gamification/profile`, {
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to refresh profile");
       const profileData = await res.json();
       setGameProfile(profileData.data);
     } catch (err) {
@@ -75,26 +58,21 @@ function Game() {
   };
 
   const handleAppLogin = async () => {
-    if (!user?.token) return;
+    if (!user) return;
 
     try {
       const oldBalance =
         gameProfile?.gamification_profile?.points_balance || 0;
 
-      const res = await fetch(
-        "http://localhost:8080/api/gamification/action",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${user.token}`,
-          },
-          body: JSON.stringify({
-            action_type: "app_login",
-            session_id: `web-session-${Date.now()}`,
-          }),
-        }
-      );
+      const res = await fetch(`${API_URL}/gamification/action`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json", },
+        body: JSON.stringify({
+          action_type: "app_login",
+          session_id: `web-session-${Date.now()}`,
+        }),
+      });
 
       const result = await res.json();
 
@@ -120,26 +98,21 @@ function Game() {
   };
 
   const triggerGamificationAction = async (actionType) => {
-    if (!user?.token) return;
+    if (!user) return;
 
     try {
       const oldBalance =
         gameProfile?.gamification_profile?.points_balance || 0;
 
-      const res = await fetch(
-        "http://localhost:8080/api/gamification/action",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${user.token}`,
-          },
-          body: JSON.stringify({
-            action_type: actionType,
-            session_id: `web-session-${Date.now()}-${actionType}`,
-          }),
-        }
-      );
+      const res = await fetch(`${API_URL}/gamification/action`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json", },
+        body: JSON.stringify({
+          action_type: actionType,
+          session_id: `web-session-${Date.now()}-${actionType}`,
+        }),
+      });
 
       const result = await res.json();
 

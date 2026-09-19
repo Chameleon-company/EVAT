@@ -73,11 +73,17 @@ export const verifyAdmin2FA = async (req: Request, res: Response) => {
     admin.twoFactorCodeExpiry = new Date(0);
     await admin.save();
 
-    const token = jwt.sign({ admin: true }, process.env.JWT_SECRET!, {
+    const token = jwt.sign({ admin: true, type: 'access' }, process.env.JWT_SECRET!, {
       expiresIn: '1d'
     });
 
-    return res.status(200).json({ token });
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax' // adjust to strict in deployment
+    });
+
+    return res.status(200).json({ message: 'Admin login successful' });
   } catch (error) {
     console.error('2FA verification error:', error);
     return res.status(500).json({ message: 'Internal Server Error' });

@@ -1,5 +1,6 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState, useContext } from "react";
 import NavBar from "../components/NavBar";
+import { UserContext } from "../context/user";
 import {
   analyzeReliabilitySentiment,
   getReliabilityHealth,
@@ -12,15 +13,6 @@ import {
 
 const SENTIMENT_OPTIONS = ["All", "Positive", "Neutral", "Negative"];
 const STATUS_OPTIONS = ["Operational", "Online", "Needs Maintenance", "Unknown"];
-
-const getToken = () => {
-  try {
-    const user = localStorage.getItem("currentUser");
-    return user ? JSON.parse(user).token : null;
-  } catch {
-    return null;
-  }
-};
 
 const formatNumber = (value, digits = 1) =>
   value == null || Number.isNaN(Number(value))
@@ -104,7 +96,7 @@ const SentimentBadge = ({ label }) => {
 };
 
 export default function ReliabilityScoring() {
-  const [token] = useState(getToken);
+  const { user } = useContext(UserContext);
 
   const [health, setHealth] = useState(null);
   const [suburbs, setSuburbs] = useState([]);
@@ -148,7 +140,7 @@ export default function ReliabilityScoring() {
   }, []);
 
   const loadDashboard = useCallback(async () => {
-    if (!token) {
+    if (!user) {
       setError("Please sign in to load reliability data.");
       return;
     }
@@ -170,20 +162,20 @@ export default function ReliabilityScoring() {
     try {
       const [suburbRes, summaryRes, stationsRes, pos, neg, reliable] =
         await Promise.all([
-          getReliabilitySuburbs(token),
-          getReliabilitySummary(token, { suburb: suburbValue }),
-          getReliabilityStations(token, filterParams),
-          getReliabilityTop(token, {
+          getReliabilitySuburbs(),
+          getReliabilitySummary({ suburb: suburbValue }),
+          getReliabilityStations(filterParams),
+          getReliabilityTop({
             kind: "positive",
             limit: 5,
             suburb: suburbValue,
           }),
-          getReliabilityTop(token, {
+          getReliabilityTop({
             kind: "negative",
             limit: 5,
             suburb: suburbValue,
           }),
-          getReliabilityTop(token, {
+          getReliabilityTop({
             kind: "reliability",
             limit: 5,
             suburb: suburbValue,
@@ -202,7 +194,7 @@ export default function ReliabilityScoring() {
     } finally {
       setLoadingData(false);
     }
-  }, [token, suburb, sentiment, minScore]);
+  }, [user, suburb, sentiment, minScore]);
 
   useEffect(() => {
     loadDashboard();
@@ -210,8 +202,7 @@ export default function ReliabilityScoring() {
 
   const handleScore = async (e) => {
     e.preventDefault();
-
-    if (!token) {
+    if (!user) {
       setError("Please sign in to score a station.");
       return;
     }
@@ -221,7 +212,7 @@ export default function ReliabilityScoring() {
     setError("");
 
     try {
-      const result = await scoreReliabilityStation(token, {
+      const result = await scoreReliabilityStation({
         name: scoreName || undefined,
         status: scoreStatus,
         power_kw: Number(scorePower),
@@ -238,8 +229,7 @@ export default function ReliabilityScoring() {
 
   const handleSentiment = async (e) => {
     e.preventDefault();
-
-    if (!token) {
+    if (!user) {
       setError("Please sign in to analyse sentiment.");
       return;
     }
@@ -249,7 +239,7 @@ export default function ReliabilityScoring() {
     setError("");
 
     try {
-      const result = await analyzeReliabilitySentiment(token, feedbackText);
+      const result = await analyzeReliabilitySentiment(feedbackText);
       setSentimentResult(result);
     } catch (err) {
       setError(err?.message || "Sentiment analysis failed");

@@ -5,8 +5,6 @@ import { Car, Fuel, Leaf } from 'lucide-react';
 
 export default function PersonalisedInsightsFormComponent() {
   const navigate = useNavigate();
-  const tokenFull = localStorage.getItem("currentUser");
-  const token = tokenFull ? JSON.parse(tokenFull).token : null;
 
   const [submitted, setSubmitted] = useState(false);
 
@@ -91,7 +89,7 @@ export default function PersonalisedInsightsFormComponent() {
       setLoading(true);
       setMessage("");
 
-      await submitInsights(payload, token);
+      await submitInsights(payload);
       setMessage("Form submitted successfully.");
 
       setFormData({

@@ -25,24 +25,9 @@ export default function SupportRequestForm() {
   const [isIssueEmpty, setIsIssueEmpty] = useState(false);
   const [isDescriptionEmpty, setIsDescriptionEmpty] = useState(false);
   const [recentSuccess, setRecentSuccess] = useState(false);
+  const { user } = useContext(UserContext);
+  const userId = user?.id || user?._id || null;
 
-  useEffect(() => {
-    const raw = localStorage.getItem("currentUser");
-    if (!raw) return;
-
-    try {
-      const u = JSON.parse(raw);
-      const name = [u?.firstName, u?.lastName]
-        .filter(Boolean)
-        .join(" ")
-        .trim();
-
-      setName(name);
-      setEmail(u?.email);
-    } catch {
-      /* ignore */
-    }
-  }, []);
 
   useEffect(() => {
     if (recentSuccess) {
@@ -79,18 +64,7 @@ export default function SupportRequestForm() {
     }
   };
 
-  const getUserId = () => {
-    const raw = localStorage.getItem("currentUser");
 
-    if (!raw) return null;
-
-    try {
-      const u = JSON.parse(raw);
-      return u?.id || u?._id || null;
-    } catch {
-      return null;
-    }
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();

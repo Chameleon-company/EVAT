@@ -1,4 +1,5 @@
-import React, { createContext, useState, useEffect } from "react";
+import React, { createContext, useState, useEffect, useContext } from 'react';
+import { UserContext } from "./user";
 const API_URL = import.meta.env.VITE_API_URL;
 
 export const FavouritesContext = createContext();
@@ -8,23 +9,20 @@ export function FavouritesProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const storedUser = JSON.parse(localStorage.getItem("currentUser"));
-  const token = storedUser?.token;
+  const { user } = useContext(UserContext);
 
   // Fetch favourites from backend
   useEffect(() => {
     const fetchFavourites = async () => {
-      if (!token) return;
+      if (!user) return;
 
       setLoading(true);
       setError(null);
 
       try {
         const res = await fetch(`${API_URL}/profile/user-profile`, {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
+          credentials: "include",
+          headers: { "Content-Type": "application/json", },
         });
 
         if (!res.ok) throw new Error("Failed to load favourites");
@@ -40,11 +38,11 @@ export function FavouritesProvider({ children }) {
     };
 
     fetchFavourites();
-  }, [token]);
+  }, [user]);
 
   // Toggle favourite station (save/remove in DB)
   const toggleFavourite = async (station) => {
-    if (!token) {
+    if (!user) {
       setError("Not authenticated");
       return;
     }
@@ -57,10 +55,8 @@ export function FavouritesProvider({ children }) {
     try {
       const res = await fetch(url, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: "include",
+        headers: { "Content-Type": "application/json", },
         body: JSON.stringify({ stationId: station._id }),
       });
 

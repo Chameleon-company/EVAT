@@ -24,7 +24,7 @@ function formatDistance(place) {
   return `${(place.distanceMeters / 1000).toFixed(1)} km`;
 }
 
-function PlacePhoto({ place, token, enabled }) {
+function PlacePhoto({ place, enabled }) {
   const [src, setSrc] = useState(null);
   const [failed, setFailed] = useState(false);
 
@@ -42,7 +42,7 @@ function PlacePhoto({ place, token, enabled }) {
     setFailed(false);
     setSrc(null);
 
-    fetchPlacePhotoObjectUrl(place.photoName, { token, signal: abortController.signal })
+    fetchPlacePhotoObjectUrl(place.photoName, { signal: abortController.signal })
       .then((url) => {
         if (cancelled) {
           if (url) URL.revokeObjectURL(url);
@@ -61,7 +61,7 @@ function PlacePhoto({ place, token, enabled }) {
       abortController.abort();
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [place.photoName, token, enabled]);
+  }, [place.photoName, enabled]);
 
   if (!src || failed) {
     return (
@@ -82,7 +82,7 @@ function PlacePhoto({ place, token, enabled }) {
   );
 }
 
-function PlaceCard({ place, token, eager }) {
+function PlaceCard({ place, eager }) {
   const cardRef = useRef(null);
   const [visible, setVisible] = useState(Boolean(eager));
 
@@ -114,7 +114,7 @@ function PlaceCard({ place, token, eager }) {
 
   return (
     <div ref={cardRef} className="promo-card">
-      <PlacePhoto place={place} token={token} enabled={visible} />
+      <PlacePhoto place={place} enabled={visible} />
       <div className="promo-card-header">
         <span className="promo-emoji">
           {CATEGORY_EMOJI[place.category] || "📍"}
@@ -158,7 +158,6 @@ function PlaceCard({ place, token, eager }) {
 
 export default function NearbyPlaces() {
   const { user } = useContext(UserContext);
-  const token = user?.token;
   const { places, loading, error, category, setCategory } = useNearbyPlaces();
   const [expanded, setExpanded] = useState(true);
 
@@ -217,7 +216,6 @@ export default function NearbyPlaces() {
               <PlaceCard
                 key={place.id}
                 place={place}
-                token={token}
                 eager={index < EAGER_PHOTO_COUNT}
               />
             ))}

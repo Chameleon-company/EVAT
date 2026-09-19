@@ -22,6 +22,7 @@ const labelClass =
   "mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400";
 
 export default function PricePrediction() {
+  const { user } = useContext(UserContext);
   const [brand, setBrand] = useState("Tesla");
   const [model, setModel] = useState("Model 3");
   const [year, setYear] = useState(2022);
@@ -36,9 +37,6 @@ export default function PricePrediction() {
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState("");
   const [result, setResult] = useState(null);
-
-  const user = localStorage.getItem("currentUser");
-  const token = user ? JSON.parse(user).token : null;
 
   const brands = Object.keys(BRAND_MODELS);
   const models = BRAND_MODELS[brand] || [];
@@ -93,7 +91,7 @@ export default function PricePrediction() {
     setServerError("");
     setResult(null);
 
-    if (!token) {
+    if (!user) {
       setServerError("Please sign in to run a prediction.");
       return;
     }
@@ -121,8 +119,7 @@ export default function PricePrediction() {
         Transmission: transmission,
         Condition: condition,
       };
-
-      const prediction = await predictPrice(features, token, "web-ui");
+      const prediction = await predictPrice(features, "web-ui");
       setResult(prediction);
       // A successful prediction proves the service is up; keep the banner consistent
       // with what just happened instead of leaving a stale "unavailable" message.

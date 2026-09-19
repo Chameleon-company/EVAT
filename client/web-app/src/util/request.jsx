@@ -9,19 +9,19 @@ const BASE_URL = `${config.backend.ipAddress}:${config.backend.port}`;
  * @returns {Promise<object>} - The response data as JSON
  */
 const request = async (endpoint, options = {}) => {
-    const { method = 'GET', headers = {}, body, user, token } = options;
+    const { method = 'GET', headers = {}, body } = options;
 
     const details = {
         method,
+        credentials: 'include',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
             ...headers,
         },
     };
 
     if (body) {
-        config.body = JSON.stringify(body);
+        details.body = typeof body === 'string' ? body : JSON.stringify(body);
     }
 
     try {
@@ -29,7 +29,7 @@ const request = async (endpoint, options = {}) => {
 
         if (!response.ok) {
             const error = await response.json();
-            throw new Error(error.message || 'Something went wrong');
+            throw new Error(error.message || `Request failed with status ${response.status}`);
         }
 
         return await response.json();

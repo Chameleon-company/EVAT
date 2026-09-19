@@ -205,22 +205,14 @@ export default function DemandForecasting() {
     );
   };
 
-  const getToken = () => {
-    try {
-      return JSON.parse(localStorage.getItem("currentUser"))?.token;
-    } catch {
-      return null;
-    }
-  };
-
-  const fetchPostcode = async (postcode, dates, token) => {
+  const fetchPostcode = async (postcode, dates) => {
     const results = await Promise.all(
       dates.map(async (date) => {
         const response = await fetch(`${API_URL}/predict/demand`, {
           method: "POST",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
             postcode: postcode.trim(),
@@ -243,14 +235,12 @@ export default function DemandForecasting() {
     return results;
   };
 
-  const fetchCoordinates = async (postcode, token) => {
+  const fetchCoordinates = async (postcode) => {
     try {
       const response = await fetch(
         `${API_URL}/predict/demand/coords/${postcode}`,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          credentials: "include",
         }
       );
 
@@ -273,7 +263,6 @@ export default function DemandForecasting() {
     setSearched(false);
 
     try {
-      const token = getToken();
       const dates = getDates(days);
 
       const results = {};
@@ -283,7 +272,6 @@ export default function DemandForecasting() {
           results[postcode] = await fetchPostcode(
             postcode,
             dates,
-            token
           );
         })
       );
@@ -345,7 +333,7 @@ export default function DemandForecasting() {
 
       const coordinates = await Promise.all(
         activePostcodes.map((postcode) =>
-          fetchCoordinates(postcode, token)
+          fetchCoordinates(postcode)
         )
       );
 
@@ -382,12 +370,10 @@ export default function DemandForecasting() {
           fetchPostcode(
             activePostcodes[0],
             getDates(7),
-            token
           ),
           fetchPostcode(
             activePostcodes[0],
             getDates(7, 7),
-            token
           ),
         ]);
 

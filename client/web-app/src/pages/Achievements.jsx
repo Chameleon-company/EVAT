@@ -39,181 +39,176 @@ function Achievements() {
   const [selectedCounter, setSelectedCounter] = useState("");
   const [counterValue, setCounterValue] = useState(0);
   const [selectedFlag, setSelectedFlag] = useState("");
+  
+  // Testing Handlers
+    const handleAddToCounter = async () => {
+        if (!selectedCounter || !userStats?.userId) return;
+        try {
+            const res = await fetch(`${API_URL}/user-stats/test/increment`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userId: userStats.userId,
+                    counterName: selectedCounter,
+                    value: counterValue
+                })
+            });
 
-  const token =
-    contextUser?.token ||
-    JSON.parse(localStorage.getItem("currentUser"))?.token;
-
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-
-      const statsRes = await fetch(`${API_URL}/user-stats/me`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (statsRes.ok) {
-        const statsData = await statsRes.json();
-        setUserStats(statsData.data);
-      }
-
-      const achRes = await fetch(`${API_URL}/achievements`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (achRes.ok) {
-        const achData = await achRes.json();
-        setAchievements(achData.data || []);
-      }
-    } catch (err) {
-      console.error("Failed to load achievements page:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAddToCounter = async () => {
-    if (!selectedCounter || !userStats?.userId) return;
-
-    try {
-      const res = await fetch(`${API_URL}/user-stats/test/increment`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          userId: userStats.userId,
-          counterName: selectedCounter,
-          value: counterValue,
-        }),
-      });
-
-      if (res.ok) {
-        alert(`Added ${counterValue} to ${selectedCounter}`);
-        setSelectedCounter("");
-        setCounterValue(0);
-        await fetchData();
-      } else {
-        alert("Failed to update");
-      }
-    } catch (err) {
-      alert("Error updating counter");
-    }
-  };
-
-  const handleSetFlagTrue = async () => {
-    if (!selectedFlag || !userStats?.userId) return;
-
-    try {
-      const res = await fetch(`${API_URL}/user-stats/test/set-flag`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          userId: userStats.userId,
-          flagName: selectedFlag,
-        }),
-      });
-
-      if (res.ok) {
-        alert(`Set ${selectedFlag} to true`);
-        setSelectedFlag("");
-        await fetchData();
-      }
-    } catch (err) {
-      alert("Error setting flag");
-    }
-  };
-
-  const handleResetFlags = async () => {
-    if (!userStats?.userId) return;
-
-    try {
-      const res = await fetch(`${API_URL}/user-stats/reset-flags`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          userId: userStats.userId,
-        }),
-      });
-
-      if (res.ok) {
-        alert("Flags have been reset");
-        await fetchData();
-      }
-    } catch (err) {
-      alert("Error setting flag");
-    }
-  };
-
-  const handleResetCounters = async () => {
-    if (!userStats?.userId) return;
-
-    try {
-      const res = await fetch(`${API_URL}/user-stats/reset-counters`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          userId: userStats.userId,
-        }),
-      });
-
-      if (res.ok) {
-        alert("Counters have been reset");
-        await fetchData();
-      }
-    } catch (err) {
-      alert("Error setting flag");
-    }
-  };
-
-  const handleResetAll = async () => {
-    if (!userStats?.userId) return;
-
-    if (window.confirm("Reset ALL stats?")) {
-      try {
-        const res = await fetch(`${API_URL}/user-stats/reset`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            userId: userStats.userId,
-          }),
-        });
-
-        if (res.ok) {
-          alert("All user stats have been reset");
-          await fetchData();
+            if (res.ok) {
+                alert(`Added ${counterValue} to ${selectedCounter}`);
+                setSelectedCounter("");
+                setCounterValue(0);
+                await fetchData();
+            }
+        } catch (err) {
+            alert("Error updating counter");
         }
-      } catch (err) {
-        alert("Error resetting user stats");
-      }
-    }
-  };
+    };
 
-  useEffect(() => {
-    if (!token) {
-      navigate("/signin");
-      return;
-    }
+    const handleSetFlag = async () => {
+        if (!selectedFlag || !userStats?.userId) return;
+        try {
+            const res = await fetch(`${API_URL}/user-stats/test/set-flag`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userId: userStats.userId,
+                    flagName: selectedFlag
+                })
+            });
 
-    fetchData();
-  }, [token, navigate]);
+            if (res.ok) {
+                alert(`Set ${selectedFlag} to true`);
+                // reset flag option
+                setSelectedFlag("");
+                // reload user stats
+                await fetchData();
+            }
+        } catch (err) {
+            alert("Error setting flag");
+        }
+    };
+
+    const handleResetFlags = async () => {
+        if (!userStats?.userId) return;
+
+        try {
+            const res = await fetch(`${API_URL}/user-stats/reset-flags`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userId: userStats.userId,
+                })
+            });
+
+            if (res.ok) {
+                alert(`Flags have been reset`);
+                // reload user stats
+                await fetchData();
+            }
+        } catch (err) {
+            alert("Error resetting flags");
+        }
+    };
+
+    const handleResetCounters = async () => {
+        if (!userStats?.userId) return;
+
+        try {
+            const res = await fetch(`${API_URL}/user-stats/reset-counters`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userId: userStats.userId,
+                })
+            });
+
+            if (res.ok) {
+                alert(`Counters have been reset`);
+                // reload user stats
+                await fetchData();
+            }
+        } catch (err) {
+            alert("Error resetting counters");
+        }
+    };
+
+    const handleResetAll = async () => {
+        if (!userStats?.userId) return;
+        // confirmation popup
+        if (window.confirm("Reset ALL stats?")) {
+            try {
+                const res = await fetch(`${API_URL}/user-stats/reset`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        userId: userStats.userId
+                    })
+                });
+
+                if (res.ok) {
+                    alert(`All user stats have been reset`);
+                    // reload user stats
+                    await fetchData();
+                }
+            } catch (err) {
+                alert("Error resetting user stats");
+            }
+        }
+    };
+
+    const fetchData = async () => {
+        try {
+            setLoading(true);
+            // Fetch User Stats
+            const statsRes = await fetch(`${API_URL}/user-stats/me`, {
+                credentials: 'include',
+            });
+            if (statsRes.ok) {
+                const statsData = await statsRes.json();
+                setUserStats(statsData.data);
+            }
+
+            // Fetch All Achievements with progress
+            const achRes = await fetch(`${API_URL}/achievements`, {
+                credentials: 'include',
+            });
+            if (achRes.ok) {
+                const achData = await achRes.json();
+                setAchievements(achData.data || []);
+            }
+        } catch (err) {
+            console.error("Failed to load achievements page:", err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Fetch both user stats and achievements
+    useEffect(() => {
+        if (!contextUser) {
+            navigate("/signin");
+            return;
+        }
+        fetchData();
+    }, [contextUser, navigate]);
+
+    if (loading) return <div className="loading">Loading achievements...</div>;
 
   if (loading) {
     return (

@@ -172,10 +172,7 @@ export default function Map() {
 
       console.log(payload);
 
-      const data = await predictWeatherAwareRouting(
-        payload,
-        user?.token
-      );
+      const data = await predictWeatherAwareRouting(payload);
 
       setWeatherResult(data);
 
@@ -224,7 +221,7 @@ export default function Map() {
   return (
     <div className="relative h-(--content-height) w-full overflow-hidden bg-surface-100 text-surface-900">
       <div className="relative h-full w-full overflow-hidden">
-        {!bbox && !loading && user?.token && (
+        {!bbox && !loading && user && (
           <div
             className="
               absolute left-4 top-4
@@ -252,7 +249,7 @@ export default function Map() {
           </div>
         )}
 
-        {!user?.token && (
+        {!user && (
           <div
             className="
               absolute left-4 top-4 

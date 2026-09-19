@@ -4,12 +4,12 @@ const API_URL = import.meta.env.VITE_API_URL;
  * Save, change or clear (rating: null) the signed-in user's thumbs up/down on one
  * chatbot reply. PUT /api/chatbot-feedback
  */
-export const rateChatbotReply = async ({ messageId, rating, tab, reply, question }, token) => {
+export const rateChatbotReply = async ({ messageId, rating, tab, reply, question }) => {
   const response = await fetch(`${API_URL}/chatbot-feedback`, {
     method: "PUT",
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({ messageId, rating, tab, reply, question }),
   });

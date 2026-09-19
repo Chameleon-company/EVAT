@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-  Eye,
-  EyeOff,
-  KeyRound,
-  Send,
-} from 'lucide-react';
+import { Send } from 'lucide-react';
 
 // src/components/api-tester/ApiTesterForm.jsx
 
@@ -15,37 +10,9 @@ const ApiTesterForm = ({
   setEndpoint,
   body,
   setBody,
-  token,
-  setToken,
-  showToken,
-  setShowToken,
   loading,
   onSend,
 }) => {
-  const autoFillToken = () => {
-    try {
-      // Get user data from local storage
-      const userData = localStorage.getItem('currentUser');
-
-      if (!userData) {
-        alert('No login session found. Please log in first.');
-        return;
-      }
-
-      // Parse JSON
-      const parsed = JSON.parse(userData);
-
-      if (parsed.token) {
-        setToken(parsed.token);
-        alert('Current login token loaded!');
-      } else {
-        alert('No token found in session.');
-      }
-    } catch (error) {
-      console.error('Failed to read token:', error);
-      alert('Failed to read token from localStorage.');
-    }
-  };
 
   return (
     <div className="w-full rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-emerald-900/50 dark:bg-[#050806] dark:shadow-[0_15px_40px_rgba(0,0,0,0.35)]">
@@ -110,82 +77,6 @@ const ApiTesterForm = ({
         />
       </div>
 
-
-      {/* =========================================================
-          AUTHORIZATION TOKEN
-      ========================================================= */}
-      <div className="mb-5">
-
-        <div className="mb-2 flex items-center gap-2">
-          <KeyRound
-            size={17}
-            strokeWidth={1.8}
-            className="text-emerald-600 dark:text-emerald-400"
-          />
-
-          <label
-            htmlFor="api-token"
-            className="text-sm font-semibold text-slate-800 dark:text-slate-200"
-          >
-            Authorization Bearer Token
-          </label>
-        </div>
-
-        <p className="mb-3 text-xs text-slate-500 dark:text-slate-400">
-          Required for protected routes.
-        </p>
-
-
-        {/* Token input */}
-        <div className="relative">
-          <input
-            id="api-token"
-            className="w-full rounded-lg border border-slate-300 bg-slate-50 py-2.5 pl-3 pr-11 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100 dark:border-emerald-900/60 dark:bg-black dark:text-white dark:placeholder:text-slate-600 dark:focus:border-emerald-500 dark:focus:bg-[#08100c] dark:focus:ring-emerald-500/20"
-            type={showToken ? 'text' : 'password'}
-            value={token}
-            onChange={(e) => setToken(e.target.value)}
-            placeholder="Paste JWT or use Auto-Fill Token"
-            autoComplete="off"
-          />
-
-          {/* Show / hide token */}
-          <button
-            type="button"
-            onClick={() => setShowToken(!showToken)}
-            aria-label={showToken ? 'Hide token' : 'Show token'}
-            title={showToken ? 'Hide token' : 'Show token'}
-            className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-200 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-emerald-950/50 dark:hover:text-emerald-400"
-          >
-            {showToken ? (
-              <EyeOff size={18} strokeWidth={1.8} />
-            ) : (
-              <Eye size={18} strokeWidth={1.8} />
-            )}
-          </button>
-        </div>
-
-
-        {/* Token actions */}
-        <div className="mt-3 flex flex-wrap gap-2">
-
-          <button
-            type="button"
-            onClick={() => setShowToken(!showToken)}
-            className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 dark:border-emerald-900/60 dark:bg-black dark:text-slate-300 dark:hover:border-emerald-700 dark:hover:bg-emerald-950/40 dark:hover:text-emerald-400"
-          >
-            {showToken ? 'Hide Token' : 'Show Token'}
-          </button>
-
-          <button
-            type="button"
-            onClick={autoFillToken}
-            className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-200 dark:bg-emerald-600 dark:hover:bg-emerald-500 dark:focus:ring-emerald-500/30"
-          >
-            Auto-Fill Token
-          </button>
-
-        </div>
-      </div>
 
 
       {/* =========================================================

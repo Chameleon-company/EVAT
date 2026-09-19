@@ -14,24 +14,17 @@ type UserData = {
   firstName: string;
   lastName: string;
   mobile: string;
-  token: string;
   createdAt: string;
   avatarURL: string;
   [key: string]: unknown;
 };
-type SigninResponseType = {
-  accessToken: string | { accessToken: string; refreshToken: string };
-  refreshToken: string;
-  user?: Partial<UserData>;
-  [key: string]: unknown;
-};
+
 type SigninErrorResponseType = null
   | 'internal'
   | 'credentials';
 
 const API_URL = import.meta.env.VITE_API_URL;
 const url = `${API_URL}/auth/login`;
-const jwtUrl = `${API_URL}/auth/jwt-login`;
 
 function Signin() {
   const [email, setEmail] = useState('');
@@ -39,30 +32,14 @@ function Signin() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<SigninErrorResponseType>();
   const [submitting, setSubmitting] = useState(false);
-  const { setUser } = useContext(UserContext);
+  const { user, setUser } = useContext(UserContext);
   const navigate = useNavigate();
   
-  const _extractAccessToken = (parsed: SigninResponseType): string => {
-    if (typeof parsed.accessToken === 'string') {
-      return parsed.accessToken;
+  useEffect(() => {
+    if (user) {
+      navigate('/map');
     }
-    if (typeof parsed.accessToken === 'object' && parsed.accessToken !== null && 'accessToken' in parsed.accessToken) {
-      return (parsed.accessToken as { accessToken: string }).accessToken;
-    }
-
-    return '';
-  };
-  
-  const _extractRefreshToken = (parsed: SigninResponseType): string => {
-    if (typeof parsed.refreshToken === 'string') {
-      return parsed.refreshToken;
-    }
-    if (typeof parsed.refreshToken === 'object' && parsed.accessToken !== null && 'refreshToken' in parsed.accessToken) {
-      return (parsed.accessToken as { refreshToken: string }).refreshToken;
-    }
-
-    return '';
-  };
+  }, [user, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -74,6 +51,7 @@ function Signin() {
     try {
       const response = await fetch(url, {
         method: 'POST',
+        credentials: "include",
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
       });
@@ -81,44 +59,38 @@ function Signin() {
       //need to delete user data then reload it from api after sign in
       const data = await response.json();
       if (response.ok && data?.data) {
-        const parsed: SigninResponseType = {
-          accessToken: '',
-          refreshToken: '',
-          ...data.data,
-        };
-
-        // TS-safe way to extract access token from possibly nested structure
-        const accessToken = _extractAccessToken(parsed);
-        const refreshToken = _extractRefreshToken(parsed);
-
-        if (accessToken.trim() === '') {
-          throw new Error('Invalid access token returned from the server!');
+        let avatarURL = '';
+        try {
+          const profileRes = await fetch(`${API_URL}/profile/user-profile`, {
+            method: 'GET',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+          });
+          if (profileRes.ok) {
+            const profileData = await profileRes.json();
+            avatarURL = profileData?.data?.avatarURL || '';
+          }
+        } catch {
+          // Fall back gracefully if profile extra details fail
         }
 
-        // Fetch detailed profile
-        const profileRes = await fetch(`${API_URL}/profile/user-profile`, {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
-        if (!profileRes.ok) {
-          throw new Error('Failed to fetch user profile details');
-        }
-        const profileData = await profileRes.json();
-
-        // Construct user data with token included
-        const userData = {
-          ...(data?.data?.user || {}),
-          fullName: data?.data?.user?.fullName || 
-                    `${data?.data?.user?.firstName || ''} ${data?.data?.user?.lastName || ''}`.trim(),
-          mobile: data?.data?.user?.mobile,
-          token: accessToken,
-          refreshToken,
-          createdAt: data?.data?.user?.createdAt,
-          avatarURL: profileData?.data?.avatarURL,
+        const rawUser = data.data.user || {};
+        const safeUserData: UserData = {
+          id: rawUser.id || rawUser._id || '',
+          email: rawUser.email || '',
+          firstName: rawUser.firstName || '',
+          lastName: rawUser.lastName || '',
+          fullName:
+            rawUser.fullName ||
+            `${rawUser.firstName || ''} ${rawUser.lastName || ''}`.trim(),
+          mobile: rawUser.mobile || '',
+          createdAt: rawUser.createdAt || '',
+          avatarURL: avatarURL || rawUser.avatarURL || '',
         };
 
         // Update context and localStorage
-        setUser(userData);
-        localStorage.setItem('currentUser', JSON.stringify(userData));
+        setUser(safeUserData);
+        localStorage.setItem('currentUser', JSON.stringify(safeUserData));
         // Navigate to map page after successful login
         navigate('/map');
       }
@@ -138,51 +110,6 @@ function Signin() {
     }
   };
 
-  useEffect(() => { // useEffect should run on page load
-    // console.log('JWT auto-login effect running');
-
-    const userData = localStorage.getItem('currentUser');
-    if (!userData) return; // if no user, do nothing (stay on login page)
-
-    let parsedUser;
-    try {
-      parsedUser = JSON.parse(userData);
-    } catch (e) {
-      // console.error('Invalid user JSON', e);
-      return;
-    }
-
-    const { token } = parsedUser; // access the token of user JSON
-    if (!token) return; // if no token, do nothing
-
-    (async () => {
-      const res = await fetch(jwtUrl, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      try {
-        const data = await res.json();
-        // console.log('JWT login response:', data);
-        if (data.data?.accessToken) {
-          parsedUser.token = data.data.accessToken;
-          if (data.data?.refreshToken) {
-              parsedUser.refreshToken = data.data.refreshToken;
-          }
-          // update both tokens if it had to be updated
-          localStorage.setItem('currentUser', JSON.stringify(parsedUser));
-          // redirect to map
-          navigate('/map');
-        }
-      }
-      catch (err) {
-        console.error('JWT login error: ', err);
-      };
-    })();
-  }, []);
   
   //UI Rendering
   return (

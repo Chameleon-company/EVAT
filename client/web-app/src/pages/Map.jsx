@@ -332,7 +332,7 @@ export default function Map() {
   useEffect(() => {
     let mounted = true;
 
-    if (!user?.token) {
+    if (!user) {
       setLoading(false);
       setErr('Please log in to search for charging stations');
       return;
@@ -342,7 +342,7 @@ export default function Map() {
       try {
         setErr('');
         setLoading(true);
-        const data = await getChargers(user);
+        const data = await getChargers();
         if (mounted) {
           setStations(Array.isArray(data) ? data : []);
           setLoading(false);
@@ -359,7 +359,7 @@ export default function Map() {
     return () => {
       mounted = false;
     };
-  }, [user?.token]);
+  }, [user]);
 
   // Automatically select a station for Congestion Prediction
 useEffect(() => {
@@ -400,7 +400,7 @@ useEffect(() => {
 
     async function fetchConnectorTypes() {
       try {
-        const types = await getConnectorTypes(user);
+        const types = await getConnectorTypes();
         setConnectorTypes(types);
       } catch (err) {
         console.error("Failed to load connector types", err);
@@ -409,7 +409,7 @@ useEffect(() => {
 
     async function fetchOperatorTypes() {
       try {
-        const types = await getOperatorTypes(user);
+        const types = await getOperatorTypes();
         setOperatorTypes(types);
       } catch (err) {
         console.error("Failed to load operator types", err);
@@ -501,7 +501,7 @@ useEffect(() => {
               {err}
             </Banner>
           )}
-          {!bbox && !loading && user?.token && (
+          {!bbox && !loading && user && (
             <Banner type="info" className="absolute z-11 font-medium max-w-80 top-2 right-2 md:top-[unset] md:right-[unset] md:bottom-4 md:left-4">
               <div className="mb-1 font-semibold">
                 📍 Map Loading
@@ -511,7 +511,7 @@ useEffect(() => {
               </div>
             </Banner>
           )}
-          {!user?.token && (
+          {!user && (
             <Banner type="warning" className="absolute z-11 font-medium max-w-80 top-2 right-2 md:top-[unset] md:right-[unset] md:bottom-4 md:left-4">
               <div className="mb-1 font-semibold">
                 ⚠️ Login Required

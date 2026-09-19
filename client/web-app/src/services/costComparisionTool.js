@@ -1,11 +1,11 @@
 const API_URL = import.meta.env.VITE_API_URL;
 
-export const getCostComparison = async (payload, token) => {
+export const getCostComparison = async (payload) => {
   const response = await fetch(`${API_URL}/predict/cost`, { 
     method: "POST",
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}`,
     },
     body: JSON.stringify(payload),
   });
@@ -18,12 +18,12 @@ export const getCostComparison = async (payload, token) => {
   return response.json();
 };
 
-export const getCostCharts = async (payload, token) => {
+export const getCostCharts = async (payload) => {
     const response = await fetch(`${API_URL}/predict/cost/charts`, {
         method: "POST",
+        credentials: "include",
         headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify(payload),
     });
@@ -36,12 +36,12 @@ export const getCostCharts = async (payload, token) => {
     return response.json();
 };
 
-export const getEvVehicles = async (token) => {
+export const getEvVehicles = async () => {
     const response = await fetch(`${API_URL}/predict/vehicles/ev`, {
         method: "GET",
+        credentials: "include",
         headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
         },
     });
     if (!response.ok) {
@@ -51,12 +51,12 @@ export const getEvVehicles = async (token) => {
     return response.json();
 };
 
-export const getIceVehicles = async (token) => {
+export const getIceVehicles = async () => {
     const response = await fetch(`${API_URL}/predict/vehicles/ice`, {
         method: "GET",
+        credentials: "include",
         headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
         },
     });
     if (!response.ok) {
@@ -66,12 +66,12 @@ export const getIceVehicles = async (token) => {
     return response.json();
 };
 
-export const getEvEfficiency = async (make, model, variant, token) => {
+export const getEvEfficiency = async (make, model, variant) => {
     const response = await fetch(`${API_URL}/predict/vehicles/ev/efficiency`, {
         method: "POST",
+        credentials: "include",
         headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify({ make, model, variant }),
     });
@@ -82,12 +82,12 @@ export const getEvEfficiency = async (make, model, variant, token) => {
     return response.json();
 };
 
-export const getIceEfficiency = async (make, model, variant, token) => {
+export const getIceEfficiency = async (make, model, variant) => {
     const response = await fetch(`${API_URL}/predict/vehicles/ice/efficiency`, {
         method: "POST",
+        credentials: "include",
         headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify({ make, model, variant }),
     });

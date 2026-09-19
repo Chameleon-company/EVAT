@@ -20,6 +20,188 @@ function SelectField({
   onChange,
   disabled,
 }) {
+
+  // Local state for EV dropdowns
+  const [selectedEvMake, setSelectedEvMake] = useState("Select");
+  const [selectedEvModel, setSelectedEvModel] = useState("Select");
+  const [selectedEvVariant, setSelectedEvVariant] = useState("Select");
+  const [selectedEvYear, setSelectedEvYear] = useState("Select");
+  const [selectedEv, setSelectedEv] = useState("Select");
+
+  // Local state for ICE dropdowns
+  const [selectedIceMake, setSelectedIceMake] = useState("Select");
+  const [selectedIceModel, setSelectedIceModel] = useState("Select");
+  const [selectedIceVariant, setSelectedIceVariant] = useState("Select");
+  const [selectedIceYear, setSelectedIceYear] = useState("Select");
+  const [selectedIce, setSelectedIce] = useState("Select");
+
+  // States for ICE data
+  const [allIceVehicles, setAllIceVehicles] = useState([]);
+  const [iceMakes, setIceMakes] = useState(["Select"]);
+  const [loadingIce, setLoadingIce] = useState(false);
+  const [iceError, setIceError] = useState(null);
+
+  // State for comparison result
+  const [comparisonResult, setComparisonResult] = useState(null);
+  const [loadingCompare, setLoadingCompare] = useState(false);
+  const [errorCompare, setErrorCompare] = useState(null);
+
+  // Fetch ICE vehicles ONLY when this component mounts
+  useEffect(() => {
+    const fetchIceVehicles = async () => {
+      if (!user || loadingIce) return;
+
+      setLoadingIce(true);
+      setIceError(null);
+
+      try {
+        const res = await fetch(`${API_URL}/ice-vehicle`, {   // ← adjust endpoint if needed
+          credentials: "include",
+        });
+
+        if (!res.ok) throw new Error("Failed to fetch ICE vehicles");
+
+        const data = await res.json();
+        const items = (data.data || []).map((v) => ({
+          ...v,
+          id: v.id || v._id,
+          year: v.year || v.model_release_year,
+        }))
+        .filter((v) => v.fuel_type && v.fuel_type !== "Pure Electric");  // Ensure we only keep ICE vehicles
+
+        setAllIceVehicles(items);
+        setIceMakes(["Select", ...new Set(items.map((v) => v.make))]);
+      } catch (err) {
+        console.error("Failed to load ICE vehicles:", err);
+        setIceError(err.message);
+      } finally {
+        setLoadingIce(false);
+      }
+    };
+
+    fetchIceVehicles();
+  }, [user]);
+
+  // Filter EV models, variants and years based on selection
+  const filteredEvModels = allElectricVehicles
+    .filter(v => v.make === selectedEvMake)
+    .map(v => v.model);
+
+  const filteredEvVariants = allElectricVehicles
+    .filter(v => v.make === selectedEvMake && v.model === selectedEvModel)
+    .map(v => v.variant);
+
+  const filteredEvYears = allElectricVehicles
+    .filter(v => v.make === selectedEvMake && v.model === selectedEvModel && v.variant === selectedEvVariant)
+    .map(v => v.year || v.model_release_year)
+    .filter(Boolean);
+
+  // Save the selected EV object to access other data
+  useEffect(() => {
+    if (selectedEvMake === "Select" || selectedEvModel === "Select" || selectedEvYear === "Select") {
+      setSelectedEv(null);
+      return;
+    }
+
+    const found = allElectricVehicles.find(v =>
+      v.make === selectedEvMake &&
+      v.model === selectedEvModel &&
+      v.variant === selectedEvVariant &&
+      String(v.year || v.model_release_year) === String(selectedEvYear)
+    );
+
+    setSelectedEv(found || null);
+  }, [selectedEvMake, selectedEvModel, selectedEvVariant, selectedEvYear, allElectricVehicles]);
+
+  // Fetch comparison result whenever selected EV or ICE changes
+  useEffect(() => {
+  const fetchComparison = async () => {
+    if (!selectedEv?.id || !selectedIce?.id) {
+  setComparisonResult(null);
+  setErrorCompare(null);
+  return;
+}
+
+    try {
+      setLoadingCompare(true);
+      setErrorCompare(null);
+      setComparisonResult(null);
+
+  const res = await fetch(
+    `${API_URL}/env-impact-analysis/compare`,
+    {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json", },
+      body: JSON.stringify({
+        evVehicleId: selectedEv.id,
+        iceVehicleId: selectedIce.id,
+      }),
+    }
+  );
+
+      if (!res.ok) {
+        throw new Error("Failed to fetch comparison");
+      }
+
+      const data = await res.json();
+      console.log("COMPARE RESULT:", data);
+
+      setComparisonResult(data.data);
+    } catch (err) {
+      console.error(err);
+      setErrorCompare(err.message);
+    } finally {
+      setLoadingCompare(false);
+    }
+  };
+
+  fetchComparison();
+}, [selectedEv, selectedIce]);
+
+  // Filter ICE models, variants and years based on selection
+  const filteredIceModels = allIceVehicles
+    .filter(v => v.make === selectedIceMake)
+    .map(v => v.model);
+
+  const filteredIceVariants = allIceVehicles
+    .filter(v => v.make === selectedIceMake && v.model === selectedIceModel)
+    .map(v => v.variant);
+
+  const filteredIceYears = allIceVehicles
+    .filter(v => v.make === selectedIceMake && v.model === selectedIceModel && v.variant === selectedIceVariant)
+    .map(v => v.year || v.model_release_year)
+    .filter(Boolean);
+
+  // Save the selected ICE object to access other data
+  useEffect(() => {
+    if (selectedIceMake === "Select" || selectedIceModel === "Select" || selectedIceYear === "Select") {
+      setSelectedIce(null);
+      return;
+    }
+
+    const found = allIceVehicles.find(v =>
+      v.make === selectedIceMake &&
+      v.model === selectedIceModel &&
+      v.variant === selectedIceVariant &&
+      String(v.year || v.model_release_year) === String(selectedIceYear)
+    );
+
+    setSelectedIce(found || null);
+  }, [selectedIceMake, selectedIceModel, selectedIceVariant, selectedIceYear, allIceVehicles]);
+
+      const hasValue = (value) =>
+        value !== null && value !== undefined && value !== "";
+
+      const displayValue = (value) => {
+        return hasValue(value) ? value : "N/A";
+      };
+
+  // Loading ICE data
+  if (loadingIce) return <div className="horizontal center">Loading petrol/diesel vehicles...</div>;
+  // Error while loading ICE data
+  if (iceError) return <div className="horizontal center">Error loading ICE vehicles: {iceError}</div>;
+
   return (
     <div>
       <label
@@ -316,11 +498,11 @@ export default function EnvironmentalImpact({
 
   useEffect(() => {
     (async () => {
-      if (!user?.token) return;
+      if (!user) return;
 
       fetch(`${API_URL}/ice-vehicle`, {
         headers: {
-          Authorization: `Bearer ${user.token}`,
+          credentials: "include",
         },
       })
         .then((res) => {
@@ -344,7 +526,7 @@ export default function EnvironmentalImpact({
           setError(err.message)
         );
     })();
-  }, [user?.token]);
+  }, [user]);
 
   const options = (
     vehicles,
@@ -487,10 +669,10 @@ export default function EnvironmentalImpact({
           `${API_URL}/env-impact-analysis/compare`,
           {
             method: "POST",
+            credentials: "include",
             headers: {
               "Content-Type":
                 "application/json",
-              Authorization: `Bearer ${user.token}`,
             },
             body: JSON.stringify({
               evVehicleId: ev.id,
@@ -515,7 +697,7 @@ export default function EnvironmentalImpact({
     };
 
     compare();
-  }, [ev, ice, user?.token]);
+  }, [ev, ice, user]);
 
   return (
     <div

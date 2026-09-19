@@ -476,11 +476,7 @@ function Chips({ options, onSelect }) {
 
 /** The signed-in account's id, falling back to the saved login while the context loads. */
 const chatOwner = (user) => {
-  let account = user;
-  if (!account) {
-    try { account = JSON.parse(localStorage.getItem("currentUser") || "null"); } catch { account = null; }
-  }
-  return account?.id || account?._id || account?.email || "guest";
+  return user?.id || user?._id || user?.email || "guest";
 };
 
 /**
@@ -606,7 +602,7 @@ function ChatbotPage({ owner }) {
       setGeminiMessages(prev => [...prev, { from: "user", text: `Estimate the value of a ${summary}`, time: timestamp() }]);
     }
 
-    if (!user?.token) {
+    if (!user) {
       setShowValueForm(false);
       addBot("Please sign in to get a price estimate.");
       return;
@@ -614,7 +610,7 @@ function ChatbotPage({ owner }) {
 
     setValueLoading(true);
     try {
-      const result = await predictPrice(features, user.token, "chatbot");
+      const result = await predictPrice(features, "chatbot");
       addBot(`Estimated value: **${formatAud(result.predicted_price)}** for a ${summary}.\n\nThis figure comes from EVAT's price prediction model.`);
     } catch (error) {
       const expired = /token/i.test(error.message || "");
@@ -914,10 +910,10 @@ function ChatbotPage({ owner }) {
     const saveLatest = async () => {
       sync.saving = true;
       try {
-        if (!user?.token) throw new Error("Not signed in");
+        if (!user) throw new Error("Not signed in");
         while (sync.chosen !== sync.saved) {
           const rating = sync.chosen;
-          await rateChatbotReply({ ...details, rating }, user.token);
+          await rateChatbotReply({ ...details, rating });
           sync.saved = rating;
         }
       } catch (error) {

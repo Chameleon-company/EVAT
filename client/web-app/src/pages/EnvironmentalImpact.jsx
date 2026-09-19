@@ -15,15 +15,13 @@ export default function EnvironmentalImpactPage() {
     // Wait for user context to hydrate
     if (user === null) return;
 
-    if (!user?.token) {
+    if (!user) {
       setLoading(false);
       return;
     }
 
     fetch(`${API_URL}/vehicle`, {
-      headers: {
-        Authorization: `Bearer ${user.token}`,
-      },
+      credentials: "include",
     })
       .then((res) => res.json())
       .then((data) => {
@@ -199,7 +197,7 @@ export default function EnvironmentalImpactPage() {
           )}
 
           {/* No authenticated user */}
-          {user !== null && !user?.token && (
+          {user !== null && !user && (
             <div
               className="
                 rounded-xl
@@ -258,7 +256,7 @@ export default function EnvironmentalImpactPage() {
           )}
 
           {/* Authenticated user */}
-          {user !== null && user?.token && (
+          {user !== null && user && (
             <>
               {loading ? (
                 <div

@@ -79,19 +79,6 @@ const ProfileAvatarTool = ({
     }
   };
 
-  const getToken = () => {
-    const token =
-      contextUser?.token ||
-      JSON.parse(localStorage.getItem("currentUser") || "null")?.token;
-
-    if (!token) {
-      setError("You are not logged in. Please sign in again.");
-      return null;
-    }
-
-    return token;
-  };
-
   const isValidUrl = (url) => {
     if (!url || !url.trim()) {
       return {
@@ -206,9 +193,8 @@ const ProfileAvatarTool = ({
       return;
     }
 
-    const token = getToken();
 
-    if (!token) return;
+    if (!user) return;
 
     setUploading(true);
     setError("");
@@ -217,16 +203,11 @@ const ProfileAvatarTool = ({
       const formData = new FormData();
       formData.append("avatar", file);
 
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/profile/avatar/upload`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: formData,
-        }
-      );
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/profile/avatar/upload`, {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
 
       if (!res.ok) {
         if (res.status === 401) {
@@ -276,24 +257,13 @@ const ProfileAvatarTool = ({
   const handleSave = async () => {
     if (!selectedAvatar) return;
 
-    const token = getToken();
-
-    if (!token) return;
-
     try {
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/profile/avatar`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            avatarURL: selectedAvatar,
-          }),
-        }
-      );
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/profile/avatar`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json", },
+        body: JSON.stringify({ avatarURL: selectedAvatar }),
+      });
 
       if (!res.ok) {
         if (res.status === 401) {

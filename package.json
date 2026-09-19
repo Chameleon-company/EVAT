@@ -14,7 +14,7 @@
     "dev:server": "npm run server --workspace=server",
     "python:sync": "uv sync --locked --project \"server/python-services\"",
     "train:charging-recommendation-model": "cd \"server/python-services\" && uv run --locked python charging_station_recommendation_api/training/retrain_preference_model.py",
-    "dev:python": "cd \"server/python-services\" && uv run --locked python -m uvicorn main:app --host 127.0.0.1 --port 5000 --reload",
+    "dev:python": "cd \"server/python-services\" && uv run --locked python -m uvicorn main:app --host 127.0.0.1 --port 5000 --reload-exclude \".venv\"",
     "build:client": "npm run build --workspace=client",
     "build:server": "npm run build --workspace=server",
     "test:client": "npm run test --workspace=client",
@@ -25,5 +25,8 @@
     "concurrently": "^10.0.4",
     "eslint": "^10.8.0",
     "typescript-eslint": "^8.65.0"
+  },
+  "dependencies": {
+    "all": "^0.0.0"
   }
 }

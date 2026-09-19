@@ -29,7 +29,6 @@ function stationKey(station) {
  */
 export function NearbyPlacesProvider({ station, children }) {
   const { user } = useContext(UserContext);
-  const token = user?.token;
   const [places, setPlaces] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -45,7 +44,7 @@ export function NearbyPlacesProvider({ station, children }) {
   }
 
   useEffect(() => {
-    if (!station || !token) {
+    if (!station || !user) {
       setPlaces([]);
       setLoading(false);
       setError("");
@@ -66,7 +65,6 @@ export function NearbyPlacesProvider({ station, children }) {
         const options = {
           category,
           radiusKm: 1,
-          token,
           signal: abortController.signal,
         };
 
@@ -98,7 +96,7 @@ export function NearbyPlacesProvider({ station, children }) {
       cancelled = true;
       abortController.abort();
     };
-  }, [station, selectedStationKey, token, category]);
+  }, [station, selectedStationKey, category]);
 
   const value = useMemo(
     () => ({ station, places, loading, error, category, setCategory }),

@@ -20,24 +20,8 @@ function FeedbackForm() {
   const [isEmailEmpty, setIsEmailEmpty] = useState(false);
   const [isSuggestionEmpty, setIsSuggestionEmpty] = useState(false);
   const [recentSuccess, setRecentSuccess] = useState(false);
-
-  useEffect(() => {
-    const raw = localStorage.getItem("currentUser");
-    if (!raw) return;
-
-    try {
-      const u = JSON.parse(raw);
-      const name = [u?.firstName, u?.lastName]
-        .filter(Boolean)
-        .join(" ")
-        .trim();
-
-      setName(name);
-      setEmail(u?.email);
-    } catch {
-      /* ignore */
-    }
-  }, []);
+  const { user } = useContext(UserContext);
+  const userId = user?.id || user?._id || null;
 
   useEffect(() => {
     if (recentSuccess) {

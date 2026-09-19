@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import he from "he";
 import FeedbackService from "../services/feedback-service";
 import { FeedbackResponse } from "../dtos/feedback-response";
 import DOMPurify from "dompurify";
@@ -23,11 +24,15 @@ export default class FeedbackController {
     const sanitizedSuggestion = purify.sanitize(suggestion);
 
     try {
+      const safeName = name ? he.encode(String(name)) : "";
+      const safeEmail = email ? he.encode(String(email)) : "";
+      const safeSuggestion = suggestion ? he.encode(String(suggestion)) : "";
+
       if (sanitizedSuggestion.trim() === "") {
           throw new Error("Cannot submit feedback with potentially malicious Javascript/HTML.");
       }
 
-      const feedback = await this.feedbackService.createFeedback(name, email, sanitizedSuggestion);
+      const feedback = await this.feedbackService.createFeedback(safeName, safeEmail, safeSuggestion);
       return res
         .status(201)
         .json({ 

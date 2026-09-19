@@ -12,25 +12,12 @@ const ApiTester = () => {
   const [endpoint, setEndpoint] = useState('/vehicle');
   const [method, setMethod] = useState('GET');
   const [body, setBody] = useState('');
-  const [token, setToken] = useState('');
-  const [showToken, setShowToken] = useState(false);
   const [response, setResponse] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [history, setHistory] = useState([]);
   const [endpointSearch, setEndpointSearch] = useState('');
   const baseUrl = import.meta.env.VITE_API_URL;
-
-  useEffect(() => {
-    try {
-      const user = JSON.parse(localStorage.getItem('currentUser') || {});
-      if (user.token) {
-        setToken(user.token);
-      }
-    } catch (e) {
-      console.warn('Failed to auto-load token from currentUser');
-    }
-  }, []);
 
   const sendRequest = async () => {
     setError('');
@@ -50,11 +37,9 @@ const ApiTester = () => {
 
       const res = await fetch(url, {
         method,
+        credentials: "include",
         headers: {
           'Content-Type': 'application/json',
-          ...(token.trim() && {
-            Authorization: `Bearer ${token.trim()}`,
-          }),
         },
         body: jsonBody ? JSON.stringify(jsonBody) : undefined,
       });
@@ -231,10 +216,6 @@ const ApiTester = () => {
                   setEndpoint={setEndpoint}
                   body={body}
                   setBody={setBody}
-                  token={token}
-                  setToken={setToken}
-                  showToken={showToken}
-                  setShowToken={setShowToken}
                   loading={loading}
                   onSend={sendRequest}
                 />

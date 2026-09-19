@@ -222,6 +222,20 @@ router.post("/login", (req, res) => userController.login(req, res));
 
 /**
  * @swagger
+ * /api/auth/logout:
+ *   post:
+ *     tags:
+ *       - Authentication
+ *     summary: Logout
+ *     description: Destroys the secure HttpOnly cookie to log the user out securely.
+ *     responses:
+ *       200:
+ *         description: Successfully logged out
+ */
+router.post("/logout", (req, res) => userController.logout(req, res));
+
+/**
+ * @swagger
  * /api/auth/refresh-token:
  *   post:
  *     tags:

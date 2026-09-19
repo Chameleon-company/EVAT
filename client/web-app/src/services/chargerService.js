@@ -11,22 +11,12 @@ export async function getChargers(user, params = {}) {
     url.searchParams.set('bbox', params.bbox.join(','));
   }
 
-  // Use token from context or fallback to localStorage
-  const ctxToken = user?.token;
-  const lsToken = (() => {
-    try { return JSON.parse(localStorage.getItem('user'))?.token; } catch { return null; }
-  })();
-  const token = ctxToken || lsToken;
-
-  if (!token) {
-    throw new Error('Unauthorized: missing access token.');
-  }
-
+  // Fire the request blindly. The browser automatically attaches the HttpOnly cookie.
   const res = await fetch(url.toString(), {
     method: 'GET',
+    credentials: 'include', // commands the browser to send the cookie vault
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
+      'Content-Type': 'application/json'
     }
   });
 

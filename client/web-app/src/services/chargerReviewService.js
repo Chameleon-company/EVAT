@@ -5,16 +5,15 @@ const usernameUrl = `${API_URL}/profile/username`;
 /**
  * Submit a review for a specific charger
  * @param {Object} reviewData - The review data containing chargerId, rating, comment
- * @param {string} token - JWT token for authentication
  * @returns {Promise<Object>} - The response from the API
  */
-export const submitChargerReview = async (reviewData, token) => {
+export const submitChargerReview = async (reviewData) => {
   try {
     const response = await fetch(`${baseUrl}`, {
       method: 'POST',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify(reviewData),
     });
@@ -97,16 +96,15 @@ export const getChargerReviewStats = async (chargerId) => {
 /**
  * Check if user has reviewed a charger and get their review
  * @param {string} chargerId - The charger ID
- * @param {string} token - JWT token for authentication
  * @returns {Promise<Object>} - The response from the API
  */
-export const checkUserReviewStatus = async (chargerId, token) => {
+export const checkUserReviewStatus = async (chargerId) => {
   try {
     const response = await fetch(`${baseUrl}/charger/${chargerId}/user-status`, {
       method: 'GET',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
       },
     });
 
@@ -127,16 +125,15 @@ export const checkUserReviewStatus = async (chargerId, token) => {
  * Update a user's review for a charger
  * @param {string} reviewId - The review ID
  * @param {Object} reviewData - The updated review data
- * @param {string} token - JWT token for authentication
  * @returns {Promise<Object>} - The response from the API
  */
-export const updateChargerReview = async (reviewId, reviewData, token) => {
+export const updateChargerReview = async (reviewId, reviewData) => {
   try {
     const response = await fetch(`${baseUrl}/${reviewId}`, {
       method: 'PUT',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify(reviewData),
     });
@@ -157,16 +154,15 @@ export const updateChargerReview = async (reviewId, reviewData, token) => {
 /**
  * Delete a user's review for a charger
  * @param {string} reviewId - The review ID
- * @param {string} token - JWT token for authentication
  * @returns {Promise<Object>} - The response from the API
  */
-export const deleteChargerReview = async (reviewId, token) => {
+export const deleteChargerReview = async (reviewId) => {
   try {
     const response = await fetch(`${baseUrl}/${reviewId}`, {
       method: 'DELETE',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
       },
     });
 
@@ -186,16 +182,15 @@ export const deleteChargerReview = async (reviewId, token) => {
 /**
  * Get username from ID 
  * @param {string} userID - The user ID
- * @param {string} token - JWT token for authentication
  * @returns {Promise<Object>} - The response from the API
  */
-export const getUsername = async (userID, token) => {
+export const getUsername = async (userID) => {
   try {
     const response = await fetch(`${usernameUrl}/${userID}`, {
       method: 'GET',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
       },
     });
 
